@@ -175,6 +175,15 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 </div>
 </div>
 
+<div class="space-y-2 pt-2 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Exportar / Importar Datos del CV</label>
+<div class="grid grid-cols-2 gap-2 text-xs">
+<button onclick="exportCV()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-export text-blue-400"></i> Exportar</button>
+<button onclick="document.getElementById('import-file').click()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-import text-blue-400"></i> Importar</button>
+</div>
+<input type="file" id="import-file" accept=".json,application/json,text/plain" class="hidden" onchange="importCV(event)">
+</div>
+
 <div class="pt-4 border-t border-slate-800">
 <button onclick="resetSampleData()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2">
 <i class="fa-solid fa-rotate-left"></i>
@@ -226,10 +235,10 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 
 <div id="reset-modal" class="no-print hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
 <div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-sm w-full p-5 text-slate-200">
-<p class="text-sm leading-relaxed mb-4">¿Está seguro que desea Borrar las modificaciones y restablecer TODO el texto 'Default' del Modelo y del Perfil de ejemplo?</p>
+<p id="confirm-text" class="text-sm leading-relaxed mb-4"></p>
 <div class="flex justify-end gap-2">
-<button onclick="cancelReset()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">No</button>
-<button onclick="confirmReset()" class="px-4 py-1.5 rounded-lg bg-rose-900 hover:bg-rose-800 text-white text-xs font-medium transition">Sí</button>
+<button onclick="closeConfirm()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">No</button>
+<button onclick="runConfirm()" class="px-4 py-1.5 rounded-lg bg-rose-900 hover:bg-rose-800 text-white text-xs font-medium transition">Sí</button>
 </div>
 </div>
 </div>
@@ -240,6 +249,7 @@ preset:'compact',layout:'2-col',fontFamily:"'Inter', sans-serif",fontSize:11.5,l
 photoUrl:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
 fullName:'Lic. Gonzalo Ariel Rodríguez',
 jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
+sectionTitles:{},hiddenSections:[],
 contact:{location:'CABA, Buenos Aires, Argentina',phone:'+54 9 11 5849-2019',email:'gonzalo.rodriguez@email.com',linkedin:'linkedin.com/in/gonzalo-rodriguez-arg',github:'github.com/gonzalo-dev-arg',cuil:'CUIL: 20-38492019-4',birth:'28/05/1993 (31 años)'},
 profileSummary:'Profesional con más de 6 años de experiencia en desarrollo de software, análisis funcional y arquitectura web. Especializado en el ecosistema JavaScript/TypeScript (Node.js, React) y bases de datos relacionales. Enfocado en la resolución de problemas de alto impacto corporativo, metodologías ágiles (Scrum) y optimización de procesos en entornos dinámicos de Argentina y Latinoamérica.',
 experience:[
@@ -277,6 +287,7 @@ function renderCV(){
 applyCssVariables();
 const root=document.getElementById('cv-root');
 root.innerHTML=cvState.layout==='2-col'?renderTwoColumnLayout():renderOneColumnLayout();
+applyHiddenSections();
 attachEditableEvents();
 checkPageOverflow();
 recordCV();
@@ -302,7 +313,7 @@ return `
 <div class="col-span-4 cv-sidebar-bg-custom p-4 rounded-xl border border-[var(--cv-border-color)] flex flex-col gap-4">
 ${cvState.showPhoto?`<div class="text-center mb-1"><img src="${cvState.photoUrl}" alt="Foto Perfil" class="w-28 h-28 object-cover rounded-full mx-auto border-4 border-white shadow-md"></div>`:''}
 <div class="cv-section-gap">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5"><i class="fa-solid fa-address-card text-xs"></i> Contacto</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="contact">${secInner('contact','fa-solid fa-address-card text-xs','Contacto')}</h3>
 <div class="space-y-1.5 text-[0.92em]">
 <div class="flex items-start gap-2"><i class="fa-solid fa-location-dot mt-1 text-[var(--cv-primary-color)] text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.location', this.innerText)">${cvState.contact.location}</span></div>
 <div class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-600 font-bold text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.phone', this.innerText)">${cvState.contact.phone}</span></div>
@@ -314,19 +325,19 @@ ${cvState.showCuil?`<div class="flex items-center gap-2 text-[0.9em] font-semibo
 </div>
 </div>
 <div class="cv-section-gap">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5"><i class="fa-solid fa-code text-xs"></i> Habilidades Técnicas</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
 <div class="flex flex-wrap gap-1">
 ${cvState.skillsHard.map((skill,idx)=>`<span class="inline-block bg-white px-2 py-0.5 rounded border border-slate-300 text-[0.88em] font-medium shadow-sm"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${skill}</span></span>`).join('')}
 </div>
 </div>
 <div class="cv-section-gap">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5"><i class="fa-solid fa-user-check text-xs"></i> Competencias</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
 <ul class="list-disc list-inside text-[0.9em] space-y-0.5">
 ${cvState.skillsSoft.map((skill,idx)=>`<li><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${skill}</span></li>`).join('')}
 </ul>
 </div>
 <div class="cv-section-gap">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5"><i class="fa-solid fa-language text-xs"></i> Idiomas</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
 <div class="space-y-1 text-[0.9em]">
 ${cvState.languages.map((lang,idx)=>`<div><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${lang.name}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${lang.level}</span></div>`).join('')}
 </div>
@@ -338,12 +349,12 @@ ${cvState.languages.map((lang,idx)=>`<div><span class="font-semibold" contentedi
 <h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText" class="text-[1.1em] font-semibold text-slate-700 mt-0.5">${cvState.jobTitle}</h2>
 </div>
 <div class="cv-section-gap page-break-inside-avoid">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-200 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-user text-xs"></i> Perfil Profesional</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-200 mb-1.5 flex items-center gap-1.5" data-sec="profile">${secInner('profile','fa-solid fa-user text-xs','Perfil Profesional')}</h3>
 <p contenteditable="true" onblur="cvState.profileSummary = this.innerText" class="text-[0.92em] text-slate-700 text-justify leading-relaxed">${cvState.profileSummary}</p>
 </div>
 <div class="cv-section-gap">
 <div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-2">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-xs"></i> Experiencia Laboral</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="experience">${secInner('experience','fa-solid fa-briefcase text-xs','Experiencia Laboral')}</h3>
 <button onclick="addExperienceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
 <div class="space-y-3">
@@ -364,7 +375,7 @@ ${cvState.experience.map((exp,idx)=>`
 </div>
 <div class="cv-section-gap">
 <div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-2">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5"><i class="fa-solid fa-graduation-cap text-xs"></i> Educación y Formación</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="education">${secInner('education','fa-solid fa-graduation-cap text-xs','Educación y Formación')}</h3>
 <button onclick="addEducationItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
 <div class="space-y-2">
@@ -384,7 +395,7 @@ ${cvState.education.map((edu)=>`
 </div>
 <div class="cv-section-gap page-break-inside-avoid">
 <div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-1.5">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5"><i class="fa-solid fa-certificate text-xs"></i> Cursos y Certificaciones</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="courses">${secInner('courses','fa-solid fa-certificate text-xs','Cursos y Certificaciones')}</h3>
 <button onclick="addCourseItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
 <div class="space-y-1.5 text-[0.88em]">
@@ -398,7 +409,7 @@ ${cvState.courses.map((crs)=>`
 </div>
 <div class="cv-section-gap page-break-inside-avoid">
 <div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-1.5">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5"><i class="fa-solid fa-users text-xs"></i> Referencias Laborales</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="references">${secInner('references','fa-solid fa-users text-xs','Referencias Laborales')}</h3>
 <button onclick="addReferenceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
 <div class="grid grid-cols-2 gap-2 text-[0.88em]">
@@ -433,12 +444,12 @@ ${cvState.showCuil?`<span class="flex items-center gap-1 font-medium"><i class="
 </div>
 </div>
 <div class="cv-section-gap page-break-inside-avoid">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-user text-xs"></i> Perfil Profesional</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="profile">${secInner('profile','fa-solid fa-user text-xs','Perfil Profesional')}</h3>
 <p contenteditable="true" onblur="cvState.profileSummary = this.innerText" class="text-[0.92em] text-slate-700 text-justify leading-relaxed">${cvState.profileSummary}</p>
 </div>
 <div class="cv-section-gap">
 <div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-xs"></i> Experiencia Laboral</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="experience">${secInner('experience','fa-solid fa-briefcase text-xs','Experiencia Laboral')}</h3>
 <button onclick="addExperienceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
 <div class="space-y-3">
@@ -460,7 +471,7 @@ ${cvState.experience.map((exp)=>`
 <div class="grid grid-cols-2 gap-5 cv-section-gap">
 <div>
 <div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5"><i class="fa-solid fa-graduation-cap text-xs"></i> Educación</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="education">${secInner('education','fa-solid fa-graduation-cap text-xs','Educación')}</h3>
 <button onclick="addEducationItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus-circle"></i></button>
 </div>
 <div class="space-y-2">
@@ -477,11 +488,11 @@ ${cvState.education.map((edu)=>`
 </div>
 </div>
 <div>
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-code text-xs"></i> Habilidades Técnicas</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
 <div class="flex flex-wrap gap-1">
 ${cvState.skillsHard.map((skill,idx)=>`<span class="inline-block bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-[0.85em] font-medium"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${skill}</span></span>`).join('')}
 </div>
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 mt-3 flex items-center gap-1.5"><i class="fa-solid fa-language text-xs"></i> Idiomas</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 mt-3 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
 <div class="space-y-0.5 text-[0.88em]">
 ${cvState.languages.map((lang,idx)=>`<div><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${lang.name}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${lang.level}</span></div>`).join('')}
 </div>
@@ -489,7 +500,7 @@ ${cvState.languages.map((lang,idx)=>`<div><span class="font-semibold" contentedi
 </div>
 <div class="grid grid-cols-2 gap-5 page-break-inside-avoid">
 <div>
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-certificate text-xs"></i> Cursos</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="courses">${secInner('courses','fa-solid fa-certificate text-xs','Cursos')}</h3>
 <div class="space-y-1 text-[0.85em]">
 ${cvState.courses.map((crs)=>`
 <div class="editable-item">
@@ -499,7 +510,7 @@ ${cvState.courses.map((crs)=>`
 </div>
 </div>
 <div>
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-users text-xs"></i> Referencias</h3>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="references">${secInner('references','fa-solid fa-users text-xs','Referencias')}</h3>
 <div class="space-y-1 text-[0.85em]">
 ${cvState.references.map((ref)=>`
 <div class="editable-item">
@@ -630,19 +641,26 @@ indicator.className='text-emerald-400 font-semibold';
 }
 
 function triggerPrint(){window.print();}
-function resetSampleData(){
+let pendingConfirm=null;
+function showConfirm(msg,onYes){
+document.getElementById('confirm-text').textContent=msg;
+pendingConfirm=onYes;
 const m=document.getElementById('reset-modal');
 m.classList.remove('hidden');m.classList.add('flex');
 }
-function cancelReset(){
+function closeConfirm(){
 const m=document.getElementById('reset-modal');
 m.classList.add('hidden');m.classList.remove('flex');
+pendingConfirm=null;
 }
-function confirmReset(){location.reload();}
+function runConfirm(){const f=pendingConfirm;closeConfirm();if(f)f();}
+function resetSampleData(){
+showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TODO el texto 'Default' del Modelo y del Perfil de ejemplo?",()=>location.reload());
+}
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
 const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides'];
-const CV_KEYS=['fullName','jobTitle','contact','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
+const CV_KEYS=['fullName','jobTitle','sectionTitles','hiddenSections','contact','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
 const HIST_MAX=100;
 const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
 
@@ -743,6 +761,146 @@ function redoCV(){stepCV('future','past');}
 const f=window[n];
 window[n]=function(){const r=f.apply(this,arguments);recordEditor();return r;};
 });
+
+/* ===== Secciones: títulos editables y eliminación ===== */
+const SECTION_KEYS=['contact','skillsHard','skillsSoft','languages','profile','experience','education','courses','references'];
+const escHtml=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function secTitle(key,def){const t=cvState.sectionTitles&&cvState.sectionTitles[key];return t||def;}
+function secInner(key,icon,def){
+return `<i class="${icon}"></i> <span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span><button onclick="requestDeleteSection('${key}')" class="no-print ml-1 text-rose-500 hover:text-rose-700 p-1" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+}
+function setSectionTitle(key,text){
+const t=String(text).replace(/\s+/g,' ').trim().slice(0,80);
+if(t){cvState.sectionTitles[key]=t;}
+else if(cvState.sectionTitles[key]){delete cvState.sectionTitles[key];renderCV();}
+}
+function applyHiddenSections(){
+const root=document.getElementById('cv-root');
+(cvState.hiddenSections||[]).forEach(key=>{
+root.querySelectorAll('h3[data-sec="'+key+'"]').forEach(h=>{
+const p=h.parentElement;
+if(p.classList.contains('justify-between')){p.parentElement.remove();}
+else if(p.querySelectorAll(':scope > h3').length>1){const n=h.nextElementSibling;h.remove();if(n)n.remove();}
+else{p.remove();}
+});
+});
+}
+function requestDeleteSection(key){
+const h=document.querySelector('#cv-root h3[data-sec="'+key+'"] span');
+const name=h?h.textContent.trim():key;
+showConfirm("¿Está Seguro que desea borrar la Sección '"+name+"' ?",()=>deleteSection(key));
+}
+function deleteSection(key){
+const c=cvState;
+if(!c.hiddenSections.includes(key))c.hiddenSections.push(key);
+const clear={
+contact:()=>{Object.keys(c.contact).forEach(k=>{c.contact[k]='';});},
+skillsHard:()=>{c.skillsHard=[];},
+skillsSoft:()=>{c.skillsSoft=[];},
+languages:()=>{c.languages=[];},
+profile:()=>{c.profileSummary='';},
+experience:()=>{c.experience=[];},
+education:()=>{c.education=[];},
+courses:()=>{c.courses=[];},
+references:()=>{c.references=[];}
+};
+if(clear[key])clear[key]();
+renderCV();
+}
+/* Agregar contenido desde el panel vuelve a mostrar la sección si estaba eliminada */
+[['addExperienceItem','experience'],['addEducationItem','education'],['addCourseItem','courses'],['addReferenceItem','references']].forEach(([n,k])=>{
+const f=window[n];
+window[n]=function(){
+cvState.hiddenSections=cvState.hiddenSections.filter(x=>x!==k);
+return f.apply(this,arguments);
+};
+});
+
+/* ===== Exportar / Importar (JSON) ===== */
+function exportCV(){
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const data={app:'editor-cv-argentina',version:1,exportedAt:new Date().toISOString(),content:JSON.parse(snap(CV_KEYS))};
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download='cv-datos-'+new Date().toISOString().slice(0,10)+'.json';
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
+const cleanText=v=>String(v==null?'':v).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const cleanDesc=v=>String(v==null?'':v)
+.replace(/<div[^>]*>/gi,'<br>').replace(/<\/div>/gi,'').replace(/^(<br\s*\/?>)+/i,'')
+.replace(/<br\s*\/?>/gi,'\u0000').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\u0000/g,'<br>');
+
+function normalizeImport(d){
+const bad=k=>new Error("El campo '"+k+"' tiene un formato inválido.");
+if(!d||typeof d!=='object'||d.app!=='editor-cv-argentina'||!d.content||typeof d.content!=='object'){
+throw new Error('El archivo no es una exportación válida de este editor.');
+}
+const c=d.content,o={},stamp=Date.now();
+['fullName','jobTitle','profileSummary'].forEach(k=>{
+if(k in c){if(typeof c[k]!=='string')throw bad(k);o[k]=cleanText(c[k]);}
+});
+const list=(k,prefix,fields,descField)=>{
+if(!(k in c))return;
+if(!Array.isArray(c[k]))throw bad(k);
+o[k]=c[k].slice(0,200).map((it,i)=>{
+const r={id:prefix+'_imp_'+stamp+'_'+i};
+fields.forEach(f=>{r[f]=(f===descField?cleanDesc:cleanText)(it&&it[f]);});
+return r;
+});
+};
+list('experience','exp',['role','company','period','location','description'],'description');
+list('education','edu',['degree','institution','period','status']);
+list('courses','crs',['title','institution','year']);
+list('references','ref',['name','title','contact']);
+['skillsHard','skillsSoft'].forEach(k=>{
+if(k in c){if(!Array.isArray(c[k]))throw bad(k);o[k]=c[k].slice(0,100).map(cleanText);}
+});
+if('languages' in c){
+if(!Array.isArray(c.languages))throw bad('languages');
+o.languages=c.languages.slice(0,50).map(l=>({name:cleanText(l&&l.name),level:cleanText(l&&l.level)}));
+}
+if('contact' in c){
+if(!c.contact||typeof c.contact!=='object')throw bad('contact');
+o.contact={};
+['location','phone','email','linkedin','github','cuil','birth'].forEach(f=>{o.contact[f]=cleanText(c.contact[f]);});
+}
+if('sectionTitles' in c){
+if(!c.sectionTitles||typeof c.sectionTitles!=='object')throw bad('sectionTitles');
+o.sectionTitles={};
+SECTION_KEYS.forEach(k=>{
+const t=c.sectionTitles[k];
+if(typeof t==='string'&&t.trim())o.sectionTitles[k]=t.replace(/\s+/g,' ').trim().slice(0,80);
+});
+}
+if('hiddenSections' in c){
+if(!Array.isArray(c.hiddenSections))throw bad('hiddenSections');
+o.hiddenSections=SECTION_KEYS.filter(k=>c.hiddenSections.includes(k));
+}
+return o;
+}
+
+function importCV(e){
+const file=e.target.files[0];
+e.target.value='';
+if(!file)return;
+if(file.size>2*1024*1024){alert('No se pudo importar: el archivo es demasiado grande.');return;}
+const reader=new FileReader();
+reader.onerror=()=>alert('No se pudo importar: no se pudo leer el archivo.');
+reader.onload=()=>{
+let data;
+try{data=normalizeImport(JSON.parse(reader.result));}
+catch(err){alert('No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido.':err.message));return;}
+showConfirm("Se reemplazará todo el texto actual del CV por el contenido del archivo '"+file.name+"'. Podés revertirlo con el botón Deshacer del CV. ¿Continuar?",()=>{
+Object.keys(data).forEach(k=>{cvState[k]=data[k];});
+renderCV();
+});
+};
+reader.readAsText(file);
+}
 
 /* Ajusta el ancho del papel A4 al ancho disponible (solo si la pantalla es más angosta) */
 function fitPaperToScreen(){
