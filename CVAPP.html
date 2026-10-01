@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Diseñador y Editor de CV Argentina (A4)</title>
+    <title>Editor CV Argentina</title>
     <style>
         /* RESET & BASE */
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,8 +18,10 @@
         }
 
         html {
-            height: -webkit-fill-available;
             scroll-behavior: smooth;
+            min-height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         body {
@@ -27,7 +29,6 @@
             background-color: #0f172a;
             color: #f8fafc;
             min-height: 100vh;
-            min-height: -webkit-fill-available;
             min-height: 100dvh;
             overflow-x: hidden;
             overflow-y: auto;
@@ -63,19 +64,22 @@
         }
 
         .sidebar h2 { font-size: 1.2rem; color: #38bdf8; border-bottom: 2px solid #334155; padding-bottom: 8px; }
+        .sidebar h3 { font-size: 0.95rem; color: #cbd5e1; border-bottom: 1px dashed #475569; padding-bottom: 4px; margin-top: 5px; }
+        
         .control-group { display: flex; flex-direction: column; gap: 6px; }
         .control-group label { font-size: 0.85rem; font-weight: 600; color: #94a3b8; }
         .control-group select, .control-group input[type="range"], .control-group button {
             width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569;
             background-color: #0f172a; color: #f8fafc; font-size: 0.9rem;
         }
-        .btn-primary { background-color: #0284c7 !important; color: white !important; font-weight: 600; cursor: pointer; border: none !important; padding: 12px !important; }
-        .btn-secondary { background-color: #334155 !important; color: white !important; cursor: pointer; border: none !important; }
+        
+        .btn-primary { background-color: #0284c7 !important; color: white !important; font-weight: 600; cursor: pointer; border: none !important; padding: 12px !important; margin-top: 5px; }
+        .btn-secondary { background-color: #334155 !important; color: white !important; cursor: pointer; border: none !important; padding: 10px !important; text-align: center; }
 
         /* VISTA PREVIA */
         .preview-area {
             flex-grow: 1; padding: 30px; display: flex; flex-direction: column; align-items: center;
-            overflow-x: auto; overflow-y: visible; background-color: #0f172a;
+            overflow-x: auto; overflow-y: auto; background-color: #0f172a;
         }
 
         /* HOJA A4 */
@@ -98,7 +102,7 @@
 
         /* SECCIONES DEL CV */
         .cv-header { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: var(--section-gap); }
-        .cv-photo { width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); }
+        .cv-photo { width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); cursor: pointer; }
         .cv-title-box h1 { font-size: 1.8rem; color: var(--primary-color); text-transform: uppercase; line-height: 1.1; }
         .cv-title-box h2 { font-size: 1.1rem; color: var(--secondary-color); font-weight: 500; margin-top: 4px; }
         .cv-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
@@ -113,40 +117,54 @@
         .contact-list li { display: flex; align-items: center; gap: 6px; word-break: break-word; }
         .skills-tag-container { display: flex; flex-wrap: wrap; gap: 5px; }
         .skill-tag { background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e293b; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 500; }
+        
         [contenteditable="true"] { outline: 1px dashed transparent; transition: outline 0.2s; }
         [contenteditable="true"]:hover { outline: 1px dashed #38bdf8; }
         [contenteditable="true"]:focus { outline: 2px solid #0284c7; background: rgba(56, 189, 248, 0.05); }
 
-        /* AJUSTE RESPONSIVO PARA CHROME ANDROID */
+        /* --- CORRECCIÓN ESPECÍFICA PARA NAVEGADORES MÓVILES (ANDROID / CHROME) --- */
         @media screen and (max-width: 900px) {
+            html, body {
+                height: auto !important;
+                min-height: 100% !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+
             .app-container {
                 flex-direction: column !important;
                 height: auto !important;
-                min-height: 100dvh !important;
-                overflow-y: auto !important;
+                min-height: 100% !important;
+                overflow: visible !important;
             }
+
             .sidebar {
                 width: 100% !important;
                 max-height: none !important;
+                height: auto !important;
                 position: relative !important;
                 top: 0 !important;
                 box-shadow: none !important;
                 border-bottom: 2px solid #334155 !important;
-                overflow-y: visible !important;
+                overflow: visible !important;
             }
+
             .preview-area {
                 width: 100% !important;
-                padding: 10px !important;
+                padding: 15px 10px !important;
                 overflow-x: auto !important;
                 overflow-y: visible !important;
-                align-items: flex-start !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
             }
+
             .page-container {
-                margin: 0 auto !important;
+                margin: 0 auto 30px auto !important;
             }
         }
 
-        /* CORRECCIÓN PARA IMPRESIÓN Y GUARDADO A PDF */
+        /* CONFIGURACIÓN PARA IMPRESIÓN Y PDF */
         @media print {
             @page { size: A4 portrait; margin: 0; }
             html, body { background: white !important; color: black !important; height: auto !important; overflow: visible !important; }
@@ -162,6 +180,7 @@
 <div class="app-container">
     <aside class="sidebar no-print">
         <h2>Ajustes del CV (Argentina)</h2>
+        
         <div class="control-group">
             <label for="pageMode">Modo de Extensión:</label>
             <select id="pageMode" onchange="changePageMode(this.value)">
@@ -170,6 +189,7 @@
                 <option value="mode-auto">Libre (Adaptativo)</option>
             </select>
         </div>
+
         <div class="control-group">
             <label for="layoutStyle">Diseño de Columnas:</label>
             <select id="layoutStyle" onchange="changeLayout(this.value)">
@@ -177,6 +197,7 @@
                 <option value="1col">1 Columna (Clásico Corporativo)</option>
             </select>
         </div>
+
         <div class="control-group">
             <label for="colorTheme">Paleta de Colores:</label>
             <select id="colorTheme" onchange="changeTheme(this.value)">
@@ -187,22 +208,30 @@
                 <option value="dark">Monocromático Oscuro</option>
             </select>
         </div>
+
         <div class="control-group">
             <label for="fontSize">Tamaño de Fuente: <span id="fontSizeVal">13px</span></label>
             <input type="range" id="fontSize" min="10" max="16" value="13" oninput="adjustFontSize(this.value)">
         </div>
+
         <div class="control-group">
             <label for="sectionGap">Espacio entre Secciones: <span id="sectionGapVal">12px</span></label>
             <input type="range" id="sectionGap" min="6" max="22" value="12" oninput="adjustSectionGap(this.value)">
         </div>
+
+        <h3>Agregar Contenido</h3>
+        <div class="control-group">
+            <button class="btn-secondary" onclick="addExperience()">+ Añadir Experiencia</button>
+            <button class="btn-secondary" onclick="addEducation()">+ Añadir Educación</button>
+        </div>
+
         <button class="btn-primary" onclick="window.print()">🖨️ Imprimir / PDF A4</button>
-        <button class="btn-secondary" onclick="addExperience()">+ Añadir Experiencia</button>
-        <button class="btn-secondary" onclick="addEducation()">+ Añadir Educación</button>
     </aside>
 
     <main class="preview-area">
         <div id="cvPage" class="page-container mode-1page" style="font-size: 13px;">
             <div class="page-break-indicator"></div>
+            
             <header class="cv-header">
                 <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250" alt="Foto CV" class="cv-photo" id="profileImg" onclick="triggerImgUpload()">
                 <input type="file" id="imgUpload" accept="image/*" style="display:none" onchange="loadPhoto(event)">
@@ -211,6 +240,7 @@
                     <h2 contenteditable="true">Analista en Sistemas & Desarrollador Web</h2>
                 </div>
             </header>
+
             <div id="cvGrid" class="cv-grid">
                 <div class="cv-main-col">
                     <section class="cv-section">
@@ -219,6 +249,7 @@
                             Profesional con más de 5 años de experiencia en análisis de datos, desarrollo de aplicaciones web e implementación de proyectos tecnológicos en Argentina. Enfocado en la optimización de procesos operativos y metodologías ágiles.
                         </p>
                     </section>
+
                     <section class="cv-section" id="expSection">
                         <div class="cv-section-title">Experiencia Laboral</div>
                         <div class="cv-item">
@@ -233,6 +264,7 @@
                             </ul>
                         </div>
                     </section>
+
                     <section class="cv-section" id="eduSection">
                         <div class="cv-section-title">Educación y Formación</div>
                         <div class="cv-item">
@@ -244,6 +276,7 @@
                         </div>
                     </section>
                 </div>
+
                 <div class="cv-side-col">
                     <section class="cv-section">
                         <div class="cv-section-title">Contacto</div>
@@ -255,6 +288,7 @@
                             <li>💼 <span contenteditable="true">linkedin.com/in/juanperez</span></li>
                         </ul>
                     </section>
+
                     <section class="cv-section">
                         <div class="cv-section-title">Habilidades</div>
                         <div class="skills-tag-container" contenteditable="true">
