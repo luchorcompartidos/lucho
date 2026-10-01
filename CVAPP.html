@@ -32,6 +32,9 @@ body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
 .editable-item{position:relative}
 .editable-item .item-actions{position:absolute;right:-28px;top:0;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .2s ease}
 .editable-item:hover .item-actions{opacity:1}
+.row-actions{opacity:0;transition:opacity .2s ease}
+.row-item:hover .row-actions,.row-item:focus-within .row-actions{opacity:1}
+@media (hover:none){.row-actions{opacity:1}}
 @media print{
 @page{size:A4 portrait;margin:0}
 html,body{background:#fff!important;color:#000!important;margin:0!important;padding:0!important;width:210mm;height:auto}
@@ -172,6 +175,10 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 <button onclick="addEducationItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Educación</button>
 <button onclick="addCourseItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Curso/Certif.</button>
 <button onclick="addReferenceItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Referencia</button>
+<button onclick="addSectionItem('skillsHard')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Habilidad Técnica</button>
+<button onclick="addSectionItem('skillsSoft')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Competencia</button>
+<button onclick="addSectionItem('languages')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Idioma</button>
+<button onclick="addSectionItem('contact')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Contacto</button>
 </div>
 </div>
 
@@ -243,6 +250,14 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 </div>
 </div>
 
+<div id="type-modal" class="no-print hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+<div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-sm w-full p-5 text-slate-200">
+<p class="text-sm mb-3">¿Qué tipo de dato de contacto desea agregar?</p>
+<div id="type-options" class="grid grid-cols-2 gap-2"></div>
+<div class="flex justify-end mt-4"><button onclick="closeTypePicker()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">Cancelar</button></div>
+</div>
+</div>
+
 <script>
 const cvState={
 preset:'compact',layout:'2-col',fontFamily:"'Inter', sans-serif",fontSize:11.5,lineHeight:1.35,sectionGap:12,palette:'navy',showPhoto:true,showCuil:true,showGuides:true,
@@ -250,7 +265,16 @@ photoUrl:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&aut
 fullName:'Lic. Gonzalo Ariel Rodríguez',
 jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
 sectionTitles:{},hiddenSections:[],
-contact:{location:'CABA, Buenos Aires, Argentina',phone:'+54 9 11 5849-2019',email:'gonzalo.rodriguez@email.com',linkedin:'linkedin.com/in/gonzalo-rodriguez-arg',github:'github.com/gonzalo-dev-arg',cuil:'CUIL: 20-38492019-4',birth:'28/05/1993 (31 años)'},
+showSoftInOneCol:false,
+contactItems:[
+{id:'ct1',type:'location',value:'CABA, Buenos Aires, Argentina',icon:true},
+{id:'ct2',type:'phone',value:'+54 9 11 5849-2019',icon:true},
+{id:'ct3',type:'email',value:'gonzalo.rodriguez@email.com',icon:true},
+{id:'ct4',type:'linkedin',value:'linkedin.com/in/gonzalo-rodriguez-arg',icon:true},
+{id:'ct5',type:'github',value:'github.com/gonzalo-dev-arg',icon:true},
+{id:'ct6',type:'cuil',value:'CUIL: 20-38492019-4',icon:true},
+{id:'ct7',type:'birth',value:'28/05/1993 (31 años)',icon:true}
+],
 profileSummary:'Profesional con más de 6 años de experiencia en desarrollo de software, análisis funcional y arquitectura web. Especializado en el ecosistema JavaScript/TypeScript (Node.js, React) y bases de datos relacionales. Enfocado en la resolución de problemas de alto impacto corporativo, metodologías ágiles (Scrum) y optimización de procesos en entornos dinámicos de Argentina y Latinoamérica.',
 experience:[
 {id:'exp1',role:'Desarrollador Full Stack Senior',company:'Mercado Libre Argentina',period:'Marzo 2022 - Actualidad',location:'Buenos Aires, Argentina',description:'• Liderazgo técnico en la implementación de microservicios orientados a la gestión de pagos y facturación masiva.<br>• Reducción del tiempo de respuesta de API crítica en un 35% mediante optimización de consultas PostgreSQL y caching con Redis.<br>• Mentoría técnica a desarrolladores junior y coordinación de sprints semanales bajo metodología Scrum.'},
@@ -315,31 +339,25 @@ ${cvState.showPhoto?`<div class="text-center mb-1"><img src="${cvState.photoUrl}
 <div class="cv-section-gap">
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="contact">${secInner('contact','fa-solid fa-address-card text-xs','Contacto')}</h3>
 <div class="space-y-1.5 text-[0.92em]">
-<div class="flex items-start gap-2"><i class="fa-solid fa-location-dot mt-1 text-[var(--cv-primary-color)] text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.location', this.innerText)">${cvState.contact.location}</span></div>
-<div class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-600 font-bold text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.phone', this.innerText)">${cvState.contact.phone}</span></div>
-<div class="flex items-center gap-2"><i class="fa-solid fa-envelope text-[var(--cv-primary-color)] text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.email', this.innerText)" class="break-all">${cvState.contact.email}</span></div>
-<div class="flex items-center gap-2"><i class="fa-brands fa-linkedin text-blue-700 text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.linkedin', this.innerText)" class="break-all">${cvState.contact.linkedin}</span></div>
-<div class="flex items-center gap-2"><i class="fa-brands fa-github text-slate-800 text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.github', this.innerText)" class="break-all">${cvState.contact.github}</span></div>
-${cvState.showCuil?`<div class="flex items-center gap-2 text-[0.9em] font-semibold text-slate-700"><i class="fa-solid fa-id-card text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.cuil', this.innerText)">${cvState.contact.cuil}</span></div>`:''}
-<div class="flex items-center gap-2 text-[0.88em] text-slate-600"><i class="fa-solid fa-cake-candles text-xs"></i><span contenteditable="true" onblur="updateStatePath('contact.birth', this.innerText)">${cvState.contact.birth}</span></div>
+${contactRows2()}
 </div>
 </div>
 <div class="cv-section-gap">
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
 <div class="flex flex-wrap gap-1">
-${cvState.skillsHard.map((skill,idx)=>`<span class="inline-block bg-white px-2 py-0.5 rounded border border-slate-300 text-[0.88em] font-medium shadow-sm"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${skill}</span></span>`).join('')}
+${hardChips('bg-white px-2 py-0.5 rounded border border-slate-300 text-[0.88em] font-medium shadow-sm')}
 </div>
 </div>
 <div class="cv-section-gap">
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
 <ul class="list-disc list-inside text-[0.9em] space-y-0.5">
-${cvState.skillsSoft.map((skill,idx)=>`<li><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${skill}</span></li>`).join('')}
+${softItems()}
 </ul>
 </div>
 <div class="cv-section-gap">
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
 <div class="space-y-1 text-[0.9em]">
-${cvState.languages.map((lang,idx)=>`<div><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${lang.name}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${lang.level}</span></div>`).join('')}
+${langItems()}
 </div>
 </div>
 </div>
@@ -435,11 +453,7 @@ ${cvState.showPhoto?`<img src="${cvState.photoUrl}" alt="Foto Perfil" class="w-2
 <h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.9em] font-bold text-[var(--cv-primary-color)] leading-tight">${cvState.fullName}</h1>
 <h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText" class="text-[1.15em] font-semibold text-slate-700">${cvState.jobTitle}</h2>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-[0.85em] text-slate-600 mt-2">
-<span class="flex items-center gap-1"><i class="fa-solid fa-location-dot text-[var(--cv-primary-color)]"></i> <span contenteditable="true" onblur="updateStatePath('contact.location', this.innerText)">${cvState.contact.location}</span></span>
-<span class="flex items-center gap-1"><i class="fa-brands fa-whatsapp text-emerald-600"></i> <span contenteditable="true" onblur="updateStatePath('contact.phone', this.innerText)">${cvState.contact.phone}</span></span>
-<span class="flex items-center gap-1"><i class="fa-solid fa-envelope text-[var(--cv-primary-color)]"></i> <span contenteditable="true" onblur="updateStatePath('contact.email', this.innerText)">${cvState.contact.email}</span></span>
-<span class="flex items-center gap-1"><i class="fa-brands fa-linkedin text-blue-700"></i> <span contenteditable="true" onblur="updateStatePath('contact.linkedin', this.innerText)">${cvState.contact.linkedin}</span></span>
-${cvState.showCuil?`<span class="flex items-center gap-1 font-medium"><i class="fa-solid fa-id-card"></i> <span contenteditable="true" onblur="updateStatePath('contact.cuil', this.innerText)">${cvState.contact.cuil}</span></span>`:''}
+${contactRows1()}
 </div>
 </div>
 </div>
@@ -490,12 +504,14 @@ ${cvState.education.map((edu)=>`
 <div>
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
 <div class="flex flex-wrap gap-1">
-${cvState.skillsHard.map((skill,idx)=>`<span class="inline-block bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-[0.85em] font-medium"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${skill}</span></span>`).join('')}
+${hardChips('bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-[0.85em] font-medium')}
 </div>
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 mt-3 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
 <div class="space-y-0.5 text-[0.88em]">
-${cvState.languages.map((lang,idx)=>`<div><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${lang.name}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${lang.level}</span></div>`).join('')}
+${langItems()}
 </div>
+${cvState.showSoftInOneCol?`<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 mt-3 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
+<ul class="list-disc list-inside text-[0.88em] space-y-0.5">${softItems()}</ul>`:''}
 </div>
 </div>
 <div class="grid grid-cols-2 gap-5 page-break-inside-avoid">
@@ -660,7 +676,7 @@ showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TO
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
 const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides'];
-const CV_KEYS=['fullName','jobTitle','sectionTitles','hiddenSections','contact','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
+const CV_KEYS=['fullName','jobTitle','sectionTitles','hiddenSections','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
 const HIST_MAX=100;
 const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
 
@@ -766,8 +782,10 @@ window[n]=function(){const r=f.apply(this,arguments);recordEditor();return r;};
 const SECTION_KEYS=['contact','skillsHard','skillsSoft','languages','profile','experience','education','courses','references'];
 const escHtml=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function secTitle(key,def){const t=cvState.sectionTitles&&cvState.sectionTitles[key];return t||def;}
+const ADD_KEYS=['contact','skillsHard','skillsSoft','languages'];
 function secInner(key,icon,def){
-return `<i class="${icon}"></i> <span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span><button onclick="requestDeleteSection('${key}')" class="no-print ml-1 text-rose-500 hover:text-rose-700 p-1" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ml-1 text-blue-600 hover:text-blue-800 p-1" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
+return `<i class="${icon}"></i> <span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${add}<button onclick="requestDeleteSection('${key}')" class="no-print ml-1 text-rose-500 hover:text-rose-700 p-1" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
 }
 function setSectionTitle(key,text){
 const t=String(text).replace(/\s+/g,' ').trim().slice(0,80);
@@ -794,7 +812,7 @@ function deleteSection(key){
 const c=cvState;
 if(!c.hiddenSections.includes(key))c.hiddenSections.push(key);
 const clear={
-contact:()=>{Object.keys(c.contact).forEach(k=>{c.contact[k]='';});},
+contact:()=>{c.contactItems=[];},
 skillsHard:()=>{c.skillsHard=[];},
 skillsSoft:()=>{c.skillsSoft=[];},
 languages:()=>{c.languages=[];},
@@ -816,10 +834,83 @@ return f.apply(this,arguments);
 };
 });
 
+/* ===== Ítems de Contacto, Habilidades, Competencias e Idiomas ===== */
+const CONTACT_TYPES={
+location:{label:'Ubicación',ic:'fa-solid fa-location-dot',col:'text-[var(--cv-primary-color)]',one:true,ph:'Ciudad, Provincia, País'},
+phone:{label:'Teléfono / WhatsApp',ic:'fa-brands fa-whatsapp',col:'text-emerald-600 font-bold',one:true,ph:'+54 9 11 0000-0000'},
+email:{label:'Email',ic:'fa-solid fa-envelope',col:'text-[var(--cv-primary-color)]',brk:true,one:true,ph:'correo@ejemplo.com'},
+linkedin:{label:'LinkedIn',ic:'fa-brands fa-linkedin',col:'text-blue-700',brk:true,one:true,ph:'linkedin.com/in/usuario'},
+github:{label:'GitHub',ic:'fa-brands fa-github',col:'text-slate-800',brk:true,ph:'github.com/usuario'},
+cuil:{label:'CUIL / DNI',ic:'fa-solid fa-id-card',col:'',row:'text-[0.9em] font-semibold text-slate-700',one:true,ph:'CUIL: 00-00000000-0'},
+birth:{label:'Fecha de nacimiento',ic:'fa-solid fa-cake-candles',col:'',row:'text-[0.88em] text-slate-600',ph:'DD/MM/AAAA'},
+other:{label:'Otro dato',ic:'fa-solid fa-circle-info',col:'text-slate-500',one:true,ph:'Nuevo dato de contacto'}
+};
+const ctype=it=>CONTACT_TYPES[it.type]||CONTACT_TYPES.other;
+const contactVisible=()=>cvState.contactItems.filter(it=>cvState.showCuil||it.type!=='cuil');
+
+function contactActions(it){
+const off=it.icon===false;
+return `<span class="row-actions no-print shrink-0 flex gap-1 ml-1"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${off?'Restablecer ícono':'Quitar ícono'}"><i class="fa-solid ${off?'fa-rotate-left':'fa-eye-slash'} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
+}
+function contactRows2(){
+return contactVisible().map(it=>{
+const T=ctype(it);
+const ic=it.icon===false?'':`<i class="${T.ic} ${T.col} ${it.type==='location'?'mt-1 ':''}text-xs"></i>`;
+return `<div class="row-item flex ${it.type==='location'?'items-start':'items-center'} gap-2 ${T.row||''}">${ic}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${T.brk?'break-all':''}">${escHtml(it.value)}</span>${contactActions(it)}</div>`;
+}).join('');
+}
+function contactRows1(){
+return contactVisible().filter(it=>ctype(it).one).map(it=>{
+const T=ctype(it);
+const ic=it.icon===false?'':`<i class="${T.ic} ${T.col}"></i> `;
+return `<span class="row-item flex items-center gap-1 ${it.type==='cuil'?'font-medium':''}">${ic}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)">${escHtml(it.value)}</span>${contactActions(it)}</span>`;
+}).join('');
+}
+function hardChips(cls){
+return cvState.skillsHard.map((skill,idx)=>`<span class="row-item inline-block ${cls}"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-1"><button onclick="removeSkill('hard', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join('');
+}
+function softItems(){
+return cvState.skillsSoft.map((skill,idx)=>`<li class="row-item"><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-1"><button onclick="removeSkill('soft', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></li>`).join('');
+}
+function langItems(){
+return cvState.languages.map((lang,idx)=>`<div class="row-item"><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${escHtml(lang.name)}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${escHtml(lang.level)}</span><span class="row-actions no-print ml-1"><button onclick="removeLanguage(${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></div>`).join('');
+}
+
+function updateContactValue(id,val){const it=cvState.contactItems.find(x=>x.id===id);if(it)it.value=val;}
+function removeContact(id){cvState.contactItems=cvState.contactItems.filter(x=>x.id!==id);renderCV();}
+function toggleContactIcon(id){const it=cvState.contactItems.find(x=>x.id===id);if(it){it.icon=(it.icon===false);renderCV();}}
+function removeSkill(type,idx){
+if(type==='hard')cvState.skillsHard.splice(idx,1);
+else cvState.skillsSoft.splice(idx,1);
+renderCV();
+}
+function removeLanguage(idx){cvState.languages.splice(idx,1);renderCV();}
+
+function unhideSection(k){cvState.hiddenSections=cvState.hiddenSections.filter(x=>x!==k);}
+function addSectionItem(key){
+if(key==='contact'){showTypePicker();return;}
+unhideSection(key);
+if(key==='skillsHard')cvState.skillsHard.push('Nueva habilidad');
+else if(key==='skillsSoft'){cvState.skillsSoft.push('Nueva competencia');if(cvState.layout==='1-col')cvState.showSoftInOneCol=true;}
+else if(key==='languages')cvState.languages.push({name:'Idioma',level:'Nivel'});
+renderCV();
+}
+function addContactItem(type){
+unhideSection('contact');
+cvState.contactItems.push({id:'ct_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:type,value:CONTACT_TYPES[type].ph,icon:true});
+renderCV();
+}
+function showTypePicker(){
+document.getElementById('type-options').innerHTML=Object.keys(CONTACT_TYPES).map(k=>`<button onclick="pickContactType('${k}')" class="px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs flex items-center gap-2 text-left"><i class="${CONTACT_TYPES[k].ic} w-4 text-center"></i><span>${CONTACT_TYPES[k].label}</span></button>`).join('');
+const m=document.getElementById('type-modal');m.classList.remove('hidden');m.classList.add('flex');
+}
+function closeTypePicker(){const m=document.getElementById('type-modal');m.classList.add('hidden');m.classList.remove('flex');}
+function pickContactType(t){closeTypePicker();addContactItem(t);}
+
 /* ===== Exportar / Importar (JSON) ===== */
 function exportCV(){
 if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
-const data={app:'editor-cv-argentina',version:1,exportedAt:new Date().toISOString(),content:JSON.parse(snap(CV_KEYS))};
+const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:JSON.parse(snap(CV_KEYS))};
 const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
 const url=URL.createObjectURL(blob);
 const a=document.createElement('a');
@@ -829,6 +920,8 @@ document.body.appendChild(a);a.click();a.remove();
 setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 
+const plain=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f]/g,' ').slice(0,n||300);
+const hasType=t=>typeof t==='string'&&Object.prototype.hasOwnProperty.call(CONTACT_TYPES,t);
 const cleanText=v=>String(v==null?'':v).replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const cleanDesc=v=>String(v==null?'':v)
 .replace(/<div[^>]*>/gi,'<br>').replace(/<\/div>/gi,'').replace(/^(<br\s*\/?>)+/i,'')
@@ -857,17 +950,20 @@ list('education','edu',['degree','institution','period','status']);
 list('courses','crs',['title','institution','year']);
 list('references','ref',['name','title','contact']);
 ['skillsHard','skillsSoft'].forEach(k=>{
-if(k in c){if(!Array.isArray(c[k]))throw bad(k);o[k]=c[k].slice(0,100).map(cleanText);}
+if(k in c){if(!Array.isArray(c[k]))throw bad(k);o[k]=c[k].slice(0,100).map(x=>plain(x,200));}
 });
 if('languages' in c){
 if(!Array.isArray(c.languages))throw bad('languages');
-o.languages=c.languages.slice(0,50).map(l=>({name:cleanText(l&&l.name),level:cleanText(l&&l.level)}));
+o.languages=c.languages.slice(0,50).map(l=>({name:plain(l&&l.name,100),level:plain(l&&l.level,100)}));
 }
-if('contact' in c){
+if('contactItems' in c){
+if(!Array.isArray(c.contactItems))throw bad('contactItems');
+o.contactItems=c.contactItems.slice(0,50).map((it,i)=>({id:'ct_imp_'+stamp+'_'+i,type:hasType(it&&it.type)?it.type:'other',value:plain(it&&it.value),icon:!(it&&it.icon===false)}));
+}else if('contact' in c){
 if(!c.contact||typeof c.contact!=='object')throw bad('contact');
-o.contact={};
-['location','phone','email','linkedin','github','cuil','birth'].forEach(f=>{o.contact[f]=cleanText(c.contact[f]);});
+o.contactItems=['location','phone','email','linkedin','github','cuil','birth'].filter(f=>typeof c.contact[f]==='string'&&c.contact[f]!=='').map((f,i)=>({id:'ct_imp_'+stamp+'_'+i,type:f,value:plain(c.contact[f]),icon:true}));
 }
+if('showSoftInOneCol' in c)o.showSoftInOneCol=c.showSoftInOneCol===true;
 if('sectionTitles' in c){
 if(!c.sectionTitles||typeof c.sectionTitles!=='object')throw bad('sectionTitles');
 o.sectionTitles={};
