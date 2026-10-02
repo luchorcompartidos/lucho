@@ -47,7 +47,16 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 .a4-paper{zoom:1!important;box-shadow:none!important;border:none!important;margin:0!important;width:210mm!important;min-height:297mm!important;padding:var(--cv-page-padding)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .page-break-inside-avoid{page-break-inside:avoid;break-inside:avoid}
 }
-@media print{.paged{height:calc(var(--cv-pages,1)*297mm - .5mm)!important;min-height:0!important}.pg-first{margin-top:12mm!important;break-before:page}.pg-clone{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+#print-pages{display:none}
+@media print{
+html{height:auto!important}
+body{display:block!important;height:auto!important;overflow:visible!important}
+#preview-container{display:none!important}
+#print-pages{display:block!important}
+.print-sheet{position:relative;width:210mm;height:296.4mm;overflow:hidden;break-after:page;page-break-after:always}
+.print-sheet:last-child{break-after:auto;page-break-after:auto}
+.pg-clone{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#1e293b}
 ::-webkit-scrollbar-thumb{background:#475569;border-radius:3px}
@@ -1178,6 +1187,28 @@ document.getElementById('cv-root').addEventListener('input',checkPageOverflow);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(checkPageOverflow);
 checkPageOverflow();
 });
+
+/* ===== Impresión: una hoja A4 fija por página, recortando el mismo lienzo de la Vista Previa ===== */
+function buildPrint(){
+paginate();
+const paper=document.getElementById('cv-paper');
+const n=paper.classList.contains('paged')?(parseInt(paper.style.getPropertyValue('--cv-pages'))||1):1;
+const old=document.getElementById('print-pages');if(old)old.remove();
+const box=document.createElement('div');box.id='print-pages';
+for(let k=0;k<n;k++){
+const s=document.createElement('div');s.className='print-sheet';
+const c=paper.cloneNode(true);
+c.removeAttribute('id');
+c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+c.querySelectorAll('.no-print').forEach(e=>e.remove());
+c.style.cssText='position:absolute;left:0;top:'+(-k*297)+'mm;height:'+(n*297)+'mm;zoom:1;';
+s.appendChild(c);box.appendChild(s);
+}
+document.body.appendChild(box);
+}
+window.addEventListener('beforeprint',buildPrint);
+window.addEventListener('afterprint',()=>{const b=document.getElementById('print-pages');if(b)b.remove();});
 </script>
 </body>
 </html>
