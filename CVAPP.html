@@ -848,22 +848,27 @@ other:{label:'Otro dato',ic:'fa-solid fa-circle-info',col:'text-slate-500',one:t
 const ctype=it=>CONTACT_TYPES[it.type]||CONTACT_TYPES.other;
 const contactVisible=()=>cvState.contactItems.filter(it=>cvState.showCuil||it.type!=='cuil');
 
+const iconMode=it=>(it.icon===false||it.icon==='none')?'none':(it.icon==='bullet'?'bullet':'icon');
 function contactActions(it){
-const off=it.icon===false;
-return `<span class="row-actions no-print shrink-0 flex gap-1 ml-1"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${off?'Restablecer ícono':'Quitar ícono'}"><i class="fa-solid ${off?'fa-rotate-left':'fa-eye-slash'} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
+const nxt={icon:['fa-circle','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[iconMode(it)];
+return `<span class="row-actions no-print shrink-0 flex gap-1 ml-1"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${nxt[1]}"><i class="fa-solid ${nxt[0]} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
+}
+function contactMark(it,T,two){
+const m=iconMode(it);
+if(m==='none')return '';
+if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] ${T.col} ${two?'w-3 text-center shrink-0 '+(it.type==='location'?'mt-2':''):''}"></i>`+(two?'':' ');
+return two?`<i class="${T.ic} ${T.col} ${it.type==='location'?'mt-1 ':''}text-xs"></i>`:`<i class="${T.ic} ${T.col}"></i> `;
 }
 function contactRows2(){
 return contactVisible().map(it=>{
 const T=ctype(it);
-const ic=it.icon===false?'':`<i class="${T.ic} ${T.col} ${it.type==='location'?'mt-1 ':''}text-xs"></i>`;
-return `<div class="row-item flex ${it.type==='location'?'items-start':'items-center'} gap-2 ${T.row||''}">${ic}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${T.brk?'break-all':''}">${escHtml(it.value)}</span>${contactActions(it)}</div>`;
+return `<div class="row-item flex ${it.type==='location'?'items-start':'items-center'} gap-2 ${T.row||''}">${contactMark(it,T,true)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${T.brk?'break-all':''}">${escHtml(it.value)}</span>${contactActions(it)}</div>`;
 }).join('');
 }
 function contactRows1(){
 return contactVisible().filter(it=>ctype(it).one).map(it=>{
 const T=ctype(it);
-const ic=it.icon===false?'':`<i class="${T.ic} ${T.col}"></i> `;
-return `<span class="row-item flex items-center gap-1 ${it.type==='cuil'?'font-medium':''}">${ic}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)">${escHtml(it.value)}</span>${contactActions(it)}</span>`;
+return `<span class="row-item flex items-center gap-1 ${it.type==='cuil'?'font-medium':''}">${contactMark(it,T,false)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)">${escHtml(it.value)}</span>${contactActions(it)}</span>`;
 }).join('');
 }
 function hardChips(cls){
@@ -878,7 +883,7 @@ return cvState.languages.map((lang,idx)=>`<div class="row-item"><span class="fon
 
 function updateContactValue(id,val){const it=cvState.contactItems.find(x=>x.id===id);if(it)it.value=val;}
 function removeContact(id){cvState.contactItems=cvState.contactItems.filter(x=>x.id!==id);renderCV();}
-function toggleContactIcon(id){const it=cvState.contactItems.find(x=>x.id===id);if(it){it.icon=(it.icon===false);renderCV();}}
+function toggleContactIcon(id){const it=cvState.contactItems.find(x=>x.id===id);if(it){it.icon={icon:'bullet',bullet:'none',none:'icon'}[iconMode(it)];renderCV();}}
 function removeSkill(type,idx){
 if(type==='hard')cvState.skillsHard.splice(idx,1);
 else cvState.skillsSoft.splice(idx,1);
@@ -921,6 +926,7 @@ setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 
 const plain=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f]/g,' ').slice(0,n||300);
+const normIcon=v=>(v===false||v==='none')?'none':(v==='bullet'?'bullet':'icon');
 const hasType=t=>typeof t==='string'&&Object.prototype.hasOwnProperty.call(CONTACT_TYPES,t);
 const cleanText=v=>String(v==null?'':v).replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const cleanDesc=v=>String(v==null?'':v)
@@ -958,7 +964,7 @@ o.languages=c.languages.slice(0,50).map(l=>({name:plain(l&&l.name,100),level:pla
 }
 if('contactItems' in c){
 if(!Array.isArray(c.contactItems))throw bad('contactItems');
-o.contactItems=c.contactItems.slice(0,50).map((it,i)=>({id:'ct_imp_'+stamp+'_'+i,type:hasType(it&&it.type)?it.type:'other',value:plain(it&&it.value),icon:!(it&&it.icon===false)}));
+o.contactItems=c.contactItems.slice(0,50).map((it,i)=>({id:'ct_imp_'+stamp+'_'+i,type:hasType(it&&it.type)?it.type:'other',value:plain(it&&it.value),icon:normIcon(it&&it.icon)}));
 }else if('contact' in c){
 if(!c.contact||typeof c.contact!=='object')throw bad('contact');
 o.contactItems=['location','phone','email','linkedin','github','cuil','birth'].filter(f=>typeof c.contact[f]==='string'&&c.contact[f]!=='').map((f,i)=>({id:'ct_imp_'+stamp+'_'+i,type:f,value:plain(c.contact[f]),icon:true}));
