@@ -47,6 +47,16 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 .a4-paper{zoom:1!important;box-shadow:none!important;border:none!important;margin:0!important;width:210mm!important;min-height:297mm!important;padding:var(--cv-page-padding)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .page-break-inside-avoid{page-break-inside:avoid;break-inside:avoid}
 }
+.sec-wrap{position:relative}
+.cv-container .cv-section-gap[data-ov]{margin-top:var(--sp-mt)}
+.cv-container .space-y-3>.editable-item[data-ov]{margin-top:var(--sp-mt)}
+[data-list]{display:flow-root}
+.spacing-ctl{position:absolute;left:50%;transform:translateX(-50%);top:-9px;height:18px;display:flex;align-items:center;gap:2px;padding:0 3px;background:rgba(15,23,42,.94);border:1px solid #334155;border-radius:9px;font:500 10px/1 Inter,sans-serif;letter-spacing:0;text-transform:none;color:#e2e8f0;opacity:0;pointer-events:none;transition:opacity .15s;z-index:25}
+.spacing-ctl span{min-width:30px;text-align:center}
+.spacing-ctl button{width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#e2e8f0;font-size:11px;line-height:1}
+.spacing-ctl button:hover:not(:disabled){background:#334155}
+.spacing-ctl button:disabled{opacity:.35;cursor:default}
+.sec-wrap:hover>.spacing-ctl,.sec-wrap:focus-within>.spacing-ctl,.spacing-ctl:hover{opacity:1;pointer-events:auto}
 .contact-row .row-actions{position:absolute;left:100%;right:auto;top:50%;transform:translateY(-50%);margin-left:0!important;padding-left:4px;gap:4px!important;background:transparent}
 #slider-font-size,#slider-line-height,#slider-section-gap{--thumb:#3b82f6}
 #slider-font-size.altered,#slider-line-height.altered,#slider-section-gap.altered{--thumb:#fb7185}
@@ -297,6 +307,7 @@ fullName:'Lic. Gonzalo Ariel Rodríguez',
 jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
 sectionTitles:{},sectionIcons:{},hiddenSections:[],
 sectionOrder:['experience','education','courses','references','contact','skillsHard','skillsSoft','languages'],
+sectionSpacing:{},expSpacing:{},
 showSoftInOneCol:false,
 contactItems:[
 {id:'ct1',type:'location',value:'CABA, Buenos Aires, Argentina',icon:true},
@@ -345,6 +356,7 @@ const root=document.getElementById('cv-root');
 root.innerHTML=cvState.layout==='2-col'?renderTwoColumnLayout():renderOneColumnLayout();
 applyHiddenSections();
 applySectionOrder();
+applySpacing();
 attachEditableEvents();
 checkPageOverflow();
 recordCV();
@@ -408,10 +420,10 @@ ${langItems()}
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="experience">${secInner('experience','fa-solid fa-briefcase text-xs','Experiencia Laboral')}</h3>
 <button onclick="addExperienceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
-<div class="space-y-3">
+<div class="space-y-3" data-list="experience">
 ${cvState.experience.map((exp,idx)=>`
-<div class="editable-item page-break-inside-avoid border-l-2 border-[var(--cv-primary-color)] pl-3 py-0.5">
-<div class="item-actions no-print"><button onclick="removeExperience('${exp.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div class="editable-item page-break-inside-avoid border-l-2 border-[var(--cv-primary-color)] pl-3 py-0.5" data-id="${exp.id}">
+<div class="item-actions no-print">${expMoveBtns(exp,idx)}<button onclick="removeExperience('${exp.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
 <div class="flex justify-between items-baseline">
 <h4 contenteditable="true" onblur="updateExpItem('${exp.id}', 'role', this.innerText)" class="font-bold text-[0.98em] text-slate-800">${exp.role}</h4>
 <span contenteditable="true" onblur="updateExpItem('${exp.id}', 'period', this.innerText)" class="text-[0.82em] font-semibold text-slate-500 shrink-0 ml-2">${exp.period}</span>
@@ -499,10 +511,10 @@ ${contactRows1()}
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="experience">${secInner('experience','fa-solid fa-briefcase text-xs','Experiencia Laboral')}</h3>
 <button onclick="addExperienceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
 </div>
-<div class="space-y-3">
-${cvState.experience.map((exp)=>`
-<div class="editable-item page-break-inside-avoid">
-<div class="item-actions no-print"><button onclick="removeExperience('${exp.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div class="space-y-3" data-list="experience">
+${cvState.experience.map((exp,idx)=>`
+<div class="editable-item page-break-inside-avoid" data-id="${exp.id}">
+<div class="item-actions no-print">${expMoveBtns(exp,idx)}<button onclick="removeExperience('${exp.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
 <div class="flex justify-between items-baseline">
 <h4 contenteditable="true" onblur="updateExpItem('${exp.id}', 'role', this.innerText)" class="font-bold text-[0.98em] text-slate-800">${exp.role}</h4>
 <span contenteditable="true" onblur="updateExpItem('${exp.id}', 'period', this.innerText)" class="text-[0.82em] font-semibold text-slate-500">${exp.period}</span>
@@ -715,7 +727,7 @@ showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TO
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
 const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides','sectionOrder'];
-const CV_KEYS=['fullName','jobTitle','sectionTitles','sectionIcons','hiddenSections','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
+const CV_KEYS=['fullName','jobTitle','sectionTitles','sectionIcons','hiddenSections','sectionSpacing','expSpacing','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
 const HIST_MAX=100;
 const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
 
@@ -1006,7 +1018,8 @@ function pickContactType(t){closeTypePicker();addContactItem(t);}
 /* ===== Exportar / Importar (JSON) ===== */
 function exportCV(){
 if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
-const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:JSON.parse(snap(CV_KEYS))};
+const content=JSON.parse(snap(CV_KEYS));delete content.sectionSpacing;delete content.expSpacing;
+const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:content};
 const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
 const url=URL.createObjectURL(blob);
 const a=document.createElement('a');
@@ -1098,6 +1111,66 @@ renderCV();
 });
 };
 reader.readAsText(file);
+}
+
+/* ===== Espaciado previo independiente (secciones de la columna derecha y experiencias) ===== */
+function visualKids(main){
+return [...main.children].map((el,i)=>({el:el,i:i,o:parseInt(el.style.order||'0',10)})).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.el);
+}
+function spacingWidget(kind,key,val,ov){
+return `<div class="spacing-ctl no-print"><button onclick="adjustSpacing('${kind}','${key}',-2)" title="Reducir espacio previo">&minus;</button><span>${val}px</span><button onclick="adjustSpacing('${kind}','${key}',2)" title="Aumentar espacio previo">+</button><button onclick="resetSpacing('${kind}','${key}')" ${ov?'':'disabled'} title="Restablecer al espaciado general"><i class="fa-solid fa-rotate-left" style="font-size:8px"></i></button></div>`;
+}
+function applySpacing(){
+const root=document.getElementById('cv-root');
+const exp=cvState.expSpacing||{},sec=cvState.sectionSpacing||{};
+root.querySelectorAll('[data-list="experience"]').forEach(list=>{
+[...list.children].forEach((it,i)=>{
+const id=it.dataset.id;
+if(!id)return;
+const base=i>0?12:0,ov=exp[id];
+it.classList.add('sec-wrap');it.dataset.sp='exp:'+id;it.dataset.base=base;
+if(ov!==undefined){it.dataset.ov='1';it.style.setProperty('--sp-mt',ov+'px');}
+it.insertAdjacentHTML('afterbegin',spacingWidget('exp',id,ov!==undefined?ov:base,ov!==undefined));
+});
+});
+const main=root.querySelector('.col-span-8');
+if(!main)return;
+const gap=cvState.sectionGap,kids=visualKids(main);
+kids.forEach((k,i)=>{
+const h=k.querySelector('h3[data-sec]');
+if(!h)return;
+const key=h.dataset.sec,prev=kids[i-1];
+const base=(prev&&prev.querySelector('h3[data-sec]'))?gap:16,ov=sec[key];
+k.classList.add('sec-wrap');k.dataset.sp='sec:'+key;k.dataset.base=base;
+if(ov!==undefined){k.dataset.ov='1';k.style.setProperty('--sp-mt',(ov-base)+'px');}
+k.insertAdjacentHTML('afterbegin',spacingWidget('sec',key,ov!==undefined?ov:base,ov!==undefined));
+});
+}
+function adjustSpacing(kind,key,d){
+const el=document.querySelector('#cv-root [data-sp="'+kind+':'+key+'"]');
+if(!el)return;
+const store=kind==='sec'?cvState.sectionSpacing:cvState.expSpacing;
+const cur=store[key]!==undefined?store[key]:parseFloat(el.dataset.base);
+store[key]=Math.max(0,Math.min(80,cur+d));
+renderCV();
+}
+function resetSpacing(kind,key){
+const store=kind==='sec'?cvState.sectionSpacing:cvState.expSpacing;
+delete store[key];
+renderCV();
+}
+
+/* ===== Subir / bajar Experiencias ===== */
+function expMoveBtns(exp,idx){
+const n=cvState.experience.length;
+const b='text-slate-400 hover:text-slate-700 p-1 disabled:opacity-30 disabled:cursor-not-allowed';
+return `<button onclick="moveExperience('${exp.id}',-1)" ${idx===0?'disabled':''} class="${b}" title="Subir experiencia"><i class="fa-solid fa-arrow-up text-xs"></i></button><button onclick="moveExperience('${exp.id}',1)" ${idx===n-1?'disabled':''} class="${b}" title="Bajar experiencia"><i class="fa-solid fa-arrow-down text-xs"></i></button>`;
+}
+function moveExperience(id,d){
+const a=cvState.experience,i=a.findIndex(x=>x.id===id),j=i+d;
+if(i<0||j<0||j>=a.length)return;
+[a[i],a[j]]=[a[j],a[i]];
+renderCV();
 }
 
 /* ===== Zoom del CV (100%-250%, pasos de 50%, persistente) ===== */
