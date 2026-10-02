@@ -47,7 +47,11 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 .a4-paper{zoom:1!important;box-shadow:none!important;border:none!important;margin:0!important;width:210mm!important;min-height:297mm!important;padding:var(--cv-page-padding)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .page-break-inside-avoid{page-break-inside:avoid;break-inside:avoid}
 }
-.contact-row .row-actions{position:absolute;right:0;top:50%;transform:translateY(-50%);margin-left:0!important;padding-left:6px;background:var(--cv-sidebar-bg)}
+.contact-row .row-actions{position:absolute;left:100%;right:auto;top:50%;transform:translateY(-50%);margin-left:0!important;padding-left:4px;gap:4px!important;background:transparent}
+#slider-font-size,#slider-line-height,#slider-section-gap{--thumb:#3b82f6}
+#slider-font-size.altered,#slider-line-height.altered,#slider-section-gap.altered{--thumb:#fb7185}
+#slider-font-size::-webkit-slider-thumb,#slider-line-height::-webkit-slider-thumb,#slider-section-gap::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer;box-shadow:0 0 0 2px rgba(15,23,42,.8)}
+#slider-font-size::-moz-range-thumb,#slider-line-height::-moz-range-thumb,#slider-section-gap::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer}
 #cv-paper,#cv-paper *{transition:none!important}
 #print-pages{display:none}
 @media print{
@@ -166,6 +170,7 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 </div>
 <input type="range" id="slider-section-gap" min="6" max="26" step="1" value="14" oninput="updateSectionGap(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
 </div>
+<button onclick="resetTypography()" class="w-full py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i><span>Restablecer Ajustes Tipografía</span></button>
 </div>
 
 <div class="space-y-3 pt-2 border-t border-slate-800">
@@ -1286,6 +1291,27 @@ window._enterField=null;
 }
 function undoCV(){stepCV('past','future');restoreCaret();}
 function redoCV(){stepCV('future','past');window._enterField=null;}
+
+/* ===== Ajustes de Tipografía: restablecer y marcar valores alterados ===== */
+const TYPO_SLIDERS=[['slider-font-size','val-font-size','fontSize'],['slider-line-height','val-line-height','lineHeight'],['slider-section-gap','val-section-gap','sectionGap']];
+function updateTypographyMarks(){
+TYPO_SLIDERS.forEach(([sid,vid,key])=>{
+const s=document.getElementById(sid),v=document.getElementById(vid);
+if(!s||!v)return;
+const alt=Number(cvState[key])!==Number(INITIAL[key]);
+s.classList.toggle('altered',alt);
+v.style.color=alt?'#fb7185':'';
+});
+}
+(function(){const rc=window.renderCV;window.renderCV=function(){const r=rc.apply(this,arguments);updateTypographyMarks();return r;};})();
+function resetTypography(){
+['fontFamily','fontSize','lineHeight','sectionGap'].forEach(k=>{cvState[k]=INITIAL[k];});
+syncEditorUI();
+renderCV();
+fitPaperToScreen();
+recordEditor();
+}
+window.addEventListener('load',()=>{syncEditorUI();updateTypographyMarks();});
 </script>
 </body>
 </html>
