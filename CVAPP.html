@@ -942,13 +942,13 @@ return `<span class="row-actions no-print shrink-0 flex gap-2.5 ml-3"><button on
 function contactMark(it,T,two){
 const m=iconMode(it);
 if(m==='none')return '';
-if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] text-[var(--cv-primary-color)] ${two?'w-3 text-center shrink-0 '+(it.type==='location'?'mt-2':''):''}"></i>`+(two?'':' ');
-return two?`<i class="${T.ic} ${T.col} ${it.type==='location'?'mt-1 ':''}text-xs"></i>`:`<i class="${T.ic} ${T.col}"></i> `;
+if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] text-[var(--cv-primary-color)] ${two?'w-4 text-center shrink-0 leading-none':''}"></i>`+(two?'':' ');
+return two?`<i class="${T.ic} ${T.col} w-4 text-center shrink-0 leading-none text-xs"></i>`:`<i class="${T.ic} ${T.col}"></i> `;
 }
 function contactRows2(){
 return contactVisible().map(it=>{
 const T=ctype(it);
-return `<div class="row-item contact-row relative flex ${it.type==='location'?'items-start':'items-center'} gap-2 ${T.row||''}">${contactMark(it,T,true)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${FIT_TYPES.includes(it.type)?'':(T.brk?'break-all':'')}"${FIT_TYPES.includes(it.type)?' data-fit="1" style="white-space:nowrap;flex:1 1 0;overflow:hidden"':''}>${escHtml(it.value)}</span>${contactActions(it)}</div>`;
+return `<div class="row-item contact-row relative flex items-center gap-2 ${T.row||''}">${contactMark(it,T,true)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${FIT_TYPES.includes(it.type)?'':(T.brk?'break-all':'')}"${FIT_TYPES.includes(it.type)?' data-fit="1" style="white-space:nowrap;flex:1 1 0;overflow:hidden"':' style="white-space:pre-line"'}>${escHtml(it.value)}</span>${contactActions(it)}</div>`;
 }).join('');
 }
 function contactRows1(){
@@ -1249,6 +1249,43 @@ fitPaperToScreen();
 recordEditor();
 });
 }
+
+/* ===== Enter en campos editables: cada salto de línea es un paso propio del historial del CV ===== */
+document.addEventListener('keydown',e=>{
+if(e.key!=='Enter')return;
+const el=e.target;
+if(!el||!el.isContentEditable||!el.closest('#cv-root'))return;
+const sync=()=>{if(typeof el.onblur==='function')el.onblur.call(el);};
+sync();recordCV();
+window._enterField=el.getAttribute('onblur');
+window._enterPending=el;
+const done=()=>{if(window._enterPending!==el)return;window._enterPending=null;sync();recordCV();hist.cv.merge=true;};
+el.addEventListener('input',done,{once:true});
+setTimeout(done,50);
+},true);
+/* recordCV con "fusión": el texto tipeado tras un Enter se une a ese mismo paso */
+function recordCV(){
+if(hist.cv.cur===null)return;
+const s=snap(CV_KEYS);
+if(s===hist.cv.cur)return;
+if(hist.cv.merge){hist.cv.merge=false;hist.cv.cur=s;hist.cv.future=[];updateHistoryButtons();return;}
+hist.cv.past.push(hist.cv.cur);
+if(hist.cv.past.length>HIST_MAX)hist.cv.past.shift();
+hist.cv.cur=s;hist.cv.future=[];
+updateHistoryButtons();
+}
+window.addEventListener('load',()=>{document.getElementById('cv-root').addEventListener('focusout',()=>setTimeout(()=>{hist.cv.merge=false;},10));});
+function restoreCaret(){
+const k=window._enterField;if(!k)return;
+const el=[...document.querySelectorAll('#cv-root [contenteditable]')].find(x=>x.getAttribute('onblur')===k&&!x.closest('.pg-clone'));
+if(!el)return;
+el.focus();
+const r=document.createRange();r.selectNodeContents(el);r.collapse(false);
+const s=window.getSelection();s.removeAllRanges();s.addRange(r);
+window._enterField=null;
+}
+function undoCV(){stepCV('past','future');restoreCaret();}
+function redoCV(){stepCV('future','past');window._enterField=null;}
 </script>
 </body>
 </html>
