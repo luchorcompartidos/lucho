@@ -170,16 +170,8 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 
 <div class="space-y-2 pt-2 border-t border-slate-800">
 <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Agregar Contenido</label>
-<div class="grid grid-cols-2 gap-2 text-xs">
-<button onclick="addExperienceItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Experiencia</button>
-<button onclick="addEducationItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Educación</button>
-<button onclick="addCourseItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Curso/Certif.</button>
-<button onclick="addReferenceItem()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Referencia</button>
-<button onclick="addSectionItem('skillsHard')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Habilidad Técnica</button>
-<button onclick="addSectionItem('skillsSoft')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Competencia</button>
-<button onclick="addSectionItem('languages')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Idioma</button>
-<button onclick="addSectionItem('contact')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> Contacto</button>
-</div>
+<p class="text-[11px] text-slate-500 leading-snug">Usá ▲ ▼ para ordenar las secciones en el CV (las de la columna izquierda se ordenan entre sí; igual las de la derecha).</p>
+<div id="add-buttons" class="grid grid-cols-2 gap-2 text-xs"></div>
 </div>
 
 <div class="space-y-2 pt-2 border-t border-slate-800">
@@ -265,6 +257,7 @@ photoUrl:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&aut
 fullName:'Lic. Gonzalo Ariel Rodríguez',
 jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
 sectionTitles:{},sectionIcons:{},hiddenSections:[],
+sectionOrder:['experience','education','courses','references','contact','skillsHard','skillsSoft','languages'],
 showSoftInOneCol:false,
 contactItems:[
 {id:'ct1',type:'location',value:'CABA, Buenos Aires, Argentina',icon:true},
@@ -312,6 +305,7 @@ applyCssVariables();
 const root=document.getElementById('cv-root');
 root.innerHTML=cvState.layout==='2-col'?renderTwoColumnLayout():renderOneColumnLayout();
 applyHiddenSections();
+applySectionOrder();
 attachEditableEvents();
 checkPageOverflow();
 recordCV();
@@ -501,17 +495,23 @@ ${cvState.education.map((edu)=>`
 </div>`).join('')}
 </div>
 </div>
+<div class="flex flex-col gap-3" data-stack="skills">
 <div>
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
 <div class="flex flex-wrap gap-1">
 ${hardChips('bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-[0.85em] font-medium')}
 </div>
-<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 mt-3 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
+</div>
+<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
 <div class="space-y-0.5 text-[0.88em]">
 ${langItems()}
 </div>
-${cvState.showSoftInOneCol?`<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 mt-3 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
-<ul class="list-disc list-inside text-[0.88em] space-y-0.5">${softItems()}</ul>`:''}
+</div>
+${cvState.showSoftInOneCol?`<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
+<ul class="list-disc list-inside text-[0.88em] space-y-0.5">${softItems()}</ul>
+</div>`:''}
 </div>
 </div>
 <div class="grid grid-cols-2 gap-5 page-break-inside-avoid">
@@ -675,7 +675,7 @@ showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TO
 }
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
-const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides'];
+const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides','sectionOrder'];
 const CV_KEYS=['fullName','jobTitle','sectionTitles','sectionIcons','hiddenSections','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
 const HIST_MAX=100;
 const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
@@ -723,6 +723,7 @@ updateHistoryButtons();
 }
 
 function syncEditorUI(){
+renderSectionButtons();
 const on='border border-blue-500 bg-blue-950/60 text-blue-300';
 const off='border border-slate-700 bg-slate-800 text-slate-400 hover:text-white';
 const pb='preset-btn px-3 py-2 rounded-lg font-medium text-xs flex flex-col items-center justify-center gap-1 transition ';
@@ -773,7 +774,7 @@ function undoCV(){stepCV('past','future');}
 function redoCV(){stepCV('future','past');}
 
 /* Toda acción sobre parámetros del Editor se registra en el historial del Editor */
-['applyPreset','setLayout','setPalette','setFontFamily','updateFontSize','updateLineHeight','updateSectionGap','togglePhoto','toggleCuil','togglePageGuides'].forEach(n=>{
+['applyPreset','setLayout','setPalette','setFontFamily','updateFontSize','updateLineHeight','updateSectionGap','togglePhoto','toggleCuil','togglePageGuides','moveSection'].forEach(n=>{
 const f=window[n];
 window[n]=function(){const r=f.apply(this,arguments);recordEditor();return r;};
 });
@@ -785,11 +786,12 @@ function secTitle(key,def){const t=cvState.sectionTitles&&cvState.sectionTitles[
 const ADD_KEYS=['contact','skillsHard','skillsSoft','languages'];
 function secInner(key,icon,def){
 const m=(cvState.sectionIcons&&cvState.sectionIcons[key])||'icon';
-const mark=m==='icon'?`<i class="${icon}"></i> `:(m==='bullet'?`<i class="fa-solid fa-square text-[6px] w-3 text-center shrink-0"></i> `:'');
+const mark=m==='icon'?`<i class="${icon}"></i> `:(m==='bullet'?`<span class="inline-block shrink-0 bg-current" style="width:.72em;height:.72em"></span> `:'');
 const nx={icon:['fa-square','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[m];
-const cyc=`<button onclick="toggleSectionIcon('${key}')" class="no-print ml-3 text-slate-500 hover:text-slate-800 p-1" title="${nx[1]}"><i class="fa-solid ${nx[0]} text-[10px]"></i></button>`;
-const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ml-2 text-blue-600 hover:text-blue-800 p-1" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
-return `${mark}<span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${cyc}${add}<button onclick="requestDeleteSection('${key}')" class="no-print ml-3 text-rose-500 hover:text-rose-700 p-1" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+const tight=ADD_KEYS.includes(key);
+const cyc=`<button onclick="toggleSectionIcon('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-slate-500 hover:text-slate-800" title="${nx[1]}"><i class="fa-solid ${nx[0]} text-[10px]"></i></button>`;
+const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ${tight?'ml-1 px-0.5 py-1':'ml-2 p-1'} text-blue-600 hover:text-blue-800" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
+return `${mark}<span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${cyc}${add}<button onclick="requestDeleteSection('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-rose-500 hover:text-rose-700" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
 }
 function toggleSectionIcon(key){
 const cur=(cvState.sectionIcons&&cvState.sectionIcons[key])||'icon';
@@ -801,6 +803,46 @@ function setSectionTitle(key,text){
 const t=String(text).replace(/\s+/g,' ').trim().slice(0,80);
 if(t){cvState.sectionTitles[key]=t;}
 else if(cvState.sectionTitles[key]){delete cvState.sectionTitles[key];renderCV();}
+}
+const SEC_BTN={
+experience:['Experiencia',"addExperienceItem()"],
+education:['Educación',"addEducationItem()"],
+courses:['Curso/Certif.',"addCourseItem()"],
+references:['Referencia',"addReferenceItem()"],
+skillsHard:['Habilidad Técnica',"addSectionItem('skillsHard')"],
+skillsSoft:['Competencia',"addSectionItem('skillsSoft')"],
+languages:['Idioma',"addSectionItem('languages')"],
+contact:['Contacto',"addSectionItem('contact')"]
+};
+function renderSectionButtons(){
+const box=document.getElementById('add-buttons');
+if(!box)return;
+const arrow='flex-1 px-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed';
+box.innerHTML=cvState.sectionOrder.map((k,i,arr)=>{
+const [label,fn]=SEC_BTN[k];
+return `<div class="flex items-stretch gap-1"><button onclick="${fn}" class="flex-1 min-w-0 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> ${label}</button><div class="flex flex-col gap-0.5"><button onclick="moveSection('${k}',-1)" ${i===0?'disabled':''} class="${arrow}" title="Subir en el orden"><i class="fa-solid fa-chevron-up text-[9px]"></i></button><button onclick="moveSection('${k}',1)" ${i===arr.length-1?'disabled':''} class="${arrow}" title="Bajar en el orden"><i class="fa-solid fa-chevron-down text-[9px]"></i></button></div></div>`;
+}).join('');
+}
+function moveSection(k,d){
+const o=cvState.sectionOrder,i=o.indexOf(k),j=i+d;
+if(i<0||j<0||j>=o.length)return;
+[o[i],o[j]]=[o[j],o[i]];
+renderSectionButtons();
+renderCV();
+}
+function sectionRoot(h){const p=h.parentElement;return p.classList.contains('justify-between')?p.parentElement:p;}
+function applySectionOrder(){
+const root=document.getElementById('cv-root');
+const ord=cvState.sectionOrder;
+root.querySelectorAll('h3[data-sec]').forEach(h=>{
+const i=ord.indexOf(h.dataset.sec);
+if(i>=0)sectionRoot(h).style.order=i+1;
+});
+const st=root.querySelector('[data-stack="skills"]');
+if(st){
+const r=['skillsHard','languages','skillsSoft'].map(k=>ord.indexOf(k)).filter(i=>i>=0);
+if(r.length)st.style.order=Math.min.apply(null,r)+1;
+}
 }
 function applyHiddenSections(){
 const root=document.getElementById('cv-root');
@@ -1031,6 +1073,7 @@ paper.style.zoom=available<paperWidth?(available/paperWidth):1;
 }
 
 window.onload=function(){
+renderSectionButtons();
 initHistory();
 document.getElementById('cv-root').addEventListener('focusout',()=>setTimeout(recordCV,0));
 renderCV();
