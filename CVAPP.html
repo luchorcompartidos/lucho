@@ -35,7 +35,11 @@ body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
 .row-actions{opacity:0;transition:opacity .2s ease}
 .row-item:hover .row-actions,.row-item:focus-within .row-actions{opacity:1}
 @media (hover:none){.row-actions{opacity:1}}
-@media print{
+.zoom-btn{min-width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;font-size:14px;transition:background .15s}
+.zoom-btn:hover:not(:disabled){background:#334155}
+.zoom-btn:disabled{opacity:.4;cursor:not-allowed}
+#paper-wrap{align-self:flex-start;width:max-content;min-width:100%}
+@media print{#paper-wrap{width:auto!important;min-width:0!important}
 @page{size:A4 portrait;margin:0}
 html,body{background:#fff!important;color:#000!important;margin:0!important;padding:0!important;width:210mm;height:auto}
 .no-print,#control-panel,.page-break-line,.page-break-line-2,.item-actions,.zoom-controls{display:none!important}
@@ -206,8 +210,8 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 </div>
 </aside>
 
-<main id="preview-container" class="flex-1 bg-slate-950 overflow-y-auto p-4 md:p-8 flex flex-col items-center relative">
-<div class="no-print mb-4 w-full max-w-[210mm] flex justify-between items-center text-xs text-slate-400 bg-slate-900/80 backdrop-blur px-4 py-2 rounded-xl border border-slate-800">
+<main id="preview-container" class="flex-none h-[100dvh] md:flex-1 md:h-auto bg-slate-950 overflow-auto px-4 md:px-8 pb-4 md:pb-8 flex flex-col items-center relative">
+<div class="no-print mt-4 md:mt-8 mb-2 w-full max-w-[210mm] flex justify-between items-center text-xs text-slate-400 bg-slate-900/80 backdrop-blur px-4 py-2 rounded-xl border border-slate-800">
 <div class="flex items-center gap-2">
 <i class="fa-solid fa-pen-to-square text-blue-400"></i>
 <span>Haz clic en cualquier texto del CV para editarlo directamente</span>
@@ -221,6 +225,25 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 </div>
 </div>
 
+<div id="sticky-bars" class="no-print sticky top-0 left-0 z-30 w-full max-w-[210mm] bg-slate-950 pt-2 pb-2 flex flex-col gap-2">
+<div class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Historial del CV</span>
+<div class="flex gap-2">
+<button id="btn-cv-undo-2" onclick="undoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-left"></i><span>Deshacer</span></button>
+<button id="btn-cv-redo-2" onclick="redoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-right"></i><span>Rehacer</span></button>
+</div>
+</div>
+<div class="zoom-controls flex justify-end">
+<div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl p-1.5">
+<span class="text-[11px] uppercase tracking-wider text-slate-500 px-1.5">Zoom</span>
+<button id="zoom-reset" onclick="zoomReset()" class="zoom-btn" title="Restablecer zoom (100%)"><i class="fa-solid fa-arrows-rotate text-xs"></i></button>
+<button id="zoom-out" onclick="zoomOut()" class="zoom-btn" title="Reducir zoom">&minus;</button>
+<span id="zoom-label" class="w-14 text-center text-sm font-mono text-blue-400">100%</span>
+<button id="zoom-in" onclick="zoomIn()" class="zoom-btn" title="Aumentar zoom">+</button>
+</div>
+</div>
+</div>
+<div id="paper-wrap">
 <div id="cv-paper" class="a4-paper cv-container shadow-2xl relative transition-all duration-200">
 <div id="page-break-line-1" class="page-break-line no-print">
 <span class="page-break-badge">Fin de Página 1 (297 mm)</span>
@@ -229,6 +252,7 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 <span class="page-break-badge" style="background:#f59e0b;">Fin de Página 2 (594 mm)</span>
 </div>
 <div id="cv-root"></div>
+</div>
 </div>
 </main>
 
@@ -690,7 +714,7 @@ updateHistoryButtons();
 }
 
 function updateHistoryButtons(){
-const set=(id,off)=>{document.getElementById(id).disabled=off;};
+const set=(id,off)=>{document.querySelectorAll('#'+id+',#'+id+'-2').forEach(b=>{b.disabled=off;});};
 set('btn-ed-undo',!hist.ed.past.length);
 set('btn-ed-redo',!hist.ed.future.length);
 set('btn-cv-undo',!hist.cv.past.length);
@@ -1061,6 +1085,22 @@ renderCV();
 reader.readAsText(file);
 }
 
+/* ===== Zoom del CV (100%-250%, pasos de 50%, persistente) ===== */
+const ZOOM_MIN=100,ZOOM_MAX=250,ZOOM_STEP=50,ZOOM_KEY='cvZoomLevel';
+let cvZoom=100;
+function loadZoom(){try{const v=parseInt(localStorage.getItem(ZOOM_KEY),10);if(v>=ZOOM_MIN&&v<=ZOOM_MAX&&v%ZOOM_STEP===0)cvZoom=v;}catch(e){}}
+function saveZoom(){try{localStorage.setItem(ZOOM_KEY,String(cvZoom));}catch(e){}}
+function updateZoomUI(){
+document.getElementById('zoom-label').textContent=cvZoom+'%';
+document.getElementById('zoom-out').disabled=cvZoom<=ZOOM_MIN;
+document.getElementById('zoom-in').disabled=cvZoom>=ZOOM_MAX;
+document.getElementById('zoom-reset').disabled=cvZoom===100;
+}
+function setZoom(v){cvZoom=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,v));saveZoom();updateZoomUI();fitPaperToScreen();}
+function zoomIn(){setZoom(cvZoom+ZOOM_STEP);}
+function zoomOut(){setZoom(cvZoom-ZOOM_STEP);}
+function zoomReset(){setZoom(100);}
+
 /* Ajusta el ancho del papel A4 al ancho disponible (solo si la pantalla es más angosta) */
 function fitPaperToScreen(){
 const paper=document.getElementById('cv-paper');
@@ -1069,13 +1109,14 @@ paper.style.zoom=1;
 const cs=getComputedStyle(container);
 const available=container.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
 const paperWidth=paper.offsetWidth;
-paper.style.zoom=available<paperWidth?(available/paperWidth):1;
+paper.style.zoom=(available<paperWidth?(available/paperWidth):1)*(cvZoom/100);
 }
 
 window.onload=function(){
 renderSectionButtons();
 initHistory();
 document.getElementById('cv-root').addEventListener('focusout',()=>setTimeout(recordCV,0));
+loadZoom();updateZoomUI();
 renderCV();
 fitPaperToScreen();
 };
