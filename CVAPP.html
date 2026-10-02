@@ -47,6 +47,7 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 .a4-paper{zoom:1!important;box-shadow:none!important;border:none!important;margin:0!important;width:210mm!important;min-height:297mm!important;padding:var(--cv-page-padding)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .page-break-inside-avoid{page-break-inside:avoid;break-inside:avoid}
 }
+#cv-paper,#cv-paper *{transition:none!important}
 #print-pages{display:none}
 @media print{
 html{height:auto!important}
@@ -1181,7 +1182,7 @@ const ind=document.getElementById('page-count-indicator');
 if(ind){ind.innerText=n===1?'1 Página (Perfecto Fit)':n+' Páginas (Extendido)';ind.className=(n===1?'text-emerald-400':'text-amber-400')+' font-semibold';}
 paper.style.zoom=z;
 }
-function checkPageOverflow(){clearTimeout(window._pgT);window._pgT=setTimeout(paginate,30);}
+function checkPageOverflow(){clearTimeout(window._pgT);window._pgT=setTimeout(()=>{paginate();requestAnimationFrame(()=>requestAnimationFrame(paginate));},30);}
 window.addEventListener('load',()=>{
 document.getElementById('cv-root').addEventListener('input',checkPageOverflow);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(checkPageOverflow);
@@ -1190,8 +1191,8 @@ checkPageOverflow();
 
 /* ===== Impresión: una hoja A4 fija por página, recortando el mismo lienzo de la Vista Previa ===== */
 function buildPrint(){
-paginate();
 const paper=document.getElementById('cv-paper');
+if(paper.getBoundingClientRect().height>0)paginate();
 const n=paper.classList.contains('paged')?(parseInt(paper.style.getPropertyValue('--cv-pages'))||1):1;
 const old=document.getElementById('print-pages');if(old)old.remove();
 const box=document.createElement('div');box.id='print-pages';
