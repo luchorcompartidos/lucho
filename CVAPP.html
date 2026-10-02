@@ -47,6 +47,7 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 .a4-paper{zoom:1!important;box-shadow:none!important;border:none!important;margin:0!important;width:210mm!important;min-height:297mm!important;padding:var(--cv-page-padding)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 .page-break-inside-avoid{page-break-inside:avoid;break-inside:avoid}
 }
+.contact-row .row-actions{position:absolute;right:0;top:50%;transform:translateY(-50%);margin-left:0!important;padding-left:6px;background:var(--cv-sidebar-bg)}
 #cv-paper,#cv-paper *{transition:none!important}
 #print-pages{display:none}
 @media print{
@@ -198,11 +199,9 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <input type="file" id="import-file" accept=".json,application/json,text/plain" class="hidden" onchange="importCV(event)">
 </div>
 
-<div class="pt-4 border-t border-slate-800">
-<button onclick="resetSampleData()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2">
-<i class="fa-solid fa-rotate-left"></i>
-<span>Restablecer Datos Modelo Argentina</span>
-</button>
+<div class="pt-4 border-t border-slate-800 space-y-2">
+<button onclick="resetAllData()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i><span>Restablecer Todos los Datos</span></button>
+<button onclick="resetSettings()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-sliders"></i><span>Restablecer Configuración</span></button>
 </div>
 
 <div class="space-y-2 pt-4 border-t border-slate-800">
@@ -949,7 +948,7 @@ return two?`<i class="${T.ic} ${T.col} ${it.type==='location'?'mt-1 ':''}text-xs
 function contactRows2(){
 return contactVisible().map(it=>{
 const T=ctype(it);
-return `<div class="row-item flex ${it.type==='location'?'items-start':'items-center'} gap-2 ${T.row||''}">${contactMark(it,T,true)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${T.brk?'break-all':''}">${escHtml(it.value)}</span>${contactActions(it)}</div>`;
+return `<div class="row-item contact-row relative flex ${it.type==='location'?'items-start':'items-center'} gap-2 ${T.row||''}">${contactMark(it,T,true)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${FIT_TYPES.includes(it.type)?'':(T.brk?'break-all':'')}"${FIT_TYPES.includes(it.type)?' data-fit="1" style="white-space:nowrap;flex:1 1 0;overflow:hidden"':''}>${escHtml(it.value)}</span>${contactActions(it)}</div>`;
 }).join('');
 }
 function contactRows1(){
@@ -1143,6 +1142,7 @@ function paginate(){
 const paper=document.getElementById('cv-paper'),root=document.getElementById('cv-root');
 if(!paper||!root||!root.firstElementChild)return;
 const z=paper.style.zoom;paper.style.zoom=1;
+fitContacts();
 root.querySelectorAll('.pg-clone').forEach(e=>e.remove());
 root.querySelectorAll('.pg-first').forEach(e=>{e.classList.remove('pg-first');e.style.marginTop='';});
 paper.classList.remove('paged');paper.style.height='';
@@ -1210,6 +1210,45 @@ document.body.appendChild(box);
 }
 window.addEventListener('beforeprint',buildPrint);
 window.addEventListener('afterprint',()=>{const b=document.getElementById('print-pages');if(b)b.remove();});
+
+/* ===== Una sola línea para E-Mail / LinkedIn / CUIL en la columna izquierda ===== */
+const FIT_TYPES=['email','linkedin','cuil'];
+function fitContacts(){
+document.querySelectorAll('#cv-root .col-span-4:not(.pg-clone) [data-fit]').forEach(el=>{
+el.style.fontSize='';
+let f=parseFloat(getComputedStyle(el).fontSize);
+while(el.scrollWidth>el.clientWidth+0.5&&f>5){f-=0.25;el.style.fontSize=f+'px';}
+});
+}
+
+/* ===== Restablecer: Datos (contenido) y Configuración (panel del Editor) por separado ===== */
+const INITIAL=JSON.parse(JSON.stringify(cvState));
+const DATA_KEYS=['fullName','jobTitle','sectionTitles','hiddenSections','contactItems','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references','photoUrl'];
+const clone=v=>JSON.parse(JSON.stringify(v));
+function resetAllData(){
+showConfirm('¿Restablecer todos los datos cargados (textos, listas, foto) a los valores iniciales? No se modifica ninguna configuración.',()=>{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+DATA_KEYS.forEach(k=>{
+let init=clone(INITIAL[k]);
+if(k==='contactItems'){
+init=init.map(it=>{const cur=cvState.contactItems.find(x=>x.id===it.id);if(cur)it.icon=cur.icon;return it;});
+}
+if(JSON.stringify(cvState[k])!==JSON.stringify(init))cvState[k]=init;
+});
+renderCV();
+});
+}
+function resetSettings(){
+showConfirm('¿Restablecer toda la configuración del Panel del Editor a los valores iniciales? No se modifican los datos del CV ni lo configurado desde la Vista Previa.',()=>{
+ED_KEYS.forEach(k=>{
+if(JSON.stringify(cvState[k])!==JSON.stringify(INITIAL[k]))cvState[k]=clone(INITIAL[k]);
+});
+syncEditorUI();
+renderCV();
+fitPaperToScreen();
+recordEditor();
+});
+}
 </script>
 </body>
 </html>
