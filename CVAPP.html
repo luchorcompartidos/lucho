@@ -30,7 +30,7 @@ body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
 [contenteditable="true"]:hover{background-color:rgba(59,130,246,.08);cursor:text}
 [contenteditable="true"]:focus{background-color:rgba(59,130,246,.12);box-shadow:0 0 0 2px rgba(59,130,246,.4)}
 .editable-item{position:relative}
-.editable-item .item-actions{position:absolute;right:-28px;top:0;display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .2s ease}
+.editable-item .item-actions{position:absolute;right:-38px;top:0;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity .2s ease}
 .editable-item:hover .item-actions{opacity:1}
 .row-actions{opacity:0;transition:opacity .2s ease}
 .row-item:hover .row-actions,.row-item:focus-within .row-actions{opacity:1}
@@ -264,7 +264,7 @@ preset:'compact',layout:'2-col',fontFamily:"'Inter', sans-serif",fontSize:11.5,l
 photoUrl:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
 fullName:'Lic. Gonzalo Ariel Rodríguez',
 jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
-sectionTitles:{},hiddenSections:[],
+sectionTitles:{},sectionIcons:{},hiddenSections:[],
 showSoftInOneCol:false,
 contactItems:[
 {id:'ct1',type:'location',value:'CABA, Buenos Aires, Argentina',icon:true},
@@ -676,7 +676,7 @@ showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TO
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
 const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides'];
-const CV_KEYS=['fullName','jobTitle','sectionTitles','hiddenSections','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
+const CV_KEYS=['fullName','jobTitle','sectionTitles','sectionIcons','hiddenSections','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
 const HIST_MAX=100;
 const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
 
@@ -784,8 +784,18 @@ const escHtml=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function secTitle(key,def){const t=cvState.sectionTitles&&cvState.sectionTitles[key];return t||def;}
 const ADD_KEYS=['contact','skillsHard','skillsSoft','languages'];
 function secInner(key,icon,def){
-const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ml-1 text-blue-600 hover:text-blue-800 p-1" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
-return `<i class="${icon}"></i> <span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${add}<button onclick="requestDeleteSection('${key}')" class="no-print ml-1 text-rose-500 hover:text-rose-700 p-1" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+const m=(cvState.sectionIcons&&cvState.sectionIcons[key])||'icon';
+const mark=m==='icon'?`<i class="${icon}"></i> `:(m==='bullet'?`<i class="fa-solid fa-square text-[6px] w-3 text-center shrink-0"></i> `:'');
+const nx={icon:['fa-square','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[m];
+const cyc=`<button onclick="toggleSectionIcon('${key}')" class="no-print ml-3 text-slate-500 hover:text-slate-800 p-1" title="${nx[1]}"><i class="fa-solid ${nx[0]} text-[10px]"></i></button>`;
+const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ml-2 text-blue-600 hover:text-blue-800 p-1" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
+return `${mark}<span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${cyc}${add}<button onclick="requestDeleteSection('${key}')" class="no-print ml-3 text-rose-500 hover:text-rose-700 p-1" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+}
+function toggleSectionIcon(key){
+const cur=(cvState.sectionIcons&&cvState.sectionIcons[key])||'icon';
+const next={icon:'bullet',bullet:'none',none:'icon'}[cur];
+if(next==='icon')delete cvState.sectionIcons[key];else cvState.sectionIcons[key]=next;
+renderCV();
 }
 function setSectionTitle(key,text){
 const t=String(text).replace(/\s+/g,' ').trim().slice(0,80);
@@ -851,12 +861,12 @@ const contactVisible=()=>cvState.contactItems.filter(it=>cvState.showCuil||it.ty
 const iconMode=it=>(it.icon===false||it.icon==='none')?'none':(it.icon==='bullet'?'bullet':'icon');
 function contactActions(it){
 const nxt={icon:['fa-circle','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[iconMode(it)];
-return `<span class="row-actions no-print shrink-0 flex gap-1 ml-1"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${nxt[1]}"><i class="fa-solid ${nxt[0]} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
+return `<span class="row-actions no-print shrink-0 flex gap-2.5 ml-3"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${nxt[1]}"><i class="fa-solid ${nxt[0]} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
 }
 function contactMark(it,T,two){
 const m=iconMode(it);
 if(m==='none')return '';
-if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] ${T.col} ${two?'w-3 text-center shrink-0 '+(it.type==='location'?'mt-2':''):''}"></i>`+(two?'':' ');
+if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] text-[var(--cv-primary-color)] ${two?'w-3 text-center shrink-0 '+(it.type==='location'?'mt-2':''):''}"></i>`+(two?'':' ');
 return two?`<i class="${T.ic} ${T.col} ${it.type==='location'?'mt-1 ':''}text-xs"></i>`:`<i class="${T.ic} ${T.col}"></i> `;
 }
 function contactRows2(){
@@ -872,13 +882,13 @@ return `<span class="row-item flex items-center gap-1 ${it.type==='cuil'?'font-m
 }).join('');
 }
 function hardChips(cls){
-return cvState.skillsHard.map((skill,idx)=>`<span class="row-item inline-block ${cls}"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-1"><button onclick="removeSkill('hard', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join('');
+return cvState.skillsHard.map((skill,idx)=>`<span class="row-item inline-block ${cls}"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3"><button onclick="removeSkill('hard', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join('');
 }
 function softItems(){
-return cvState.skillsSoft.map((skill,idx)=>`<li class="row-item"><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-1"><button onclick="removeSkill('soft', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></li>`).join('');
+return cvState.skillsSoft.map((skill,idx)=>`<li class="row-item"><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3"><button onclick="removeSkill('soft', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></li>`).join('');
 }
 function langItems(){
-return cvState.languages.map((lang,idx)=>`<div class="row-item"><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${escHtml(lang.name)}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${escHtml(lang.level)}</span><span class="row-actions no-print ml-1"><button onclick="removeLanguage(${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></div>`).join('');
+return cvState.languages.map((lang,idx)=>`<div class="row-item"><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${escHtml(lang.name)}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${escHtml(lang.level)}</span><span class="row-actions no-print ml-3"><button onclick="removeLanguage(${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></div>`).join('');
 }
 
 function updateContactValue(id,val){const it=cvState.contactItems.find(x=>x.id===id);if(it)it.value=val;}
@@ -970,6 +980,11 @@ if(!c.contact||typeof c.contact!=='object')throw bad('contact');
 o.contactItems=['location','phone','email','linkedin','github','cuil','birth'].filter(f=>typeof c.contact[f]==='string'&&c.contact[f]!=='').map((f,i)=>({id:'ct_imp_'+stamp+'_'+i,type:f,value:plain(c.contact[f]),icon:true}));
 }
 if('showSoftInOneCol' in c)o.showSoftInOneCol=c.showSoftInOneCol===true;
+if('sectionIcons' in c){
+if(!c.sectionIcons||typeof c.sectionIcons!=='object')throw bad('sectionIcons');
+o.sectionIcons={};
+SECTION_KEYS.forEach(k=>{const v=c.sectionIcons[k];if(v==='bullet'||v==='none')o.sectionIcons[k]=v;});
+}
 if('sectionTitles' in c){
 if(!c.sectionTitles||typeof c.sectionTitles!=='object')throw bad('sectionTitles');
 o.sectionTitles={};
