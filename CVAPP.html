@@ -1344,6 +1344,9 @@ maxB=Math.max(maxB,a.getBoundingClientRect().bottom-T);
 const n=Math.max(1,Math.ceil((maxB+PAD-2)/P));
 if(n>1){
 paper.classList.add('paged');paper.style.setProperty('--cv-pages',n);paper.style.height=(n*297)+'mm';
+const hd=document.createElement('div');hd.className='pg-clone';hd.textContent='CV de '+n+' Páginas';
+hd.style.cssText='position:absolute;top:5mm;right:15mm;font-size:9px;font-weight:300;letter-spacing:.2px;color:#9ca3af;line-height:1;white-space:nowrap;pointer-events:none';
+root.appendChild(hd);
 const left=root.querySelector('.col-span-4');
 if(left){
 const pr=paper.getBoundingClientRect(),lr=left.getBoundingClientRect();
@@ -1354,7 +1357,7 @@ c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contentedi
 c.querySelectorAll('.no-print').forEach(e=>e.remove());
 c.querySelectorAll('[data-sec]').forEach(e=>e.removeAttribute('data-sec'));
 const img=c.querySelector('img');if(img&&img.parentElement!==c)img.parentElement.remove();
-c.insertAdjacentHTML('afterbegin','<div class="font-bold leading-tight pb-2 border-b border-[var(--cv-border-color)] text-[var(--cv-primary-color)]" style="font-size:1.15em;overflow-wrap:anywhere;word-break:break-word;max-width:100%">'+escHtml(cvState.fullName)+'</div>');
+c.insertAdjacentHTML('afterbegin','<div style="padding-bottom:8px;border-bottom:1px solid var(--cv-border-color);max-width:100%"><div class="font-bold leading-tight text-[var(--cv-primary-color)]" style="font-size:1.15em;overflow-wrap:anywhere;word-break:break-word">'+escHtml(cvState.fullName)+'</div><div style="font-size:1em;font-style:italic;font-weight:400;color:#64748b;margin-top:3px;line-height:1.25">(cont. Página '+(k+1)+' de '+n+')</div></div>');
 c.style.position='absolute';c.style.left=(lr.left-pr.left)+'px';c.style.top=(k*P+PAD)+'px';c.style.width=lr.width+'px';
 root.appendChild(c);
 }}}
