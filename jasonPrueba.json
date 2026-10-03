@@ -1,0 +1,88 @@
+{
+  "app": "editor-cv-argentina",
+  "version": 1,
+  "exportedAt": "2026-10-01T22:18:05.935Z",
+  "content": {
+    "fullName": "Lic. Luciano Reccia",
+    "jobTitle": "Desarrollador Full Stack & Analista de Sistemas",
+    "sectionTitles": {},
+    "hiddenSections": [
+      "profile"
+    ],
+    "contact": {
+      "location": "CABA, Buenos Aires, Argentina",
+      "phone": "+54 9 11 5849-2019",
+      "email": "gonzalo.rodriguez@email.com",
+      "linkedin": "linkedin.com/in/gonzalo-rodriguez-arg",
+      "github": "github.com/gonzalo-dev-arg",
+      "cuil": "CUIL: 20-38492019-4",
+      "birth": "28/05/1993 (31 años)"
+    },
+    "profileSummary": "",
+    "experience": [
+      {
+        "id": "exp_1790893068892",
+        "role": "Nuevo Cargo / Puesto",
+        "company": "Nombre Empresa S.A.",
+        "period": "2022 - Presente",
+        "location": "Buenos Aires",
+        "description": "• Responsabilidad principal o logro cuantitativo importante."
+      }
+    ],
+    "education": [
+      {
+        "id": "edu_1790893069945",
+        "degree": "Título o Certificación Académica",
+        "institution": "Universidad / Instituto",
+        "period": "2020 - 2023",
+        "status": "En curso / Finalizado"
+      }
+    ],
+    "courses": [
+      {
+        "id": "crs_1790893070756",
+        "title": "Nuevo Curso o Seminario",
+        "institution": "Institución / Plataforma",
+        "year": "2024"
+      }
+    ],
+    "skillsHard": [
+      "JavaScript / TypeScript",
+      "React.js / Next.js",
+      "Node.js / Express",
+      "PostgreSQL / MongoDB",
+      "Docker / AWS",
+      "Git / CI-CD Pipelines",
+      "REST APIs & GraphQL"
+    ],
+    "skillsSoft": [
+      "Liderazgo de Equipos",
+      "Comunicación Asertiva",
+      "Resolución de Problemas",
+      "Pensamiento Analítico",
+      "Adaptabilidad al Cambio"
+    ],
+    "languages": [
+      {
+        "name": "Español",
+        "level": "Nativo"
+      },
+      {
+        "name": "Inglés",
+        "level": "Avanzado (C1) - Fluidez Profesional"
+      },
+      {
+        "name": "Portugués",
+        "level": "Básico (A2)"
+      }
+    ],
+    "references": [
+      {
+        "id": "ref_1790893070379",
+        "name": "Nombre del Referente",
+        "title": "Puesto & Empresa",
+        "contact": "email@ejemplo.com"
+      }
+    ]
+  }
+}
