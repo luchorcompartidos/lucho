@@ -19,7 +19,9 @@ body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
 .cv-container{font-family:var(--cv-font-family);font-size:var(--cv-base-size);line-height:var(--cv-line-height);color:var(--cv-text-color)}
 .a4-paper{width:210mm;min-height:297mm;padding:var(--cv-page-padding);background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.3);position:relative;margin:0 auto;box-sizing:border-box;transition:all .2s ease}
 .page-break-line{position:absolute;left:0;right:0;top:297mm;border-top:2px dashed #ef4444;pointer-events:none;z-index:20}
-.page-break-badge{position:absolute;right:10px;top:-12px;background:#ef4444;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px}
+.page-break-badge{position:absolute;right:10px;top:-21px;background:#ef4444;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px}
+.cv-ruler{position:absolute;left:0;width:210mm;height:7mm;z-index:22;pointer-events:none;user-select:none;box-shadow:0 1px 3px rgba(120,53,15,.25)}
+.cv-ruler svg{display:block;width:100%;height:100%}
 .page-break-line-2{position:absolute;left:0;right:0;top:594mm;border-top:2px dashed #f59e0b;pointer-events:none;z-index:20}
 .cv-section-gap{margin-bottom:var(--cv-section-gap)}
 .cv-item-gap{margin-bottom:var(--cv-item-gap)}
@@ -298,6 +300,7 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <div id="page-break-line-2" class="page-break-line-2 no-print">
 <span class="page-break-badge" style="background:#f59e0b;">Fin de Página 2 (594 mm)</span>
 </div>
+<div id="ruler-1" class="cv-ruler no-print" style="top:0" aria-hidden="true"></div>
 <div id="cv-root"></div>
 </div>
 </div>
@@ -1348,6 +1351,7 @@ if(!paper||!root||!root.firstElementChild)return;
 const z=paper.style.zoom;paper.style.zoom=1;
 fitContacts();
 root.querySelectorAll('.pg-clone').forEach(e=>e.remove());
+paper.querySelectorAll('.cv-ruler-x').forEach(e=>e.remove());
 root.querySelectorAll('.pg-first').forEach(e=>{e.classList.remove('pg-first');e.style.marginTop='';});
 paper.classList.remove('paged');paper.style.height='';
 const P=297*MM,PAD=12*MM,T=paper.getBoundingClientRect().top;
@@ -1368,8 +1372,9 @@ maxB=Math.max(maxB,a.getBoundingClientRect().bottom-T);
 const n=Math.max(1,Math.ceil((maxB+PAD-2)/P));
 if(n>1){
 paper.classList.add('paged');paper.style.setProperty('--cv-pages',n);paper.style.height=(n*297)+'mm';
+for(let k=1;k<n;k++){const rl=document.createElement('div');rl.className='cv-ruler cv-ruler-x no-print';rl.setAttribute('aria-hidden','true');rl.style.top=(k*297)+'mm';rl.innerHTML=RULER_SVG;paper.appendChild(rl);}
 const hd=document.createElement('div');hd.className='pg-clone';hd.textContent='CV de '+n+' Páginas';
-hd.style.cssText='position:absolute;top:5mm;right:15mm;font-size:9px;font-weight:300;letter-spacing:.2px;color:#9ca3af;line-height:1;white-space:nowrap;pointer-events:none';
+hd.style.cssText='position:absolute;top:8.2mm;right:15mm;font-size:9px;font-weight:300;letter-spacing:.2px;color:#9ca3af;line-height:1;white-space:nowrap;pointer-events:none';
 root.appendChild(hd);
 const left=root.querySelector('.col-span-4');
 if(left){
@@ -1907,6 +1912,27 @@ document.getElementById('save-menu-list').classList.toggle('hidden');
 }
 function closeSaveMenu(){const m=document.getElementById('save-menu-list');if(m)m.classList.add('hidden');}
 document.addEventListener('click',e=>{if(!e.target.closest('#save-menu'))closeSaveMenu();});
+
+/* ===== Regla de referencia (solo Vista Previa; no se imprime ni se exporta) ===== */
+/* Dibujada en milímetros dentro de la hoja: escala junto con el zoom y mide 21 cm de ancho */
+const RULER_SVG=(()=>{
+let a='',b='',c='',lab='';
+for(let i=0;i<=210;i++){
+const x=i*10;
+if(i%10===0)c+='M'+x+' 0V42';
+else if(i%5===0)b+='M'+x+' 0V29';
+else a+='M'+x+' 0V17';
+}
+for(let n=0;n<=20;n++)lab+='<text x="'+(n*100+9)+'" y="63" font-size="24">'+n+'</text>';
+return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2100 70" preserveAspectRatio="none">'
++'<rect width="2100" height="70" fill="#fef3c7" fill-opacity=".96"/>'
++'<rect y="68" width="2100" height="2" fill="#d97706" fill-opacity=".75"/>'
++'<path d="'+a+'" stroke="#78350f" stroke-width="2"/>'
++'<path d="'+b+'" stroke="#78350f" stroke-width="2.6"/>'
++'<path d="'+c+'" stroke="#78350f" stroke-width="3.6"/>'
++'<g fill="#78350f" font-family="Arial, Helvetica, sans-serif">'+lab+'<text x="2090" y="63" font-size="22" font-style="italic" text-anchor="end">cm</text></g></svg>';
+})();
+window.addEventListener('load',()=>{const r=document.getElementById('ruler-1');if(r)r.innerHTML=RULER_SVG;});
 </script>
 </body>
 </html>
