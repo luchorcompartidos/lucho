@@ -1,0 +1,204 @@
+{
+  "app": "editor-cv-argentina",
+  "version": 2,
+  "exportedAt": "2026-10-02T15:11:19.349Z",
+  "content": {
+    "fullName": "Lic. Luciano Reccia",
+    "jobTitle": "Licenciado en Sistemas de Información de las Organizaciones (UBA - 2009)",
+    "sectionTitles": {},
+    "sectionIcons": {},
+    "hiddenSections": [],
+    "contactItems": [
+      {
+        "id": "ct1",
+        "type": "location",
+        "value": "CABA, Buenos Aires, Argentina",
+        "icon": true
+      },
+      {
+        "id": "ct2",
+        "type": "phone",
+        "value": "+54 9 11 4418-8213",
+        "icon": true
+      },
+      {
+        "id": "ct3",
+        "type": "email",
+        "value": "lucianoreccia82@gmail.com",
+        "icon": true
+      },
+      {
+        "id": "ct4",
+        "type": "linkedin",
+        "value": "linkedin.com/in/luciano-reccia",
+        "icon": true
+      },
+      {
+        "id": "ct5",
+        "type": "github",
+        "value": "github.com/",
+        "icon": true
+      },
+      {
+        "id": "ct6",
+        "type": "cuil",
+        "value": "CUIL: 20-29434441-2",
+        "icon": true
+      },
+      {
+        "id": "ct7",
+        "type": "birth",
+        "value": "18/03/1982",
+        "icon": true
+      }
+    ],
+    "showSoftInOneCol": false,
+    "profileSummary": "Profesional con más de 6 años de experiencia en desarrollo de software, análisis funcional y arquitectura web. Especializado en el ecosistema JavaScript/TypeScript (Node.js, React) y bases de datos relacionales. Enfocado en la resolución de problemas de alto impacto corporativo, metodologías ágiles (Scrum) y optimización de procesos en entornos dinámicos de Argentina y Latinoamérica.\n\n\nLicenciado en Sistemas de Información de las Organizaciones(Universidad de Buenos Aires - 2009) con más de 15 años de experiencia en gestión en áreas de tecnologías de la información. Interés en crecer profesionalmente en áreas vinculadas a las TI, buscando oportunidades de gestión para soporte a las áreas de Negocio a través de la mejora de los sistemas de información. Quiero aportar en la mejora de procesos y continuar creciendo en participación en la toma de decisiones con el fin de optimizar la eficiencia en la gestión y mostrar resultados en vista al cumplimiento de los objetivos propuestos.",
+    "experience": [
+      {
+        "id": "exp1",
+        "role": "Líder de Soluciones Comerciales",
+        "company": "EDENOR",
+        "period": "Junio 2022 - Julio 2023",
+        "location": "CABA, Argentina (modalidad Híbrida)",
+        "description": "• Líder de proyectos de Soluciones Comerciales.<br>• Responsable de proyecto de Clientes Gubernamentales.<br>• Líder de proyectos ''Cross''."
+      },
+      {
+        "id": "exp2",
+        "role": "Gestor de la Demanda (BRM)",
+        "company": "DIRECTV LATIN AMERICA",
+        "period": "Junio 2016 - Febrero 2022",
+        "location": "Buenos Aires, Argentina (modalidad Híbrida)",
+        "description": "• IT Business Partner (Business relationship management)."
+      },
+      {
+        "id": "exp3",
+        "role": "Analista de Negocio Sr.",
+        "company": "DIRECTV LATIN AMERICA",
+        "period": "Enero 2012 - Febrero 2022",
+        "location": "Buenos Aires, Argentina (modalidad Híbrida)",
+        "description": "• Líder Aplicativo (Centro de Competencia) - Aplicación de soporte al proceso de Ventas (gestión de Solicitudes de Servicio)..<br>• Referente de IT para el soporte al Proceso de Ventas de Argentina.<br>• Soporte a usuarios del 'Negocio' (áreas Adm. Comercial y Ventas, Televentas, Producto, Marketing, Facturación)."
+      },
+      {
+        "id": "exp4",
+        "role": "Game Analyst (Product & Functional Analysis)",
+        "company": "VOSTU LTD.",
+        "period": "Diciembre 2010 - Enero 2012",
+        "location": "Ciudad Autónoma de Buenos Aires, Argentina",
+        "description": "• Analista Funcional y de Producto en estudio de Social Gaming.<br>• Gestión de desarollo, mejoras e implementación de software desde el equipo de Producto."
+      },
+      {
+        "id": "exp5",
+        "role": "Analista Funcional Sr. (Testing Factory)",
+        "company": "ATOS ORIGIN S.A.",
+        "period": "Junio 2010 - Diciembre 2010",
+        "location": "Ciudad Autónoma de Buenos Aires, Argentina",
+        "description": "Cliente: Telecom Personal (Proyecto BRM Billing and Revenue Management - Oracle).<br>• Proyecto de migración del sistema de facturación de la cía. de telefonía móvil Personal.<br>• Tareas de análisis-relevamiento, documentación y pruebas de diferentes módulos. Estimación, planificación, gestión y seguimiento de requerimientos."
+      },
+      {
+        "id": "exp6",
+        "role": "Analista Funcional Sr.",
+        "company": "EX-CLÉ S.A.",
+        "period": "Enero 2010 - Junio 2010",
+        "location": "Ciudad de Panamá, Panamá / Ciudad Autónoma de Buenos Aires, Argentina",
+        "description": "Proyecto de identificación Biométrica para el Gobierno de Panamá (Ministerio de Gobierno y Justicia - Secretaría de Innovación). SBSN - Sistema Biométrico de Seguridad Nacional<br> Relevamiento; entrevistas con autoridades de entidades gubernamentales (Dirección General del Sistema Penitenciario, Servicio Nacional de Migración, Dirección de Investigación Judicial, división de Criminalística (IMEL - Instituto de Medicina Legal y Ciencias Forenses), Ministerio de Gobierno y Justicia).<br> Reubicaciones temporales en Panamá para tareas de relevamiento.<br>• Tareas de análisis, diseño-especificación y testeo de los subsistemas Penitenciario, AFIS y Migraciones.<br>• Estimación y planificación de tareas.<br>• Confección de manuales de usuario de las aplicaciones y material para capacitación.<br>• Capacitación a usuarios on-site."
+      },
+      {
+        "id": "exp7",
+        "role": "Analista Técnico/Funcional Sr. del área de Mantenimiento Evolutivo (Desarrollo)",
+        "company": "ACCENTURE ARGENTINA",
+        "period": "Diciembre 2005 - Diciembre 2009",
+        "location": "Ciudad Autónoma de Buenos Aires, Argentina",
+        "description": "Cliente: Telecom (Contrato ABACO) - Communications & High Technologies<br>• Tareas de análisis, diseño, construcción, pruebas unitarias y en cadena (string) e implementación de software desarrollado en lenguaje Cobol, para el Módulo Integral de Cobranzas y el módulo de Operadores y Prestadores (Terceros), sistema de Facturación y Cobranzas.<br>• Estimación, planificación, gestión y seguimiento de requerimientos. Coordinación de tareas delegadas a diferentes grupos de trabajo.<br>• Soporte a las Pruebas de Integración (PI) y de Aceptación de Usuario (PAU).<br>• Atención a referentes del cliente (intermediarios con el usuario) y usuarios.<br>• Capacitación de ingresantes al equipo de trabajo (Trainees y Asistentes)."
+      },
+      {
+        "id": "exp8",
+        "role": "Asistente Técnico y Desarrollador del área de Mantenimiento Base (Producción)",
+        "company": "ACCENTURE ARGENTINA",
+        "period": "Diciembre 2004 - Noviembre 2005",
+        "location": "Ciudad Autónoma de Buenos Aires, Argentina",
+        "description": "Cliente: Telecom (Contrato ABACO) - Communications & High Technologies<br>• Tareas de análisis y resolución de incidentes en el módulo de Operadores y Prestadores (Terceros) y en el Módulo Integral de Cobranzas en entorno Productivo.<br>• Atención a usuarios finales y referentes del cliente (intermediarios con el usuario).<br>• Capacitación de ingresantes al equipo de trabajo (Trainees)."
+      }
+    ],
+    "education": [
+      {
+        "id": "edu1",
+        "degree": "Licenciatura en Ciencias de la Computación",
+        "institution": "Universidad de Buenos Aires (UBA) - Facultad de Ciencias Exactas",
+        "period": "2013 - 2019",
+        "status": "Graduado / Título Homologado"
+      },
+      {
+        "id": "edu2",
+        "degree": "Técnico en Informática Profesional y Personal",
+        "institution": "Instituto Técnico Superior N° 12",
+        "period": "2007 - 2012",
+        "status": "Título Secundario Técnico"
+      }
+    ],
+    "courses": [
+      {
+        "id": "crs1",
+        "title": "AWS Certified Solutions Architect – Associate",
+        "institution": "Amazon Web Services",
+        "year": "2023"
+      },
+      {
+        "id": "crs2",
+        "title": "Programa Executive en Arquitectura de Software & Cloud Native",
+        "institution": "UTN Buenos Aires (FRBA)",
+        "year": "2022"
+      },
+      {
+        "id": "crs3",
+        "title": "Certificación Scrum Master (PSM I)",
+        "institution": "Scrum.org",
+        "year": "2021"
+      }
+    ],
+    "skillsHard": [
+      "JavaScript / TypeScript",
+      "React.js / Next.js",
+      "Node.js / Express",
+      "PostgreSQL / MongoDB",
+      "Docker / AWS",
+      "Git / CI-CD Pipelines",
+      "REST APIs & GraphQL"
+    ],
+    "skillsSoft": [
+      "Liderazgo de Equipos",
+      "Comunicación Asertiva",
+      "Resolución de Problemas",
+      "Pensamiento Analítico",
+      "Adaptabilidad al Cambio"
+    ],
+    "languages": [
+      {
+        "name": "Español",
+        "level": "Nativo"
+      },
+      {
+        "name": "Inglés",
+        "level": "Avanzado (C1) - Fluidez Profesional"
+      },
+      {
+        "name": "Portugués",
+        "level": "Básico (A2)"
+      }
+    ],
+    "references": [
+      {
+        "id": "ref1",
+        "name": "Ing. Martín Benítez",
+        "title": "Engineering Manager en Mercado Libre",
+        "contact": "mbenitez@mercadolibre.com | Tel: +54 11 4000-1111"
+      },
+      {
+        "id": "ref2",
+        "name": "Lic. Sofía Peralta",
+        "title": "Tech Lead en Globant",
+        "contact": "sofia.peralta@globant.com"
+      }
+    ]
+  }
+}
