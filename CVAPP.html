@@ -1186,17 +1186,27 @@ renderCV();
 
 /* ===== Zoom del CV: 100% = hoja A4 a tamaño real · mínimo = hoja ajustada al ancho de pantalla · 5 pasos equidistantes ===== */
 const ZOOM_STEPS=5,ZOOM_KEY='cvZoomStep';
+/* En móviles el "px CSS" no mide lo mismo que en una PC (96 px por pulgada): Android ≈ 160, iPhone ≈ 163, iPad ≈ 132.
+   REAL_K = cuántos px CSS se necesitan para dibujar lo mismo que 1 px CSS de PC, de modo que 100% sea el A4 físico real. */
+const REAL_K=(()=>{
+const ua=navigator.userAgent||'';
+if(/iPhone|iPod/i.test(ua))return 163/96;
+if(/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1))return 132/96;
+if(/Android/i.test(ua))return 160/96;
+try{if(matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches)return 160/96;}catch(e){}
+return 1;
+})();
 let cvStep=null;
 function zoomBounds(){
 const container=document.getElementById('preview-container'),bars=document.getElementById('sticky-bars');
 const cs=getComputedStyle(container);
 const availW=container.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
 const availH=container.clientHeight-(bars?bars.offsetHeight:0)-8;
-const fitW=Math.floor(availW/(210*MM)*1000)/1000;
+const fitW=Math.floor(availW/(210*MM)/REAL_K*1000)/1000;
 /* pantalla más angosta que la hoja: ancho A4 = ancho de pantalla; pantalla ancha (escritorio): hoja completa a la vista */
-let min=fitW<1?fitW:Math.min(1,Math.floor(availH/(297*MM)*1000)/1000);
+let min=fitW<1?fitW:Math.min(1,Math.floor(availH/(297*MM)/REAL_K*1000)/1000);
 if(!(min>0))min=1;
-min=Math.max(0.2,Math.min(1,min));
+min=Math.max(0.1,Math.min(1,min));
 return {min:min,fitW:fitW};
 }
 function zoomScale(step,b){b=b||zoomBounds();return b.min+(1-b.min)*step/ZOOM_STEPS;}
@@ -1225,7 +1235,7 @@ function fitPaperToScreen(){
 const paper=document.getElementById('cv-paper');
 const b=zoomBounds();
 if(cvStep===null)loadZoom();
-paper.style.zoom=zoomScale(cvStep,b);
+paper.style.zoom=zoomScale(cvStep,b)*REAL_K;
 updateZoomUI();
 }
 
