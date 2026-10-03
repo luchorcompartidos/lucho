@@ -59,7 +59,7 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 .spacing-ctl button:disabled{opacity:.35;cursor:default}
 .sec-wrap:hover>.spacing-ctl,.sec-wrap:focus-within>.spacing-ctl,.spacing-ctl:hover{opacity:1;pointer-events:auto}
 .contact-row .row-actions{position:absolute;left:100%;right:auto;top:50%;transform:translateY(-50%);margin-left:0!important;padding-left:4px;gap:4px!important;background:transparent}
-#slider-font-size,#slider-line-height,#slider-section-gap{--thumb:#3b82f6}
+#slider-font-size,#slider-line-height,#slider-section-gap{--thumb:#3b82f6;width:63%}
 #slider-font-size.altered,#slider-line-height.altered,#slider-section-gap.altered{--thumb:#fb7185}
 #slider-font-size::-webkit-slider-thumb,#slider-line-height::-webkit-slider-thumb,#slider-section-gap::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer;box-shadow:0 0 0 2px rgba(15,23,42,.8)}
 #slider-font-size::-moz-range-thumb,#slider-line-height::-moz-range-thumb,#slider-section-gap::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer}
@@ -261,6 +261,13 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <div id="sticky-bars" class="no-print sticky top-0 left-0 z-30 w-full max-w-[210mm] bg-slate-950 pt-2 pb-2 flex flex-col gap-2">
 <div class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
 <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Historial del CV</span>
+<div id="save-menu" class="relative no-print">
+<button id="btn-save-cv" onclick="toggleSaveMenu(event)" class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition shadow-lg shadow-blue-600/30 disabled:opacity-60 disabled:cursor-wait"><i class="fa-solid fa-download"></i><span class="lbl">Guardar CV</span><i class="fa-solid fa-chevron-down text-[9px]"></i></button>
+<div id="save-menu-list" class="hidden absolute left-0 top-full mt-1 w-44 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-40">
+<button onclick="saveCVAs('pdf')" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 text-left"><i class="fa-solid fa-file-pdf text-rose-400 w-4 text-center"></i><span>PDF (.pdf)</span></button>
+<button onclick="saveCVAs('docx')" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 text-left"><i class="fa-solid fa-file-word text-blue-400 w-4 text-center"></i><span>Word (.docx)</span></button>
+</div>
+</div>
 <div class="flex gap-2">
 <button id="btn-cv-undo-2" onclick="undoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-left"></i><span>Deshacer</span></button>
 <button id="btn-cv-redo-2" onclick="redoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-right"></i><span>Rehacer</span></button>
@@ -1586,6 +1593,226 @@ if(l)l.textContent='(Default: '+fmt[key](d[key])+')';
 });
 }
 window.addEventListener('load',()=>{syncTypoStore();updateTypographyMarks();});
+
+/* ===== Guardar el CV como PDF o Word (.docx) directamente desde la Vista Previa ===== */
+const LIB_URLS={
+docx:['https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js','https://unpkg.com/docx@9.6.1/dist/index.iife.js'],
+pdflib:['https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js','https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'],
+h2i:['https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js','https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js']
+};
+const LIB_READY={docx:()=>window.docx,pdflib:()=>window.PDFLib,h2i:()=>window.htmlToImage};
+const _libP={};
+function loadLib(name){
+if(LIB_READY[name]())return Promise.resolve();
+if(_libP[name])return _libP[name];
+const urls=LIB_URLS[name].slice();
+_libP[name]=new Promise((res,rej)=>{
+const next=()=>{
+const u=urls.shift();
+if(!u){delete _libP[name];rej(new Error('No se pudo cargar una librería necesaria. Verificá tu conexión a internet.'));return;}
+const s=document.createElement('script');s.src=u;
+s.onload=()=>LIB_READY[name]()?res():next();
+s.onerror=()=>{s.remove();next();};
+document.head.appendChild(s);
+};
+next();
+});
+return _libP[name];
+}
+function cvFileName(ext){
+const base=String(cvState.fullName||'CV').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'CV';
+return 'CV-'+base+'.'+ext;
+}
+function downloadBlob(blob,name){
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download=name;
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),4000);
+}
+function pageCount(){
+const paper=document.getElementById('cv-paper');
+return paper.classList.contains('paged')?(parseInt(paper.style.getPropertyValue('--cv-pages'))||1):1;
+}
+async function exportPDF(){
+await Promise.all([loadLib('h2i'),loadLib('pdflib')]);
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+paginate();
+const paper=document.getElementById('cv-paper'),n=pageCount();
+const host=document.createElement('div');
+host.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;pointer-events:none';
+document.body.appendChild(host);
+try{
+const doc=await PDFLib.PDFDocument.create();
+doc.setTitle('CV - '+(cvState.fullName||''));
+for(let k=0;k<n;k++){
+const sheet=document.createElement('div');
+sheet.style.cssText='position:relative;width:210mm;height:297mm;overflow:hidden;background:#fff';
+const c=paper.cloneNode(true);
+c.removeAttribute('id');
+c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+c.querySelectorAll('.no-print').forEach(e=>e.remove());
+c.style.cssText='position:absolute;left:0;top:'+(-k*297)+'mm;width:210mm;height:'+(n*297)+'mm;margin:0;box-shadow:none;transition:none;zoom:1;';
+sheet.appendChild(c);host.appendChild(sheet);
+const opts={pixelRatio:2.5,backgroundColor:'#ffffff',imagePlaceholder:'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'};
+let canvas;
+try{canvas=await htmlToImage.toCanvas(sheet,opts);}
+catch(e1){canvas=await htmlToImage.toCanvas(sheet,Object.assign({skipFonts:true},opts));}
+const jpg=canvas.toDataURL('image/jpeg',0.93).split(',')[1];
+const img=await doc.embedJpg(Uint8Array.from(atob(jpg),ch=>ch.charCodeAt(0)));
+const page=doc.addPage([595.28,841.89]);
+page.drawImage(img,{x:0,y:0,width:595.28,height:841.89});
+host.removeChild(sheet);
+}
+const bytes=await doc.save();
+downloadBlob(new Blob([bytes],{type:'application/pdf'}),cvFileName('pdf'));
+}finally{host.remove();}
+}
+
+const txtDecode=s=>{const t=document.createElement('textarea');t.innerHTML=String(s==null?'':s);return t.value;};
+const htmlLines=h=>{const d=document.createElement('div');d.innerHTML=String(h||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(div|p|li)>/gi,'\n');return d.textContent.split('\n').map(s=>s.replace(/\u00a0/g,' ').trim()).filter(Boolean);};
+async function photoPng(){
+if(!cvState.showPhoto||!cvState.photoUrl)return null;
+try{
+const img=new Image();img.crossOrigin='anonymous';
+await new Promise((ok,ko)=>{img.onload=ok;img.onerror=ko;img.src=cvState.photoUrl;});
+const S=400,cv=document.createElement('canvas');cv.width=cv.height=S;
+const x=cv.getContext('2d');x.beginPath();x.arc(S/2,S/2,S/2,0,Math.PI*2);x.clip();
+const m=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-m)/2,sy=(img.naturalHeight-m)/2;
+x.drawImage(img,sx,sy,m,m,0,0,S,S);
+const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+return new Uint8Array(await blob.arrayBuffer());
+}catch(e){return null;}
+}
+async function exportDOCX(){
+await loadLib('docx');
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const D=window.docx,pal=palettes[cvState.palette]||palettes.navy;
+const hx=c=>c.replace('#','');
+const font=(String(cvState.fontFamily).split(',')[0]||'Calibri').replace(/['"]/g,'').trim();
+const B=Math.round(cvState.fontSize*1.5),LINE=Math.round(240*cvState.lineHeight),GAP=cvState.sectionGap*15;
+const two=cvState.layout==='2-col',hidden=cvState.hiddenSections||[];
+const LW=3300,RW=10206-LW,TABW=(two?RW:10206)-(two?320:0);
+const R=(text,o)=>new D.TextRun(Object.assign({text:String(text)},o||{}));
+const P=(children,o)=>new D.Paragraph(Object.assign({children:children},o||{}));
+const sp=(b,a)=>({before:b||0,after:a||0,line:LINE});
+const title=(key,def)=>txt2(secTitle(key,def));
+const txt2=s=>txtDecode(s);
+const heading=(key,def)=>P([R(title(key,def).toUpperCase(),{bold:true,color:hx(pal.primary),size:Math.round(B*1.05)})],{spacing:{before:GAP,after:70,line:LINE},keepNext:true,border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:hx(pal.border),space:2}}});
+const tabs=w=>[{type:D.TabStopType.RIGHT,position:w}];
+const gray='64748B',dark='1F2937';
+const show=k=>!hidden.includes(k);
+const SEC=two
+?{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación y Formación',courses:'Cursos y Certificaciones',references:'Referencias Laborales'}
+:{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación',courses:'Cursos',references:'Referencias'};
+const blocks={
+contact:()=>{
+const items=cvState.contactItems.filter(it=>cvState.showCuil||it.type!=='cuil');
+if(!items.length)return [];
+return [heading('contact',SEC.contact)].concat(items.map(it=>P([R(txtDecode(it.value).replace(/\n+/g,' '),{size:Math.round(B*0.92),color:dark,bold:it.type==='cuil'})],{spacing:sp(0,50)})));
+},
+skillsHard:()=>cvState.skillsHard.length?[heading('skillsHard',SEC.skillsHard)].concat(cvState.skillsHard.map(s=>P([R('▪  '+txtDecode(s),{size:Math.round(B*0.92),color:dark})],{spacing:sp(0,40)}))):[],
+skillsSoft:()=>cvState.skillsSoft.length?[heading('skillsSoft',SEC.skillsSoft)].concat(cvState.skillsSoft.map(s=>P([R('•  '+txtDecode(s),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)}))):[],
+languages:()=>cvState.languages.length?[heading('languages',SEC.languages)].concat(cvState.languages.map(l=>P([R(txtDecode(l.name),{bold:true,size:Math.round(B*0.9),color:dark}),R(': '+txtDecode(l.level),{size:Math.round(B*0.9),color:gray})],{spacing:sp(0,40)}))):[],
+profile:()=>cvState.profileSummary?[heading('profile',SEC.profile),P([R(txtDecode(cvState.profileSummary),{size:Math.round(B*0.92),color:'334155'})],{alignment:D.AlignmentType.JUSTIFIED,spacing:sp(0,60)})]:[],
+experience:()=>{
+if(!cvState.experience.length)return [];
+const out=[heading('experience',SEC.experience)];
+cvState.experience.forEach((e,i)=>{
+out.push(P([R(txtDecode(e.role),{bold:true,size:Math.round(B*0.98),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?120:40,0)}));
+out.push(P([R(txtDecode(e.company),{bold:true,size:Math.round(B*0.88),color:hx(pal.primary)}),R('\t'+txtDecode(e.location),{size:Math.round(B*0.84),color:'94A3B8'})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(0,40)}));
+htmlLines(e.description).forEach(l=>out.push(P([R(l,{size:Math.round(B*0.9),color:'475569'})],{spacing:sp(0,20),indent:l.startsWith('•')?{left:200,hanging:200}:undefined})));
+});
+return out;
+},
+education:()=>{
+if(!cvState.education.length)return [];
+const out=[heading('education',SEC.education)];
+cvState.education.forEach((e,i)=>{
+out.push(P([R(txtDecode(e.degree),{bold:true,size:Math.round(B*0.95),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?100:40,0)}));
+out.push(P([R(txtDecode(e.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(e.status),{size:Math.round(B*0.84),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,30)}));
+});
+return out;
+},
+courses:()=>{
+if(!cvState.courses.length)return [];
+return [heading('courses',SEC.courses)].concat(cvState.courses.map(c=>P([R(txtDecode(c.title),{bold:true,size:Math.round(B*0.88),color:'1E293B'}),R(' – '+txtDecode(c.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(c.year),{size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,50)})));
+},
+references:()=>{
+if(!cvState.references.length)return [];
+const out=[heading('references',SEC.references)];
+cvState.references.forEach(r=>{
+out.push(P([R(txtDecode(r.name),{bold:true,size:Math.round(B*0.9),color:'1E293B'})],{keepNext:true,spacing:sp(60,0)}));
+out.push(P([R(txtDecode(r.title),{size:Math.round(B*0.86),color:'475569'})],{keepNext:true,spacing:sp(0,0)}));
+out.push(P([R(txtDecode(r.contact),{italics:true,size:Math.round(B*0.82),color:gray})],{spacing:sp(0,40)}));
+});
+return out;
+}
+};
+const build=keys=>[].concat(...keys.filter(show).map(k=>blocks[k]()));
+const nameBlock=[
+P([R(txtDecode(cvState.fullName),{bold:true,size:Math.round(B*1.85),color:hx(pal.primary)})],{spacing:{before:0,after:0,line:LINE}}),
+P([R(txtDecode(cvState.jobTitle),{bold:true,size:Math.round(B*1.1),color:'334155'})],{spacing:{before:0,after:100,line:LINE},border:{bottom:{style:D.BorderStyle.SINGLE,size:12,color:hx(pal.primary),space:4}}})
+];
+const order=cvState.sectionOrder;
+let children;
+const png=await photoPng();
+const photoPara=png?[P([new D.ImageRun({type:'png',data:png,transformation:{width:100,height:100}})],{alignment:D.AlignmentType.CENTER,spacing:{before:0,after:120}})]:[];
+if(two){
+const leftKeys=order.filter(k=>['contact','skillsHard','skillsSoft','languages'].includes(k));
+const rightKeys=['profile'].concat(order.filter(k=>['experience','education','courses','references'].includes(k)));
+const none={style:D.BorderStyle.NONE,size:0,color:'FFFFFF'};
+const nb={top:none,bottom:none,left:none,right:none};
+const left=photoPara.concat(build(leftKeys));
+const right=nameBlock.concat(build(rightKeys));
+children=[new D.Table({
+width:{size:10206,type:D.WidthType.DXA},columnWidths:[LW,RW],layout:D.TableLayoutType.FIXED,
+borders:{top:none,bottom:none,left:none,right:none,insideHorizontal:none,insideVertical:none},
+rows:[new D.TableRow({children:[
+new D.TableCell({width:{size:LW,type:D.WidthType.DXA},borders:nb,shading:{type:D.ShadingType.CLEAR,fill:hx(pal.sidebar),color:'auto'},margins:{top:160,bottom:160,left:170,right:170},children:left.length?left:[P([])]}),
+new D.TableCell({width:{size:RW,type:D.WidthType.DXA},borders:nb,margins:{top:60,bottom:60,left:260,right:60},children:right})
+]})]
+}),P([])];
+}else{
+const contact=cvState.contactItems.filter(it=>(cvState.showCuil||it.type!=='cuil')&&ctype(it).one).map(it=>txtDecode(it.value).replace(/\n+/g,' ')).join('   |   ');
+const head=photoPara.concat(nameBlock);
+if(contact)head.push(P([R(contact,{size:Math.round(B*0.85),color:'475569'})],{spacing:sp(40,40)}));
+const keys=['profile'].concat(order.filter(k=>k!=='contact'&&(k!=='skillsSoft'||cvState.showSoftInOneCol)));
+children=head.concat(build(keys));
+}
+const docu=new D.Document({
+creator:txtDecode(cvState.fullName),title:'CV - '+txtDecode(cvState.fullName),
+styles:{default:{document:{run:{font:font,size:B,color:dark}}}},
+sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:680,bottom:680,left:850,right:850}}},children:children}]
+});
+const blob=await D.Packer.toBlob(docu);
+downloadBlob(blob,cvFileName('docx'));
+}
+
+let _saving=false;
+async function saveCVAs(fmt){
+closeSaveMenu();
+if(_saving)return;
+_saving=true;
+const btn=document.getElementById('btn-save-cv'),lbl=btn&&btn.querySelector('.lbl');
+if(btn){btn.disabled=true;lbl.textContent='Generando '+(fmt==='pdf'?'PDF':'Word')+'…';}
+try{
+if(fmt==='pdf')await exportPDF();else await exportDOCX();
+cfgToast('CV guardado como '+(fmt==='pdf'?'PDF':'Word (.docx)')+'.');
+}catch(err){
+console.error(err);
+cfgToast('No se pudo generar el archivo: '+(err&&err.message?err.message:'revisá tu conexión e intentá de nuevo'),true);
+}finally{
+_saving=false;
+if(btn){btn.disabled=false;lbl.textContent='Guardar CV';}
+}
+}
+function toggleSaveMenu(ev){
+if(ev)ev.stopPropagation();
+document.getElementById('save-menu-list').classList.toggle('hidden');
+}
+function closeSaveMenu(){const m=document.getElementById('save-menu-list');if(m)m.classList.add('hidden');}
+document.addEventListener('click',e=>{if(!e.target.closest('#save-menu'))closeSaveMenu();});
 </script>
 </body>
 </html>
