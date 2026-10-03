@@ -214,6 +214,13 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <input type="file" id="import-file" accept=".json,application/json,text/plain" class="hidden" onchange="importCV(event)">
 </div>
 
+<div class="space-y-2 pt-4 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Configuración Guardada</label>
+<button id="btn-cfg-save" onclick="saveConfig()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i><span>Guardar la Última Configuración aplicada</span></button>
+<button id="btn-cfg-use" onclick="useSavedConfig()" disabled class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-clock-rotate-left"></i><span>Usar Última Configuración Guardada</span></button>
+<p id="cfg-status" class="text-[11px] text-slate-500 leading-snug"></p>
+</div>
+
 <div class="pt-4 border-t border-slate-800 space-y-2">
 <button onclick="resetAllData()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i><span>Restablecer Todos los Datos</span></button>
 <button onclick="resetSettings()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-sliders"></i><span>Restablecer Configuración</span></button>
@@ -1385,6 +1392,87 @@ fitPaperToScreen();
 recordEditor();
 }
 window.addEventListener('load',()=>{syncEditorUI();updateTypographyMarks();});
+
+/* ===== Configuración guardada en memoria (localStorage) ===== */
+const CFG_KEY='cvSavedConfig',CFG_SKIP='cvSkipPreload';
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(e){return false;}};
+const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
+function sanitizeConfig(c){
+if(!c||typeof c!=='object')return null;
+const o={};
+const fonts=[...document.querySelectorAll('#font-family-select option')].map(x=>x.value);
+const num=(v,a,b)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,v)):null;};
+if(['compact','extended'].includes(c.preset))o.preset=c.preset;
+if(['2-col','1-col'].includes(c.layout))o.layout=c.layout;
+if(fonts.includes(c.fontFamily))o.fontFamily=c.fontFamily;
+const fs=num(c.fontSize,9,15);if(fs!==null)o.fontSize=fs;
+const lh=num(c.lineHeight,1.1,1.8);if(lh!==null)o.lineHeight=lh;
+const sg=num(c.sectionGap,6,26);if(sg!==null)o.sectionGap=Math.round(sg);
+if(typeof c.palette==='string'&&Object.prototype.hasOwnProperty.call(palettes,c.palette))o.palette=c.palette;
+['showPhoto','showCuil','showGuides'].forEach(k=>{if(typeof c[k]==='boolean')o[k]=c[k];});
+if(Array.isArray(c.sectionOrder)&&c.sectionOrder.length===INITIAL.sectionOrder.length&&INITIAL.sectionOrder.every(k=>c.sectionOrder.includes(k)))o.sectionOrder=c.sectionOrder.slice();
+return Object.keys(o).length?o:null;
+}
+function readSavedConfig(){
+const raw=lsGet(CFG_KEY);if(!raw)return null;
+try{const d=JSON.parse(raw);const c=sanitizeConfig(d&&d.config);return c?{config:c,savedAt:d.savedAt}:null;}catch(e){return null;}
+}
+/* Precarga al abrir la página: solo se omite si la configuración fue restablecida desde un botón */
+(function(){
+if(lsGet(CFG_SKIP)==='1')return;
+const s=readSavedConfig();
+if(s)Object.assign(cvState,clone(s.config));
+})();
+function cfgToast(msg,err){
+let t=document.getElementById('cfg-toast');
+if(!t){t=document.createElement('div');t.id='cfg-toast';t.className='no-print';t.style.cssText='position:fixed;right:16px;bottom:16px;z-index:60;padding:8px 14px;border-radius:10px;font:500 12px Inter,sans-serif;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .25s;opacity:0;pointer-events:none';document.body.appendChild(t);}
+t.textContent=msg;t.style.background=err?'#9f1239':'#047857';t.style.opacity='1';
+clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},2400);
+}
+function updateConfigUI(){
+const s=readSavedConfig(),skip=lsGet(CFG_SKIP)==='1';
+const b=document.getElementById('btn-cfg-use'),st=document.getElementById('cfg-status');
+if(b)b.disabled=!s;
+if(st){
+if(!s)st.textContent='Sin configuración guardada.';
+else{
+const d=new Date(s.savedAt);
+st.textContent='Guardada'+(isNaN(d)?'':': '+d.toLocaleString('es-AR'))+(skip?' · Precarga desactivada tras un restablecimiento (se reactiva al guardar o usar la configuración).':' · Se precarga al abrir la página.');
+}
+}
+}
+function saveConfig(){
+commitEditor();
+const o={};ED_KEYS.forEach(k=>{o[k]=clone(cvState[k]);});
+if(lsSet(CFG_KEY,JSON.stringify({savedAt:Date.now(),config:o}))){lsDel(CFG_SKIP);cfgToast('Configuración guardada en memoria.');}
+else cfgToast('No se pudo guardar: el navegador bloquea el almacenamiento.',true);
+updateConfigUI();
+}
+function useSavedConfig(){
+const s=readSavedConfig();
+if(!s){cfgToast('No hay una configuración guardada.',true);updateConfigUI();return;}
+Object.assign(cvState,clone(s.config));
+lsDel(CFG_SKIP);
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();
+updateConfigUI();cfgToast('Configuración guardada aplicada.');
+}
+/* Los botones de restablecer configuración desactivan la precarga de lo guardado */
+function resetSettings(){
+showConfirm('¿Restablecer toda la configuración del Panel del Editor a los valores iniciales? No se modifican los datos del CV ni lo configurado desde la Vista Previa.',()=>{
+ED_KEYS.forEach(k=>{
+if(JSON.stringify(cvState[k])!==JSON.stringify(INITIAL[k]))cvState[k]=clone(INITIAL[k]);
+});
+lsSet(CFG_SKIP,'1');
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
+});
+}
+function resetTypography(){
+['fontFamily','fontSize','lineHeight','sectionGap'].forEach(k=>{cvState[k]=INITIAL[k];});
+lsSet(CFG_SKIP,'1');
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
+}
+window.addEventListener('load',updateConfigUI);
 </script>
 </body>
 </html>
