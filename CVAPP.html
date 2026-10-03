@@ -161,21 +161,21 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 </div>
 <div>
 <div class="flex justify-between text-xs text-slate-300 mb-1">
-<span>Tamaño de Letra Base</span>
+<span>Tamaño de Letra Base <span id="def-font-size" class="text-slate-500"></span></span>
 <span id="val-font-size" class="font-mono text-blue-400">12px</span>
 </div>
 <input type="range" id="slider-font-size" min="9" max="15" step="0.5" value="12" oninput="updateFontSize(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
 </div>
 <div>
 <div class="flex justify-between text-xs text-slate-300 mb-1">
-<span>Interlineado</span>
+<span>Interlineado <span id="def-line-height" class="text-slate-500"></span></span>
 <span id="val-line-height" class="font-mono text-blue-400">1.4</span>
 </div>
 <input type="range" id="slider-line-height" min="1.1" max="1.8" step="0.05" value="1.4" oninput="updateLineHeight(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
 </div>
 <div>
 <div class="flex justify-between text-xs text-slate-300 mb-1">
-<span>Espaciado entre Secciones</span>
+<span>Espaciado entre Secciones <span id="def-section-gap" class="text-slate-500"></span></span>
 <span id="val-section-gap" class="font-mono text-blue-400">14px</span>
 </div>
 <input type="range" id="slider-section-gap" min="6" max="26" step="1" value="14" oninput="updateSectionGap(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
@@ -307,6 +307,10 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 </div>
 
 <script>
+const MODE_DEFAULTS={
+compact:{fontFamily:"'Inter', sans-serif",fontSize:11.5,lineHeight:1.35,sectionGap:12},
+extended:{fontFamily:"'Inter', sans-serif",fontSize:13,lineHeight:1.5,sectionGap:18}
+};
 const cvState={
 preset:'compact',layout:'2-col',fontFamily:"'Inter', sans-serif",fontSize:11.5,lineHeight:1.35,sectionGap:12,palette:'navy',showPhoto:true,showCuil:true,showGuides:true,
 photoUrl:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
@@ -314,7 +318,7 @@ fullName:'Lic. Gonzalo Ariel Rodríguez',
 jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
 sectionTitles:{},sectionIcons:{},hiddenSections:[],
 sectionOrder:['experience','education','courses','references','contact','skillsHard','skillsSoft','languages'],
-sectionSpacing:{},expSpacing:{},
+sectionSpacing:{},expSpacing:{},typoByMode:JSON.parse(JSON.stringify(MODE_DEFAULTS)),
 showSoftInOneCol:false,
 contactItems:[
 {id:'ct1',type:'location',value:'CABA, Buenos Aires, Argentina',icon:true},
@@ -733,7 +737,7 @@ showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TO
 }
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
-const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides','sectionOrder'];
+const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides','sectionOrder','typoByMode'];
 const CV_KEYS=['fullName','jobTitle','sectionTitles','sectionIcons','hiddenSections','sectionSpacing','expSpacing','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
 const HIST_MAX=100;
 const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
@@ -1385,7 +1389,7 @@ v.style.color=alt?'#fb7185':'';
 }
 (function(){const rc=window.renderCV;window.renderCV=function(){const r=rc.apply(this,arguments);updateTypographyMarks();return r;};})();
 function resetTypography(){
-['fontFamily','fontSize','lineHeight','sectionGap'].forEach(k=>{cvState[k]=INITIAL[k];});
+Object.assign(cvState,clone(MODE_DEFAULTS[cvState.preset]));syncTypoStore();
 syncEditorUI();
 renderCV();
 fitPaperToScreen();
@@ -1412,6 +1416,15 @@ const sg=num(c.sectionGap,6,26);if(sg!==null)o.sectionGap=Math.round(sg);
 if(typeof c.palette==='string'&&Object.prototype.hasOwnProperty.call(palettes,c.palette))o.palette=c.palette;
 ['showPhoto','showCuil','showGuides'].forEach(k=>{if(typeof c[k]==='boolean')o[k]=c[k];});
 if(Array.isArray(c.sectionOrder)&&c.sectionOrder.length===INITIAL.sectionOrder.length&&INITIAL.sectionOrder.every(k=>c.sectionOrder.includes(k)))o.sectionOrder=c.sectionOrder.slice();
+if(c.typoByMode&&typeof c.typoByMode==='object'){
+const tm={};
+['compact','extended'].forEach(m=>{
+const s=c.typoByMode[m]||{},d=MODE_DEFAULTS[m];
+const a=num(s.fontSize,9,15),b=num(s.lineHeight,1.1,1.8),g=num(s.sectionGap,6,26);
+tm[m]={fontFamily:fonts.includes(s.fontFamily)?s.fontFamily:d.fontFamily,fontSize:a===null?d.fontSize:a,lineHeight:b===null?d.lineHeight:b,sectionGap:g===null?d.sectionGap:Math.round(g)};
+});
+o.typoByMode=tm;
+}
 return Object.keys(o).length?o:null;
 }
 function readSavedConfig(){
@@ -1422,7 +1435,7 @@ try{const d=JSON.parse(raw);const c=sanitizeConfig(d&&d.config);return c?{config
 (function(){
 if(lsGet(CFG_SKIP)==='1')return;
 const s=readSavedConfig();
-if(s)Object.assign(cvState,clone(s.config));
+if(s){Object.assign(cvState,clone(s.config));syncTypoStore();}
 })();
 function cfgToast(msg,err){
 let t=document.getElementById('cfg-toast');
@@ -1444,6 +1457,7 @@ st.textContent='Guardada'+(isNaN(d)?'':': '+d.toLocaleString('es-AR'))+(skip?' �
 }
 function saveConfig(){
 commitEditor();
+syncTypoStore();
 const o={};ED_KEYS.forEach(k=>{o[k]=clone(cvState[k]);});
 if(lsSet(CFG_KEY,JSON.stringify({savedAt:Date.now(),config:o}))){lsDel(CFG_SKIP);cfgToast('Configuración guardada en memoria.');}
 else cfgToast('No se pudo guardar: el navegador bloquea el almacenamiento.',true);
@@ -1468,11 +1482,38 @@ syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
 });
 }
 function resetTypography(){
-['fontFamily','fontSize','lineHeight','sectionGap'].forEach(k=>{cvState[k]=INITIAL[k];});
+Object.assign(cvState,clone(MODE_DEFAULTS[cvState.preset]));syncTypoStore();
 lsSet(CFG_SKIP,'1');
 syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
 }
 window.addEventListener('load',updateConfigUI);
+
+/* ===== Tipografía: valores propios y Default por Modo (1 Página / 2 Páginas) ===== */
+function syncTypoStore(){
+if(!cvState.typoByMode)cvState.typoByMode=clone(MODE_DEFAULTS);
+cvState.typoByMode[cvState.preset]={fontFamily:cvState.fontFamily,fontSize:cvState.fontSize,lineHeight:cvState.lineHeight,sectionGap:cvState.sectionGap};
+}
+function applyPreset(mode){
+syncTypoStore();
+cvState.preset=mode;
+Object.assign(cvState,clone(cvState.typoByMode[mode]||MODE_DEFAULTS[mode]));
+syncEditorUI();
+renderCV();
+}
+(function(){const rc=window.renderCV;window.renderCV=function(){syncTypoStore();return rc.apply(this,arguments);};})();
+function updateTypographyMarks(){
+const d=MODE_DEFAULTS[cvState.preset]||MODE_DEFAULTS.compact;
+const fmt={fontSize:v=>v+'px',lineHeight:v=>String(v),sectionGap:v=>v+'px'};
+[['slider-font-size','val-font-size','def-font-size','fontSize'],['slider-line-height','val-line-height','def-line-height','lineHeight'],['slider-section-gap','val-section-gap','def-section-gap','sectionGap']].forEach(([sid,vid,did,key])=>{
+const s=document.getElementById(sid),v=document.getElementById(vid),l=document.getElementById(did);
+if(!s||!v)return;
+const alt=Number(cvState[key])!==Number(d[key]);
+s.classList.toggle('altered',alt);
+v.style.color=alt?'#fb7185':'';
+if(l)l.textContent='(Default: '+fmt[key](d[key])+')';
+});
+}
+window.addEventListener('load',()=>{syncTypoStore();updateTypographyMarks();});
 </script>
 </body>
 </html>
