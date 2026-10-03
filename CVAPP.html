@@ -268,7 +268,7 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <div class="zoom-controls flex justify-end">
 <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl p-1.5">
 <span class="text-[11px] uppercase tracking-wider text-slate-500 px-1.5">Zoom</span>
-<button id="zoom-reset" onclick="zoomReset()" class="zoom-btn" title="Restablecer zoom (100%)"><i class="fa-solid fa-arrows-rotate text-xs"></i></button>
+<button id="zoom-reset" onclick="zoomReset()" class="zoom-btn" title="Restablecer zoom"><i class="fa-solid fa-arrows-rotate text-xs"></i></button>
 <button id="zoom-out" onclick="zoomOut()" class="zoom-btn" title="Reducir zoom">&minus;</button>
 <span id="zoom-label" class="w-14 text-center text-sm font-mono text-blue-400">100%</span>
 <button id="zoom-in" onclick="zoomIn()" class="zoom-btn" title="Aumentar zoom">+</button>
@@ -1184,31 +1184,49 @@ if(i<0||j<0||j>=a.length)return;
 renderCV();
 }
 
-/* ===== Zoom del CV (100%-250%, pasos de 50%, persistente) ===== */
-const ZOOM_MIN=100,ZOOM_MAX=250,ZOOM_STEP=50,ZOOM_KEY='cvZoomLevel';
-let cvZoom=100;
-function loadZoom(){try{const v=parseInt(localStorage.getItem(ZOOM_KEY),10);if(v>=ZOOM_MIN&&v<=ZOOM_MAX&&v%ZOOM_STEP===0)cvZoom=v;}catch(e){}}
-function saveZoom(){try{localStorage.setItem(ZOOM_KEY,String(cvZoom));}catch(e){}}
-function updateZoomUI(){
-document.getElementById('zoom-label').textContent=cvZoom+'%';
-document.getElementById('zoom-out').disabled=cvZoom<=ZOOM_MIN;
-document.getElementById('zoom-in').disabled=cvZoom>=ZOOM_MAX;
-document.getElementById('zoom-reset').disabled=cvZoom===100;
+/* ===== Zoom del CV: 100% = hoja A4 a tamaño real · mínimo = hoja ajustada al ancho de pantalla · 5 pasos equidistantes ===== */
+const ZOOM_STEPS=5,ZOOM_KEY='cvZoomStep';
+let cvStep=null;
+function zoomBounds(){
+const container=document.getElementById('preview-container'),bars=document.getElementById('sticky-bars');
+const cs=getComputedStyle(container);
+const availW=container.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+const availH=container.clientHeight-(bars?bars.offsetHeight:0)-8;
+const fitW=Math.floor(availW/(210*MM)*1000)/1000;
+/* pantalla más angosta que la hoja: ancho A4 = ancho de pantalla; pantalla ancha (escritorio): hoja completa a la vista */
+let min=fitW<1?fitW:Math.min(1,Math.floor(availH/(297*MM)*1000)/1000);
+if(!(min>0))min=1;
+min=Math.max(0.2,Math.min(1,min));
+return {min:min,fitW:fitW};
 }
-function setZoom(v){cvZoom=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,v));saveZoom();updateZoomUI();fitPaperToScreen();}
-function zoomIn(){setZoom(cvZoom+ZOOM_STEP);}
-function zoomOut(){setZoom(cvZoom-ZOOM_STEP);}
-function zoomReset(){setZoom(100);}
+function zoomScale(step,b){b=b||zoomBounds();return b.min+(1-b.min)*step/ZOOM_STEPS;}
+function defaultStep(b){b=b||zoomBounds();return b.fitW<1?0:ZOOM_STEPS;}
+function loadZoom(){
+let v=NaN;
+try{v=parseInt(localStorage.getItem(ZOOM_KEY),10);}catch(e){}
+cvStep=(v>=0&&v<=ZOOM_STEPS)?v:defaultStep();
+}
+function saveZoom(){try{localStorage.setItem(ZOOM_KEY,String(cvStep));}catch(e){}}
+function updateZoomUI(){
+const b=zoomBounds();
+if(cvStep===null)loadZoom();
+document.getElementById('zoom-label').textContent=Math.round(zoomScale(cvStep,b)*100)+'%';
+document.getElementById('zoom-out').disabled=cvStep<=0;
+document.getElementById('zoom-in').disabled=cvStep>=ZOOM_STEPS;
+document.getElementById('zoom-reset').disabled=cvStep===defaultStep(b);
+}
+function setZoom(v){cvStep=Math.min(ZOOM_STEPS,Math.max(0,v));saveZoom();fitPaperToScreen();}
+function zoomIn(){setZoom(cvStep+1);}
+function zoomOut(){setZoom(cvStep-1);}
+function zoomReset(){setZoom(defaultStep());}
 
-/* Ajusta el ancho del papel A4 al ancho disponible (solo si la pantalla es más angosta) */
+/* Aplica el zoom elegido a la hoja (se recalcula al cambiar el tamaño de la pantalla) */
 function fitPaperToScreen(){
 const paper=document.getElementById('cv-paper');
-const container=document.getElementById('preview-container');
-paper.style.zoom=1;
-const cs=getComputedStyle(container);
-const available=container.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
-const paperWidth=paper.offsetWidth;
-paper.style.zoom=(available<paperWidth?(available/paperWidth):1)*(cvZoom/100);
+const b=zoomBounds();
+if(cvStep===null)loadZoom();
+paper.style.zoom=zoomScale(cvStep,b);
+updateZoomUI();
 }
 
 window.onload=function(){
