@@ -209,8 +209,8 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <div class="space-y-2 pt-2 border-t border-slate-800">
 <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Exportar / Importar Datos del CV</label>
 <div class="grid grid-cols-2 gap-2 text-xs">
-<button onclick="exportCV()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-export text-blue-400"></i> Exportar</button>
-<button onclick="document.getElementById('import-file').click()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-import text-blue-400"></i> Importar</button>
+<button onclick="exportCV()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-export text-blue-400"></i> EXPORTAR Datos Personales</button>
+<button onclick="document.getElementById('import-file').click()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-import text-blue-400"></i> IMPORTAR Datos Personales</button>
 </div>
 <input type="file" id="import-file" accept=".json,application/json,text/plain" class="hidden" onchange="importCV(event)">
 </div>
@@ -220,9 +220,14 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <button id="btn-cfg-save" onclick="saveConfig()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i><span>Guardar la Última Configuración aplicada</span></button>
 <button id="btn-cfg-use" onclick="useSavedConfig()" disabled class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-clock-rotate-left"></i><span>Usar Última Configuración Guardada</span></button>
 <p id="cfg-status" class="text-[11px] text-slate-500 leading-snug"></p>
+<button id="btn-cfg-export" onclick="exportEditorConfig()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-export text-blue-400"></i><span>Exportar Configuración del Editor</span></button>
+<button id="btn-cfg-import" onclick="document.getElementById('import-cfg-file').click()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i><span>Importar Configuración del Editor</span></button>
+<input type="file" id="import-cfg-file" accept=".json,application/json,text/plain" class="hidden" onchange="importEditorConfig(event)">
 </div>
 
 <div class="pt-4 border-t border-slate-800 space-y-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">DATOS DEL CV Y CONFIGURACIÓN EDITOR</label>
+<button id="btn-export-all" onclick="exportAll()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-export"></i><span>Exportar Datos y Configuración</span></button>
 <button onclick="resetAllData()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i><span>Restablecer Todos los Datos</span></button>
 <button onclick="resetSettings()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-sliders"></i><span>Restablecer Configuración</span></button>
 </div>
@@ -653,6 +658,7 @@ renderCV();
 
 function setLayout(layoutType){
 cvState.layout=layoutType;
+renderSectionButtons();
 const btn2=document.getElementById('btn-layout-2col');
 const btn1=document.getElementById('btn-layout-1col');
 if(layoutType==='2-col'){
@@ -904,18 +910,36 @@ skillsSoft:['Competencia',"addSectionItem('skillsSoft')"],
 languages:['Idioma',"addSectionItem('languages')"],
 contact:['Contacto',"addSectionItem('contact')"]
 };
+const COL_LEFT=['contact','skillsHard','skillsSoft','languages'],COL_RIGHT=['experience','education','courses','references'];
 function renderSectionButtons(){
 const box=document.getElementById('add-buttons');
 if(!box)return;
 const arrow='flex-1 px-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed';
-box.innerHTML=cvState.sectionOrder.map((k,i,arr)=>{
+const item=(k,i,n)=>{
 const [label,fn]=SEC_BTN[k];
-return `<div class="flex items-stretch gap-1"><button onclick="${fn}" class="flex-1 min-w-0 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> ${label}</button><div class="flex flex-col gap-0.5"><button onclick="moveSection('${k}',-1)" ${i===0?'disabled':''} class="${arrow}" title="Subir en el orden"><i class="fa-solid fa-chevron-up text-[9px]"></i></button><button onclick="moveSection('${k}',1)" ${i===arr.length-1?'disabled':''} class="${arrow}" title="Bajar en el orden"><i class="fa-solid fa-chevron-down text-[9px]"></i></button></div></div>`;
-}).join('');
+return `<div class="flex items-stretch gap-1"><button onclick="${fn}" class="flex-1 min-w-0 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> ${label}</button><div class="flex flex-col gap-0.5"><button onclick="moveSection('${k}',-1)" ${i===0?'disabled':''} class="${arrow}" title="Subir en el orden"><i class="fa-solid fa-chevron-up text-[9px]"></i></button><button onclick="moveSection('${k}',1)" ${i===n-1?'disabled':''} class="${arrow}" title="Bajar en el orden"><i class="fa-solid fa-chevron-down text-[9px]"></i></button></div></div>`;
+};
+const ord=cvState.sectionOrder;
+if(cvState.layout==='2-col'){
+/* 2 Columnas: cada columna del CV se ordena de forma independiente, alineada con su lado */
+const col=(keys,title)=>{const l=ord.filter(k=>keys.includes(k));return `<div class="space-y-2"><div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">${title}</div>${l.map((k,i)=>item(k,i,l.length)).join('')}</div>`;};
+box.className='grid grid-cols-2 gap-2 text-xs items-start';
+box.innerHTML=col(COL_LEFT,'Columna Izquierda')+col(COL_RIGHT,'Columna Derecha');
+}else{
+box.className='grid grid-cols-2 gap-2 text-xs';
+box.innerHTML=ord.map((k,i,arr)=>item(k,i,arr.length)).join('');
+}
 }
 function moveSection(k,d){
-const o=cvState.sectionOrder,i=o.indexOf(k),j=i+d;
-if(i<0||j<0||j>=o.length)return;
+const o=cvState.sectionOrder,i=o.indexOf(k);
+if(i<0)return;
+let j=i+d;
+if(cvState.layout==='2-col'){
+/* se intercambia con el vecino de la misma columna en esa dirección */
+const grp=COL_LEFT.includes(k)?COL_LEFT:COL_RIGHT;
+while(j>=0&&j<o.length&&!grp.includes(o[j]))j+=d;
+}
+if(j<0||j>=o.length)return;
 [o[i],o[j]]=[o[j],o[i]];
 renderSectionButtons();
 renderCV();
@@ -1502,6 +1526,49 @@ fitPaperToScreen();
 recordEditor();
 }
 window.addEventListener('load',()=>{syncEditorUI();updateTypographyMarks();});
+
+/* ===== Exportar / Importar la Configuración del Editor (sin lo configurado desde la Vista Previa) ===== */
+function exportEditorConfig(){
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+commitEditor();syncTypoStore();
+const o={};ED_KEYS.forEach(k=>{o[k]=clone(cvState[k]);});
+const data={app:'editor-cv-argentina',type:'editor-config',version:1,exportedAt:new Date().toISOString(),config:o};
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;a.download='cv-configuracion-editor-'+new Date().toISOString().slice(0,10)+'.json';
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function importEditorConfig(e){
+const file=e.target.files[0];
+e.target.value='';
+if(!file)return;
+if(file.size>1024*1024){alert('No se pudo importar: el archivo es demasiado grande.');return;}
+const reader=new FileReader();
+reader.onerror=()=>alert('No se pudo importar: no se pudo leer el archivo.');
+reader.onload=()=>{
+let cfg;
+try{
+const d=JSON.parse(reader.result);
+if(!d||typeof d!=='object'||d.app!=='editor-cv-argentina'||d.type!=='editor-config'||!d.config||typeof d.config!=='object')throw new Error('El archivo no es una exportación de la configuración del Editor.');
+cfg=sanitizeConfig(d.config);
+if(!cfg)throw new Error('El archivo no contiene valores de configuración válidos.');
+}catch(err){alert('No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido.':err.message));return;}
+showConfirm("Se reemplazará la configuración actual del Editor por la del archivo '"+file.name+"'. No se modifican los datos del CV ni lo configurado desde la Vista Previa. ¿Continuar?",()=>{
+Object.assign(cvState,clone(cfg));
+syncTypoStore();
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
+cfgToast('Configuración del Editor importada.');
+});
+};
+reader.readAsText(file);
+}
+/* Genera los 2 archivos: Datos Personales y Configuración del Editor */
+function exportAll(){
+exportCV();
+setTimeout(()=>{exportEditorConfig();cfgToast('Se generaron 2 archivos: datos personales y configuración del Editor.');},500);
+}
 
 /* ===== Configuración guardada en memoria (localStorage) ===== */
 const CFG_KEY='cvSavedConfig',CFG_SKIP='cvSkipPreload';
