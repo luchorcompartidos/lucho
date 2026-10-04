@@ -337,6 +337,7 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <label class="text-xs text-slate-300" for="cal-input">Medida real (mm):</label>
 <input id="cal-input" type="number" step="0.5" min="20" max="120" inputmode="decimal" class="w-24 bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg p-2">
 </div>
+<p id="cal-last" class="text-xs text-white mb-4 -mt-2"></p>
 <div class="flex flex-wrap justify-end gap-2">
 <button onclick="resetCal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">Restablecer</button>
 <button onclick="closeCal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">Cerrar</button>
@@ -1262,10 +1263,15 @@ let cvCal=1;
 const CAL_KEY='cvCalFactor',CAL_BAR_MM=50;
 function loadCal(){try{const v=parseFloat(localStorage.getItem(CAL_KEY));cvCal=(v>=0.5&&v<=2)?v:1;}catch(e){cvCal=1;}}
 function saveCal(){try{localStorage.setItem(CAL_KEY,String(cvCal));}catch(e){}}
+const CAL_LAST_KEY='cvCalLastMm';
+let cvCalLast=null;
+function loadCalLast(){try{const v=parseFloat(localStorage.getItem(CAL_LAST_KEY));cvCalLast=(v>=20&&v<=120)?v:null;}catch(e){cvCalLast=null;}}
+function saveCalLast(){try{if(cvCalLast===null)localStorage.removeItem(CAL_LAST_KEY);else localStorage.setItem(CAL_LAST_KEY,String(cvCalLast));}catch(e){}}
 const unitK=()=>REAL_K*cvCal;
 function renderCalBar(){
 document.getElementById('cal-bar').style.width=(CAL_BAR_MM*MM*unitK())+'px';
 document.getElementById('cal-info').textContent='Ajuste actual: '+(cvCal*100).toFixed(1)+'%';
+document.getElementById('cal-last').textContent='Último valor Aplicado para la calibración: '+(cvCalLast===null?'—':cvCalLast.toFixed(1))+' mm. (ajuste: '+(cvCal*100).toFixed(1)+'%)';
 }
 function openCal(){
 const m=document.getElementById('cal-modal');m.classList.remove('hidden');m.classList.add('flex');
@@ -1276,10 +1282,11 @@ function applyCal(){
 const v=parseFloat(String(document.getElementById('cal-input').value).replace(',','.'));
 if(!(v>=20&&v<=120)){cfgToast('Ingresá la medida real de la barra, entre 20 y 120 mm.',true);return;}
 cvCal=Math.min(2,Math.max(0.5,cvCal*CAL_BAR_MM/v));
+cvCalLast=v;saveCalLast();
 saveCal();document.getElementById('cal-input').value=CAL_BAR_MM;renderCalBar();fitPaperToScreen();
 cfgToast('Calibración aplicada. Si la barra aún no mide 50 mm, volvé a medirla y repetí.');
 }
-function resetCal(){cvCal=1;saveCal();renderCalBar();fitPaperToScreen();}
+function resetCal(){cvCal=1;saveCal();cvCalLast=null;saveCalLast();renderCalBar();fitPaperToScreen();}
 const REAL_K=(()=>{
 const ua=navigator.userAgent||'';
 if(/iPhone|iPod/i.test(ua))return 163/96;
@@ -1304,7 +1311,7 @@ return {min:min,fitW:fitW};
 function zoomScale(step,b){b=b||zoomBounds();return b.min+(1-b.min)*step/ZOOM_STEPS;}
 function defaultStep(b){b=b||zoomBounds();return b.fitW<1?0:ZOOM_STEPS;}
 function loadZoom(){
-loadCal();
+loadCal();loadCalLast();
 let v=NaN;
 try{v=parseInt(localStorage.getItem(ZOOM_KEY),10);}catch(e){}
 cvStep=(v>=0&&v<=ZOOM_STEPS)?v:defaultStep();
