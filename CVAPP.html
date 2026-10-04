@@ -760,7 +760,12 @@ indicator.className='text-emerald-400 font-semibold';
 },100);
 }
 
-function triggerPrint(){window.print();}
+function triggerPrint(){
+const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<900);
+if(!mobile){window.print();return;}
+cfgToast("En 'Tamaño de papel' seleccione 'A4' o en su defecto 'ISO A4'.",false,3200);
+setTimeout(()=>window.print(),2400);
+}
 let pendingConfirm=null;
 function showConfirm(msg,onYes){
 document.getElementById('confirm-text').textContent=msg;
@@ -1634,11 +1639,11 @@ if(lsGet(CFG_SKIP)==='1')return;
 const s=readSavedConfig();
 if(s){Object.assign(cvState,clone(s.config));syncTypoStore();}
 })();
-function cfgToast(msg,err){
+function cfgToast(msg,err,ms){
 let t=document.getElementById('cfg-toast');
 if(!t){t=document.createElement('div');t.id='cfg-toast';t.className='no-print';t.style.cssText='position:fixed;right:16px;bottom:16px;z-index:60;padding:8px 14px;border-radius:10px;font:500 12px Inter,sans-serif;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .25s;opacity:0;pointer-events:none';document.body.appendChild(t);}
 t.textContent=msg;t.style.background=err?'#9f1239':'#047857';t.style.opacity='1';
-clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},2400);
+clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},ms||2400);
 }
 function updateConfigUI(){
 const s=readSavedConfig(),skip=lsGet(CFG_SKIP)==='1';
