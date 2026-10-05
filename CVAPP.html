@@ -763,9 +763,9 @@ indicator.className='text-emerald-400 font-semibold';
 function showPrintNotice(btn){
 let n=document.getElementById('print-notice');
 if(!n){n=document.createElement('div');n.id='print-notice';n.className='no-print';n.setAttribute('role','status');
-n.style.cssText='position:fixed;z-index:70;left:8px;right:8px;max-width:420px;margin:0 auto;box-sizing:border-box;padding:10px 14px;border-radius:10px;font:500 13px/1.3 Inter,sans-serif;text-align:center;color:#fff;background:#1d4ed8;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .25s;pointer-events:none';
+n.style.cssText='position:fixed;z-index:70;left:8px;right:8px;max-width:420px;margin:0 auto;box-sizing:border-box;padding:10px 14px;border-radius:10px;font:700 13px/1.3 Inter,sans-serif;text-align:center;color:#000;background:#FFD400;border:1px solid #CA9A00;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .25s;pointer-events:none';
 document.body.appendChild(n);}
-n.textContent="En 'Tamaño de papel' seleccione 'A4' o en su defecto 'ISO A4'.";
+n.textContent="En la página que se presentará a continuación, en 'Tamaño de papel' seleccione 'A4' o en su defecto 'ISO A4'.";
 const r=btn?btn.getBoundingClientRect():null;
 n.style.top=Math.max(8,r&&r.bottom>0&&r.bottom<innerHeight-60?r.bottom+8:8)+'px';
 n.style.opacity='1';clearTimeout(n._h);n._h=setTimeout(()=>{n.style.opacity='0';},PRINT_NOTICE_MS);
