@@ -770,12 +770,13 @@ const r=btn?btn.getBoundingClientRect():null;
 n.style.top=Math.max(8,r&&r.bottom>0&&r.bottom<innerHeight-60?r.bottom+8:8)+'px';
 n.style.opacity='1';clearTimeout(n._h);n._h=setTimeout(()=>{n.style.opacity='0';},PRINT_NOTICE_MS);
 }
-const PRINT_NOTICE_MS=5000;
+const PRINT_NOTICE_DELAY=1000,PRINT_NOTICE_MS=6500;
 function triggerPrint(ev){
 const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<900);
 if(!mobile){window.print();return;}
-showPrintNotice(ev&&ev.currentTarget);
-setTimeout(()=>window.print(),PRINT_NOTICE_MS);
+const btn=ev&&ev.currentTarget;
+setTimeout(()=>showPrintNotice(btn),PRINT_NOTICE_DELAY);
+setTimeout(()=>window.print(),PRINT_NOTICE_DELAY+PRINT_NOTICE_MS);
 }
 let pendingConfirm=null;
 function showConfirm(msg,onYes){
