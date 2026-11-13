@@ -1,664 +1,2495 @@
-https://docs.google.com/spreadsheets/d/
-/1mzoehxrAi-RDe_5ZqpbSGsgiP-ayrNwO4H2rUnXQtxQ/edit?gid=523565073#gid=523565073
-
-
-<br><br><br>
-
-<a href="https://docs.google.com/spreadsheets/d/1mzoehxrAi-RDe_5ZqpbSGsgiP-ayrNwO4H2rUnXQtxQ/edit?gid=523565073#gid=523565073" target="_blank" rel="noopener">Planilla fuente en Google Drive</a>
-<br><br><br>
-
-<a href="https://luchorcompartidos.github.io/lrfuturatablalink" target="_blank" rel="noopener">lrfuturatablalink</a>
-
-
-
-<br><br><br>
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUCHO... LRWebCatalog Dinámico</title>
+<title>Diseñador y Editor Interactivo de CV - Estándar Argentina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@300;400;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{brand:{50:'#f0f7ff',100:'#e0effe',500:'#2563eb',600:'#1d4ed8',700:'#1e40af'}}}}}
+</script>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-  }
-  body {
-    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-    background: #fafafa;
-  }
-
-  /* ===== Contenido escalable ===== */
-  #zoom-content {
-    padding: 30px 16px 60px 16px;
-    /* transform-origin se fija por JS según el navegador use zoom o transform */
-  }
-
-  #sheet-sync-container {
-    max-width: 700px;
-    margin: 0 auto;
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 10px;
-    padding: 20px 24px;
-  }
-  #sheet-sync-container h1 {
-    font-size: 18px;
-    margin: 0 0 16px 0;
-  }
-  .sheet-sync-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .sheet-sync-header span {
-    font-size: 13px;
-    color: #666;
-  }
-  #sheet-sync-refresh {
-    font-size: 12px;
-    padding: 4px 10px;
-    border: 1px solid #ccc;
-    background: #f7f7f7;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  #sheet-sync-refresh:hover { background: #eee; }
-  #sheet-sync-count {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 8px;
-  }
-  #sheet-sync-status {
-    font-size: 13px;
-    color: #999;
-    margin-bottom: 8px;
-    min-height: 16px;
-  }
-  #sheet-sync-list .record {
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #ddd;
-  }
-  #sheet-sync-list .record:last-child {
-    border-bottom: none;
-  }
-  #sheet-sync-list .record .record-title {
-    color: #1a2b1a;
-    font-weight: 600;
-    font-size: 15px;
-    display: block;
-  }
-  #sheet-sync-list .record .record-title a {
-    color: #1a73e8;
-    text-decoration: none;
-  }
-  #sheet-sync-list .record .record-title a:hover { text-decoration: underline; }
-  #sheet-sync-list .record .extra-field {
-    display: block;
-    margin-top: 4px;
-    font-size: 13px;
-    color: #444;
-  }
-  #sheet-sync-list .record .extra-field a {
-    font-weight: normal;
-    font-size: 13px;
-    color: #1a73e8;
-    text-decoration: none;
-  }
-  #sheet-sync-list .record .extra-field a:hover { text-decoration: underline; }
-
-  /* ===== Sección independiente de enlaces "tabLR" (fuera del catálogo) ===== */
-  #tablr-section {
-    max-width: 700px;
-    margin: 0 auto 20px auto;
-    display: none; /* se muestra por JS solo si hay contenido que mostrar */
-  }
-  #tablr-section.tablr-visible {
-    display: block;
-  }
-  #tablr-heading {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a2b1a;
-    margin: 0 0 8px 0;
-    display: none; /* se muestra por JS solo si hay al menos un enlace */
-  }
-  #tablr-heading.tablr-visible {
-    display: block;
-  }
-  #tablr-links .tablr-link {
-    display: block;
-    font-size: 14px;
-    color: #1a73e8;
-    text-decoration: none;
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-  }
-  #tablr-links .tablr-link:last-child { margin-bottom: 0; }
-  #tablr-links .tablr-link:hover { text-decoration: underline; background: #f7faff; }
-  #tablr-status {
-    font-size: 12px;
-    color: #999;
-    margin-bottom: 6px;
-    min-height: 14px;
-  }
-  #tablr-status:empty { margin-bottom: 0; }
-
-  /* ===== Barra de control de zoom (NUNCA se escala) ===== */
-  #zoom-toolbar {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 999999;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: #fff;
-    border: 1px solid #d0d0d0;
-    border-radius: 8px;
-    padding: 4px 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-    /* aislado de cualquier zoom/transform del contenido */
-    zoom: 1 !important;
-    transform: none !important;
-  }
-  #zoom-toolbar button {
-    border: 1px solid #ccc;
-    background: #f7f7f7;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 1;
-    padding: 6px 9px;
-    color: #333;
-    min-width: 28px;
-  }
-  #zoom-toolbar button:hover { background: #eee; }
-  #zoom-toolbar button:active { background: #e2e2e2; }
-  #zoom-reset {
-    font-size: 15px;
-    padding: 6px 8px;
-  }
-  #zoom-level {
-    font-size: 12px;
-    font-weight: 600;
-    color: #333;
-    min-width: 42px;
-    text-align: center;
-    padding: 6px 4px;
-    border-radius: 6px;
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    cursor: pointer;
-  }
-  #zoom-level:hover { background: #e6e6e6; }
-  #zoom-level:active { background: #dcdcdc; }
+:root{--cv-font-family:'Inter',sans-serif;--cv-base-size:12px;--cv-line-height:1.4;--cv-section-gap:14px;--cv-item-gap:10px;--cv-primary-color:#1e3a8a;--cv-secondary-color:#3b82f6;--cv-text-color:#1f2937;--cv-light-bg:#f8fafc;--cv-sidebar-bg:#f1f5f9;--cv-border-color:#e2e8f0;--cv-page-padding:12mm 15mm}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
+.cv-container{font-family:var(--cv-font-family);font-size:var(--cv-base-size);line-height:var(--cv-line-height);color:var(--cv-text-color)}
+#preview-container,#paper-wrap{overflow-anchor:none}
+.a4-paper{width:210mm;min-height:297mm;padding:var(--cv-page-padding);background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.3);position:relative;margin:0 auto;box-sizing:border-box;transition:all .2s ease}
+.page-break-line{position:absolute;left:0;right:0;top:297mm;border-top:2px dashed #ef4444;pointer-events:none;z-index:20}
+.page-break-badge{position:absolute;right:10px;top:-21px;background:#ef4444;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px}
+.ghost{visibility:hidden!important}
+.cv-ruler{position:absolute;left:0;width:210mm;height:7mm;z-index:22;pointer-events:none;user-select:none;box-shadow:0 1px 3px rgba(120,53,15,.25)}
+.cv-ruler svg{display:block;width:100%;height:100%}
+.page-break-line-2{position:absolute;left:0;right:0;top:594mm;border-top:2px dashed #f59e0b;pointer-events:none;z-index:20}
+.cv-section-gap{margin-bottom:var(--cv-section-gap)}
+.cv-item-gap{margin-bottom:var(--cv-item-gap)}
+.cv-primary-text{color:var(--cv-primary-color)}
+.cv-primary-bg{background-color:var(--cv-primary-color)}
+.cv-border-primary{border-color:var(--cv-primary-color)}
+.cv-sidebar-bg-custom{background-color:var(--cv-sidebar-bg)}
+[contenteditable="true"]{outline:none;border-radius:2px;transition:background-color .15s ease,box-shadow .15s ease}
+[contenteditable="true"]:hover{background-color:rgba(59,130,246,.08);cursor:text}
+[contenteditable="true"]:focus{background-color:rgba(59,130,246,.12);box-shadow:0 0 0 2px rgba(59,130,246,.4)}
+/* Texto uniforme: lo pegado o heredado dentro de un campo editable nunca fija su propio tamaño, fuente ni color */
+#cv-root [contenteditable] *{font-size:inherit!important;font-family:inherit!important;line-height:inherit!important;color:inherit!important;background:transparent!important}
+.editable-item{position:relative}
+.editable-item .item-actions{position:absolute;right:-38px;top:0;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity .2s ease}
+.editable-item:hover .item-actions{opacity:1}
+.row-actions{opacity:0;transition:opacity .2s ease}
+.skill-grip{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:1px;width:10px;height:14px;display:flex;align-items:center;justify-content:center;color:#94a3b8;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.skill-grip:hover{color:#2563eb}
+.skill-chip.skill-dragging{opacity:.35}
+#skill-drop{position:fixed;z-index:85;width:3px;border-radius:2px;background:#2563eb;pointer-events:none;box-shadow:0 0 0 1px #fff}
+#skill-ghost{position:fixed;z-index:90;pointer-events:none;padding:2px 8px;border-radius:6px;background:#1d4ed8;color:#fff;font:600 12px Inter,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
+.row-item:hover .row-actions,.row-item:focus-within .row-actions{opacity:1}
+@media (hover:none){.row-actions{opacity:1}}
+.zoom-btn{min-width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;font-size:14px;transition:background .15s}
+.zoom-btn:hover:not(:disabled){background:#334155}
+.zoom-btn:disabled{opacity:.4;cursor:not-allowed}
+#paper-wrap{align-self:flex-start;width:max-content;min-width:100%}
+@page{size:210mm 297mm;margin:0}
+@media print{#paper-wrap{width:auto!important;min-width:0!important}
+@page{size:A4 portrait;margin:0}
+html,body{background:#fff!important;color:#000!important;margin:0!important;padding:0!important;width:210mm;height:auto}
+.no-print,#control-panel,.page-break-line,.page-break-line-2,.item-actions,.zoom-controls{display:none!important}
+#preview-container{padding:0!important;margin:0!important;background:transparent!important;box-shadow:none!important;display:block!important;overflow:visible!important}
+.a4-paper{zoom:1!important;box-shadow:none!important;border:none!important;margin:0!important;width:210mm!important;min-height:297mm!important;padding:var(--cv-page-padding)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.page-break-inside-avoid{page-break-inside:avoid;break-inside:avoid}
+}
+.sec-wrap{position:relative}
+.cv-container .cv-section-gap[data-ov]{margin-top:var(--sp-mt)}
+.cv-container .space-y-3>.editable-item[data-ov]{margin-top:var(--sp-mt)}
+[data-list]{display:flow-root}
+.spacing-ctl{position:absolute;left:50%;transform:translateX(-50%);top:-9px;height:18px;display:flex;align-items:center;gap:2px;padding:0 3px;background:rgba(15,23,42,.94);border:1px solid #334155;border-radius:9px;font:500 10px/1 Inter,sans-serif;letter-spacing:0;text-transform:none;color:#e2e8f0;opacity:0;pointer-events:none;transition:opacity .15s;z-index:25}
+.spacing-ctl span{min-width:30px;text-align:center}
+.spacing-ctl button{width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#e2e8f0;font-size:11px;line-height:1}
+.spacing-ctl button:hover:not(:disabled){background:#334155}
+.spacing-ctl button:disabled{opacity:.35;cursor:default}
+.sec-wrap:hover>.spacing-ctl,.sec-wrap:focus-within>.spacing-ctl,.spacing-ctl:hover{opacity:1;pointer-events:auto}
+.contact-row .row-actions{position:absolute;left:100%;right:auto;top:50%;transform:translateY(-50%);margin-left:0!important;padding-left:4px;gap:4px!important;background:transparent}
+#slider-font-size,#slider-line-height,#slider-section-gap{--thumb:#3b82f6;width:63%}
+#slider-font-size.altered,#slider-line-height.altered,#slider-section-gap.altered{--thumb:#fb7185}
+#slider-font-size::-webkit-slider-thumb,#slider-line-height::-webkit-slider-thumb,#slider-section-gap::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer;box-shadow:0 0 0 2px rgba(15,23,42,.8)}
+#slider-font-size::-moz-range-thumb,#slider-line-height::-moz-range-thumb,#slider-section-gap::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer}
+#cv-paper,#cv-paper *{transition:none!important}
+#print-pages{display:none}
+.ats-contact .contact-row .row-actions{left:50%;top:auto;bottom:100%;transform:translateX(-50%);margin:0!important;padding:2px 6px;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);z-index:30}
+.ats-inline{position:relative}
+.ats-inline>.row-actions{position:absolute!important;left:50%;bottom:100%;transform:translateX(-50%);margin:0!important;padding:2px 6px;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;gap:6px;z-index:30;white-space:nowrap}
+.ats-inline .skill-grip{position:static;transform:none;margin:0 2px 0 0}
+@media print{
+html{height:auto!important}
+body{display:block!important;height:auto!important;overflow:visible!important}
+#preview-container{display:none!important}
+#print-pages{display:block!important}
+.print-sheet{position:relative;width:210mm;height:296.4mm;overflow:hidden;break-after:page;page-break-after:always}
+.print-sheet:last-child{break-after:auto;page-break-after:auto}
+.pg-clone{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#1e293b}
+::-webkit-scrollbar-thumb{background:#475569;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#64748b}
 </style>
 </head>
-<body>
+<body class="min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row">
 
-<!-- Barra fija de zoom: Reset  ⟲  | − | 100% | + -->
-<div id="zoom-toolbar">
-  <button id="zoom-reset" title="Restablecer zoom a 100%">RESET</button>
-  <button id="zoom-out" title="Alejar">−</button>
-  <button id="zoom-level" title="Recargar sin caché (equivalente a Ctrl+F5)">100%</button>
-  <button id="zoom-in" title="Acercar">+</button>
+<aside id="control-panel" class="no-print w-full md:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-auto md:h-screen z-30 shrink-0">
+<div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+<div class="flex items-center space-x-2">
+<span class="text-xl">🇦🇷</span>
+<div>
+<h1 class="font-bold text-white text-base leading-tight">Editor CV Argentina</h1>
+<p class="text-xs text-slate-400">Formato A4 PDF Optimizado</p>
+</div>
+</div>
+<button onclick="triggerPrint(event)" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition shadow-lg shadow-blue-600/30">
+<i class="fa-solid fa-print"></i>
+<span>Imprimir / PDF</span>
+</button>
 </div>
 
-<div id="zoom-content">
-  <div id="tablr-section">
-    <h2 id="tablr-heading">Tablas LR</h2>
-    <div id="tablr-status"></div>
-    <div id="tablr-links"></div>
-  </div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
 
-  <div id="sheet-sync-container">
-    <h1>LUCHO   LR WEB CATALOG Genérico</h1>
-    <div class="sheet-sync-header">
-      <span>Última sincronización: <span id="sheet-sync-time">—</span></span>
-      <button id="sheet-sync-refresh">Actualizar ahora</button>
-    </div>
-    <div id="sheet-sync-count"></div>
-    <div id="sheet-sync-status"></div>
-    <div id="sheet-sync-list"></div>
-  </div>
+<div class="space-y-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Historial del Editor</label>
+<div class="grid grid-cols-2 gap-2">
+<button id="btn-ed-undo" onclick="undoEditor()" disabled class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-left"></i><span>Deshacer</span></button>
+<button id="btn-ed-redo" onclick="redoEditor()" disabled class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-right"></i><span>Rehacer</span></button>
+</div>
+</div>
+
+<div class="space-y-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Modo de Extensión &amp; Densidad</label>
+<div class="grid grid-cols-2 gap-2">
+<button onclick="applyPreset('compact')" id="btn-preset-compact" class="preset-btn px-3 py-2 rounded-lg border border-blue-500/50 bg-blue-950/40 text-blue-300 font-medium text-xs flex flex-col items-center justify-center gap-1 transition">
+<i class="fa-solid fa-file-contract text-sm"></i>
+<span>1 Página (Compacto)</span>
+</button>
+<button onclick="applyPreset('extended')" id="btn-preset-extended" class="preset-btn px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 font-medium text-xs flex flex-col items-center justify-center gap-1 transition">
+<i class="fa-solid fa-copy text-sm"></i>
+<span>2 Páginas (Extendido)</span>
+</button>
+</div>
+<div class="pt-1 space-y-1.5">
+<button id="btn-shrink" onclick="shrinkToSavePage()" title="Reduce de forma proporcional el espaciado y, si hace falta, el tamaño de letra, respetando valores mínimos, para intentar ahorrar una página" class="w-full px-3 py-2 rounded-lg border border-amber-500/50 bg-amber-950/30 hover:bg-amber-900/40 text-amber-300 font-medium text-xs flex items-center justify-center gap-2 transition">
+<i class="fa-solid fa-compress"></i><span>Achicar para ahorrar página</span><span class="text-[9px] uppercase tracking-wider bg-amber-500/20 border border-amber-500/40 rounded px-1.5 py-0.5">Experimental</span>
+</button>
+<button id="btn-grow" onclick="growToFitPages()" title="Con cada toque aumenta un grado el tamaño de letra y el espaciado, sin pasar la cantidad de páginas actual y respetando valores máximos, para aprovechar mejor el espacio de la última página" class="w-full px-3 py-2 rounded-lg border border-amber-500/50 bg-amber-950/30 hover:bg-amber-900/40 text-amber-300 font-medium text-xs flex items-center justify-center gap-2 transition">
+<i class="fa-solid fa-expand"></i><span id="grow-label">Optimizar tamaño a 1 página</span><span class="text-[9px] uppercase tracking-wider bg-amber-500/20 border border-amber-500/40 rounded px-1.5 py-0.5">Experimental</span>
+</button>
+<button id="btn-shrink-undo" onclick="undoShrink()" disabled class="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed">
+<i class="fa-solid fa-rotate-left"></i><span>Deshacer: volver al estado anterior</span>
+</button>
+<p id="shrink-msg" class="text-[11px] text-slate-400 leading-snug hidden"></p>
+</div>
+</div>
+
+<div class="space-y-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Estructura del Diseño</label>
+<div class="grid grid-cols-3 gap-1.5">
+<button onclick="setLayout('2-col')" id="btn-layout-2col" class="layout-btn px-2 py-2 rounded-lg border border-blue-500 bg-blue-900/30 text-white font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap">
+<i class="fa-solid fa-table-columns"></i>
+<span>2 Columnas</span>
+</button>
+<button onclick="setLayout('1-col')" id="btn-layout-1col" class="layout-btn px-2 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap">
+<i class="fa-solid fa-bars font-bold"></i>
+<span>1 Columna</span>
+</button>
+<button onclick="setLayout('ats')" id="btn-layout-ats" title="Una sola columna, sin foto ni íconos, texto plano en orden de lectura" class="layout-btn px-2 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap">
+<i class="fa-solid fa-robot"></i>
+<span>1 Col. ATS</span>
+</button>
+</div>
+<p class="text-[11px] text-slate-500 leading-snug">ATS: una sola columna, sin foto ni íconos, contacto en una línea y habilidades como texto separado por comas, para que los filtros de selección lo lean en orden. Cargo, empresa, lugar y fechas van en una sola línea; el CUIL queda oculto al activar este modo (podés volver a mostrarlo con su interruptor).</p>
+<button onclick="convertDatesNumeric()" class="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center justify-center gap-2 transition"><i class="fa-solid fa-calendar-days"></i><span>Convertir fechas a MM/AAAA</span></button>
+</div>
+
+<div class="space-y-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Paleta de Colores Profesional</label>
+<div class="grid grid-cols-5 gap-2">
+<button onclick="setPalette('navy')" class="h-9 rounded-lg bg-blue-900 border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-xs text-white font-bold" title="Azul Ejecutivo"></button>
+<button onclick="setPalette('slate')" class="h-9 rounded-lg bg-slate-700 border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-xs text-white font-bold" title="Gris Pizarra"></button>
+<button onclick="setPalette('emerald')" class="h-9 rounded-lg bg-emerald-800 border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-xs text-white font-bold" title="Verde Esmeralda"></button>
+<button onclick="setPalette('burgundy')" class="h-9 rounded-lg bg-rose-900 border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-xs text-white font-bold" title="Vino / Bordó"></button>
+<button onclick="setPalette('monochrome')" class="h-9 rounded-lg bg-zinc-900 border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-xs text-white font-bold" title="Monocromático"></button>
+</div>
+</div>
+
+<div class="space-y-4 pt-2 border-t border-slate-800">
+<div class="flex justify-between items-center">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ajustes de Tipografía</label>
+</div>
+<div>
+<span class="text-xs text-slate-300 block mb-1">Fuente Tipográfica</span>
+<select id="font-family-select" onchange="setFontFamily(this.value)" class="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+<option value="'Inter', sans-serif">Inter (Moderna y limpia)</option>
+<option value="'Roboto', sans-serif">Roboto (Equilibrada)</option>
+<option value="'Montserrat', sans-serif">Montserrat (Corporativa)</option>
+<option value="'Open Sans', sans-serif">Open Sans (Lectura fluida)</option>
+<option value="'Lato', sans-serif">Lato (Elegante)</option>
+</select>
+</div>
+<div>
+<div class="flex justify-between text-xs text-slate-300 mb-1">
+<span>Tamaño de Letra Base <span id="def-font-size" class="text-slate-500"></span></span>
+<span id="val-font-size" class="font-mono text-blue-400">12px</span>
+</div>
+<input type="range" id="slider-font-size" min="9" max="15" step="0.5" value="12" oninput="updateFontSize(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+</div>
+<div>
+<div class="flex justify-between text-xs text-slate-300 mb-1">
+<span>Interlineado <span id="def-line-height" class="text-slate-500"></span></span>
+<span id="val-line-height" class="font-mono text-blue-400">1.4</span>
+</div>
+<input type="range" id="slider-line-height" min="1.1" max="1.8" step="0.05" value="1.4" oninput="updateLineHeight(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+</div>
+<div>
+<div class="flex justify-between text-xs text-slate-300 mb-1">
+<span>Espaciado entre Secciones <span id="def-section-gap" class="text-slate-500"></span></span>
+<span id="val-section-gap" class="font-mono text-blue-400">14px</span>
+</div>
+<input type="range" id="slider-section-gap" min="6" max="26" step="1" value="14" oninput="updateSectionGap(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+</div>
+<button onclick="resetTypography()" class="w-full py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i><span>Restablecer Ajustes Tipografía</span></button>
+</div>
+
+<div class="space-y-3 pt-2 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Elementos Opcionales</label>
+<div class="flex items-center justify-between">
+<span class="text-xs text-slate-300">Mostrar Foto de Perfil</span>
+<input type="checkbox" id="toggle-photo" checked onchange="togglePhoto(this.checked)" class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-blue-500">
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs text-slate-300">Incluir CUIL / DNI</span>
+<input type="checkbox" id="toggle-cuil" checked onchange="toggleCuil(this.checked)" class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-blue-500">
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs text-slate-300">Guías visuales de corte A4</span>
+<input type="checkbox" id="toggle-guides" checked onchange="togglePageGuides(this.checked)" class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-blue-500">
+</div>
+</div>
+
+<div class="space-y-2 pt-2 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Agregar Contenido</label>
+<p class="text-[11px] text-slate-500 leading-snug">Usá ▲ ▼ para ordenar las secciones en el CV (las de la columna izquierda se ordenan entre sí; igual las de la derecha).</p>
+<div id="add-buttons" class="grid grid-cols-2 gap-2 text-xs"></div>
+</div>
+
+<div class="space-y-2 pt-2 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Exportar / Importar Datos del CV</label>
+<div class="grid grid-cols-2 gap-2 text-xs">
+<button onclick="exportCV()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-export text-blue-400"></i> EXPORTAR Datos Personales</button>
+<button onclick="document.getElementById('import-file').click()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-file-import text-blue-400"></i> IMPORTAR Datos Personales</button>
+</div>
+<input type="file" id="import-file" accept=".json,application/json,text/plain" class="hidden" onchange="importCV(event)">
+</div>
+
+<div class="space-y-2 pt-4 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Configuración Guardada</label>
+<button id="btn-cfg-save" onclick="saveConfig()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i><span>Guardar la Última Configuración aplicada</span></button>
+<button id="btn-cfg-use" onclick="useSavedConfig()" disabled class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-clock-rotate-left"></i><span>Usar Última Configuración Guardada</span></button>
+<p id="cfg-status" class="text-[11px] text-slate-500 leading-snug"></p>
+<button id="btn-cfg-export" onclick="exportEditorConfig()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-export text-blue-400"></i><span>Exportar Configuración del Editor</span></button>
+<button id="btn-cfg-import" onclick="document.getElementById('import-cfg-file').click()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-import text-blue-400"></i><span>Importar Configuración del Editor</span></button>
+<input type="file" id="import-cfg-file" accept=".json,application/json,text/plain" class="hidden" onchange="importEditorConfig(event)">
+</div>
+
+<div class="pt-4 border-t border-slate-800 space-y-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">DATOS DEL CV Y CONFIGURACIÓN EDITOR</label>
+<button id="btn-export-all" onclick="exportAll()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-file-export"></i><span>Exportar Datos y Configuración</span></button>
+<button onclick="resetAllData()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i><span>Restablecer Todos los Datos</span></button>
+<button onclick="resetSettings()" class="w-full py-2 bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700 hover:border-rose-800/50 rounded-lg text-xs font-medium transition flex items-center justify-center gap-2"><i class="fa-solid fa-sliders"></i><span>Restablecer Configuración</span></button>
+</div>
+
+<div class="space-y-2 pt-4 border-t border-slate-800">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Historial del CV</label>
+<div class="grid grid-cols-2 gap-2">
+<button id="btn-cv-undo" onclick="undoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-left"></i><span>Deshacer</span></button>
+<button id="btn-cv-redo" onclick="redoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-right"></i><span>Rehacer</span></button>
+</div>
+</div>
+
+</div>
+
+<div class="p-3 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-500 flex justify-between items-center">
+<span>Dimensión A4: 210 x 297 mm</span>
+<span id="page-count-indicator" class="text-emerald-400 font-semibold">1 Página (Perfecto Fit)</span>
+</div>
+</aside>
+
+<main id="preview-container" class="flex-none h-[100dvh] md:flex-1 md:h-auto bg-slate-950 overflow-auto px-4 md:px-8 pb-4 md:pb-8 flex flex-col items-center relative">
+<div class="no-print mt-4 md:mt-8 mb-2 w-full max-w-[210mm] flex justify-between items-center text-xs text-slate-400 bg-slate-900/80 backdrop-blur px-4 py-2 rounded-xl border border-slate-800">
+<div class="flex items-center gap-2">
+<i class="fa-solid fa-pen-to-square text-blue-400"></i>
+<span>Haz clic en cualquier texto del CV para editarlo directamente</span>
+</div>
+<div class="flex items-center gap-3">
+<label for="photo-upload-input" class="cursor-pointer text-slate-300 hover:text-white flex items-center gap-1">
+<i class="fa-solid fa-camera text-slate-400"></i>
+<span>Cambiar Foto</span>
+</label>
+<input type="file" id="photo-upload-input" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+</div>
+</div>
+
+<div id="sticky-bars" class="no-print sticky top-0 left-0 z-30 w-full max-w-[210mm] bg-slate-950 pt-2 pb-2 flex flex-col gap-2">
+<div class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Historial del CV</span>
+<div class="flex gap-2">
+<button id="btn-cv-undo-2" onclick="undoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-left"></i><span>Deshacer</span></button>
+<button id="btn-cv-redo-2" onclick="redoCV()" disabled class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-rotate-right"></i><span>Rehacer</span></button>
+</div>
+</div>
+<div class="zoom-controls flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<button id="btn-reset-view" onclick="resetPreviewConfig()" title="Restablece lo configurado manualmente en la Vista Previa (espaciados). No modifica íconos ni textos." class="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-[11px] font-medium transition"><i class="fa-solid fa-arrows-up-down text-xs"></i><span>Restablecer Configuración</span></button>
+<div id="save-menu" class="relative no-print">
+<button id="btn-save-cv" onclick="toggleSaveMenu(event)" class="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition shadow-lg shadow-blue-600/30 disabled:opacity-60 disabled:cursor-wait"><i class="fa-solid fa-download"></i><span class="lbl">Guardar CV</span><i class="fa-solid fa-chevron-down text-[9px]"></i></button>
+<div id="save-menu-list" class="hidden absolute right-0 top-full mt-1 w-44 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl overflow-hidden z-40">
+<button onclick="saveCVAs('pdf')" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 text-left"><i class="fa-solid fa-file-pdf text-rose-400 w-4 text-center"></i><span>PDF (.pdf)</span></button>
+<button onclick="saveCVAs('docx')" class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 text-left"><i class="fa-solid fa-file-word text-blue-400 w-4 text-center"></i><span>Word (.docx)</span></button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl p-1.5">
+<button id="zoom-100" onclick="zoomTo100()" class="text-[11px] uppercase tracking-wider text-slate-500 hover:text-blue-400 px-1.5 py-1 rounded-md transition disabled:hover:text-slate-500 disabled:cursor-default" title="Ir directamente a 100% (hoja A4 a tamaño real)">Zoom</button>
+<button id="zoom-cal" onclick="openCal()" class="zoom-btn" title="Calibrar tamaño real (A4 = 210 mm)"><i class="fa-solid fa-ruler-horizontal text-xs"></i></button>
+<button id="zoom-reset" onclick="zoomReset()" class="zoom-btn" title="Restablecer zoom"><i class="fa-solid fa-arrows-rotate text-xs"></i></button>
+<button id="zoom-out" onclick="zoomOut()" class="zoom-btn" title="Reducir zoom">&minus;</button>
+<span id="zoom-label" class="w-14 text-center text-sm font-mono text-blue-400">100%</span>
+<button id="zoom-in" onclick="zoomIn()" class="zoom-btn" title="Aumentar zoom">+</button>
+</div>
+</div>
+</div>
+<div id="paper-wrap">
+<div id="cv-paper" class="a4-paper cv-container shadow-2xl relative transition-all duration-200">
+<div id="page-break-line-1" class="page-break-line no-print">
+<span class="page-break-badge">Fin de Página 1 (297 mm)</span>
+</div>
+<div id="page-break-line-2" class="page-break-line-2 no-print">
+<span class="page-break-badge" style="background:#f59e0b;">Fin de Página 2 (594 mm)</span>
+</div>
+<div id="ruler-1" class="cv-ruler no-print" style="top:0" aria-hidden="true"></div>
+<div id="cv-root"></div>
+</div>
+</div>
+</main>
+
+<div id="reset-modal" class="no-print hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+<div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-sm w-full p-5 text-slate-200">
+<p id="confirm-text" class="text-sm leading-relaxed mb-4"></p>
+<div class="flex justify-end gap-2">
+<button onclick="closeConfirm()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">No</button>
+<button onclick="runConfirm()" class="px-4 py-1.5 rounded-lg bg-rose-900 hover:bg-rose-800 text-white text-xs font-medium transition">Sí</button>
+</div>
+</div>
+</div>
+
+<div id="type-modal" class="no-print hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+<div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-sm w-full p-5 text-slate-200">
+<p class="text-sm mb-3">¿Qué tipo de dato de contacto desea agregar?</p>
+<div id="type-options" class="grid grid-cols-2 gap-2"></div>
+<div class="flex justify-end mt-4"><button onclick="closeTypePicker()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">Cancelar</button></div>
+</div>
+</div>
+
+<div id="cal-modal" class="no-print hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-4">
+<div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-sm w-full p-5 text-slate-200">
+<p class="text-sm font-semibold mb-2">Calibrar el tamaño real de la hoja</p>
+<p class="text-xs text-slate-400 leading-relaxed mb-3">Cada pantalla tiene un tamaño físico distinto y el navegador no lo informa. Con una regla, medí el ancho de la barra azul en milímetros, escribí el valor y presioná Aplicar. Se hace una sola vez por dispositivo y navegador; después, 100% equivale a 210 mm de ancho.</p>
+<div class="overflow-x-auto pb-2"><div id="cal-bar" style="height:14px;background:#3b82f6;border-radius:3px"></div></div>
+<p class="text-[11px] text-slate-500 mb-3">La barra debería medir <b>50 mm</b>. <span id="cal-info"></span></p>
+<div class="flex items-center gap-2 mb-4">
+<label class="text-xs text-slate-300" for="cal-input">Medida real (mm):</label>
+<input id="cal-input" type="number" step="0.5" min="20" max="120" inputmode="decimal" class="w-24 bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg p-2">
+</div>
+<p id="cal-last" class="text-xs text-white mb-4 -mt-2"></p>
+<div class="flex flex-wrap justify-end gap-2">
+<button onclick="resetCal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">Restablecer</button>
+<button onclick="closeCal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition">Cerrar</button>
+<button onclick="applyCal()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition">Aplicar</button>
+</div>
+</div>
 </div>
 
 <script>
-(function () {
-  // ============================================================
-  //  CONTROL DE ZOOM RESPONSIVE
-  // ============================================================
-  // Usa la propiedad CSS "zoom" (nativa, reacomoda el layout real,
-  // igual que Ctrl + "+"/"-" del navegador). Nunca genera scroll
-  // horizontal: el contenido solo crece hacia abajo.
-  // Si el navegador no soporta "zoom" (Firefox viejo, etc.), se
-  // usa un fallback con transform: scale() ajustando el ancho
-  // para evitar el scroll horizontal.
-  const ZOOM_MIN = 70;
-  const ZOOM_MAX = 160;
-  const ZOOM_STEP = 10;
-  const ZOOM_DEFAULT = 100;
-  const STORAGE_KEY = "lrwebcatalog_zoom_level";
+const MODE_DEFAULTS={
+compact:{fontFamily:"'Inter', sans-serif",fontSize:11.5,lineHeight:1.35,sectionGap:12},
+extended:{fontFamily:"'Inter', sans-serif",fontSize:13,lineHeight:1.5,sectionGap:18}
+};
+const cvState={
+preset:'compact',layout:'2-col',fontFamily:"'Inter', sans-serif",fontSize:11.5,lineHeight:1.35,sectionGap:12,palette:'navy',showPhoto:true,showCuil:true,showGuides:true,
+photoUrl:'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+fullName:'Lic. Gonzalo Ariel Rodríguez',
+jobTitle:'Desarrollador Full Stack & Analista de Sistemas',
+sectionTitles:{},sectionIcons:{},hiddenSections:[],
+sectionOrder:['experience','education','courses','references','contact','skillsHard','skillsSoft','languages'],
+sectionSpacing:{},expSpacing:{},typoByMode:JSON.parse(JSON.stringify(MODE_DEFAULTS)),
+showSoftInOneCol:false,
+contactItems:[
+{id:'ct1',type:'location',value:'CABA, Buenos Aires, Argentina',icon:true},
+{id:'ct2',type:'phone',value:'+54 9 11 5849-2019',icon:true},
+{id:'ct3',type:'email',value:'gonzalo.rodriguez@email.com',icon:true},
+{id:'ct4',type:'linkedin',value:'linkedin.com/in/gonzalo-rodriguez-arg',icon:true},
+{id:'ct5',type:'github',value:'github.com/gonzalo-dev-arg',icon:true},
+{id:'ct6',type:'cuil',value:'CUIL: 20-38492019-4',icon:true},
+{id:'ct7',type:'birth',value:'28/05/1993 (31 años)',icon:true}
+],
+profileSummary:'Profesional con más de 6 años de experiencia en desarrollo de software, análisis funcional y arquitectura web. Especializado en el ecosistema JavaScript/TypeScript (Node.js, React) y bases de datos relacionales. Enfocado en la resolución de problemas de alto impacto corporativo, metodologías ágiles (Scrum) y optimización de procesos en entornos dinámicos de Argentina y Latinoamérica.',
+experience:[
+{id:'exp1',role:'Desarrollador Full Stack Senior',company:'Mercado Libre Argentina',period:'Marzo 2022 - Actualidad',location:'Buenos Aires, Argentina',description:'• Liderazgo técnico en la implementación de microservicios orientados a la gestión de pagos y facturación masiva.<br>• Reducción del tiempo de respuesta de API crítica en un 35% mediante optimización de consultas PostgreSQL y caching con Redis.<br>• Mentoría técnica a desarrolladores junior y coordinación de sprints semanales bajo metodología Scrum.'},
+{id:'exp2',role:'Analista de Sistemas & Desarrollador Web',company:'Globant',period:'Enero 2020 - Febrero 2022',location:'CABA, Argentina',description:'• Diseño y construcción de interfaces web accesibles y responsive para clientes internacionales del sector bancario.<br>• Integración de pasarelas de pago locales e internacionales y consumo de servicios RESTful.<br>• Creación de documentación técnica y pruebas unitarias automatizadas con Jest.'},
+{id:'exp3',role:'Desarrollador Front-End Junior',company:'Telecom Argentina',period:'Junio 2018 - Diciembre 2019',location:'Córdoba / Remoto',description:'• Mantenimiento de portales autogestión de clientes corporativos.<br>• Maquetación HTML5/CSS3 accesible y refactorización de código heredado a componentes modernos.'}
+],
+education:[
+{id:'edu1',degree:'Licenciatura en Ciencias de la Computación',institution:'Universidad de Buenos Aires (UBA) - Facultad de Ciencias Exactas',period:'2013 - 2019',status:'Graduado / Título Homologado'},
+{id:'edu2',degree:'Técnico en Informática Profesional y Personal',institution:'Instituto Técnico Superior N° 12',period:'2007 - 2012',status:'Título Secundario Técnico'}
+],
+courses:[
+{id:'crs1',title:'AWS Certified Solutions Architect – Associate',institution:'Amazon Web Services',year:'2023'},
+{id:'crs2',title:'Programa Executive en Arquitectura de Software & Cloud Native',institution:'UTN Buenos Aires (FRBA)',year:'2022'},
+{id:'crs3',title:'Certificación Scrum Master (PSM I)',institution:'Scrum.org',year:'2021'}
+],
+skillsHard:['JavaScript / TypeScript','React.js / Next.js','Node.js / Express','PostgreSQL / MongoDB','Docker / AWS','Git / CI-CD Pipelines','REST APIs & GraphQL'],
+skillsSoft:['Liderazgo de Equipos','Comunicación Asertiva','Resolución de Problemas','Pensamiento Analítico','Adaptabilidad al Cambio'],
+languages:[{name:'Español',level:'Nativo'},{name:'Inglés',level:'Avanzado (C1) - Fluidez Profesional'},{name:'Portugués',level:'Básico (A2)'}],
+references:[
+{id:'ref1',name:'Ing. Martín Benítez',title:'Engineering Manager en Mercado Libre',contact:'mbenitez@mercadolibre.com | Tel: +54 11 4000-1111'},
+{id:'ref2',name:'Lic. Sofía Peralta',title:'Tech Lead en Globant',contact:'sofia.peralta@globant.com'}
+]
+};
 
-  const zoomContent = document.getElementById("zoom-content");
-  const zoomLevelBtn = document.getElementById("zoom-level");
-  const zoomInBtn = document.getElementById("zoom-in");
-  const zoomOutBtn = document.getElementById("zoom-out");
-  const zoomResetBtn = document.getElementById("zoom-reset");
+const palettes={
+navy:{primary:'#1e3a8a',secondary:'#2563eb',text:'#1f2937',sidebar:'#f8fafc',border:'#e2e8f0'},
+slate:{primary:'#334155',secondary:'#475569',text:'#0f172a',sidebar:'#f1f5f9',border:'#cbd5e1'},
+emerald:{primary:'#065f46',secondary:'#059669',text:'#064e3b',sidebar:'#f0fdf4',border:'#bbf7d0'},
+burgundy:{primary:'#831843',secondary:'#be185d',text:'#881337',sidebar:'#fff1f2',border:'#fecdd3'},
+monochrome:{primary:'#18181b',secondary:'#3f3f46',text:'#09090b',sidebar:'#f4f4f5',border:'#e4e4e7'}
+};
 
-  // Detección de soporte nativo de "zoom" (Chrome, Edge, Safari lo
-  // soportan; Firefox históricamente no).
-  const supportsNativeZoom = CSS.supports("zoom: 1.5");
+function renderCV(){
+applyCssVariables();
+const root=document.getElementById('cv-root');
+root.innerHTML=cvState.layout==='2-col'?renderTwoColumnLayout():(cvState.layout==='ats'?renderAtsLayout():renderOneColumnLayout());
+applyHiddenSections();
+applySectionOrder();
+applySpacing();
+attachEditableEvents();
+checkPageOverflow();
+recordCV();
+}
 
-  function clamp(value) {
-    return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, value));
-  }
+function applyCssVariables(){
+const pal=palettes[cvState.palette]||palettes.navy;
+const r=document.documentElement;
+r.style.setProperty('--cv-font-family',cvState.fontFamily);
+r.style.setProperty('--cv-base-size',`${cvState.fontSize}px`);
+r.style.setProperty('--cv-line-height',cvState.lineHeight);
+r.style.setProperty('--cv-section-gap',`${cvState.sectionGap}px`);
+r.style.setProperty('--cv-primary-color',pal.primary);
+r.style.setProperty('--cv-secondary-color',pal.secondary);
+r.style.setProperty('--cv-text-color',pal.text);
+r.style.setProperty('--cv-sidebar-bg',pal.sidebar);
+r.style.setProperty('--cv-border-color',pal.border);
+}
 
-  function loadZoom() {
-    const stored = parseInt(localStorage.getItem(STORAGE_KEY), 10);
-    if (!isNaN(stored) && stored >= ZOOM_MIN && stored <= ZOOM_MAX) {
-      return stored;
-    }
-    return ZOOM_DEFAULT;
-  }
+function renderTwoColumnLayout(){
+return `
+<div class="grid grid-cols-12 gap-5 items-start">
+<div class="col-span-4 cv-sidebar-bg-custom p-4 rounded-xl border border-[var(--cv-border-color)] flex flex-col gap-4">
+${cvState.showPhoto?`<div class="text-center mb-1"><img src="${cvState.photoUrl}" alt="Foto Perfil" class="w-28 h-28 object-cover rounded-full mx-auto border-4 border-white shadow-md"></div>`:''}
+<div class="cv-section-gap">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="contact">${secInner('contact','fa-solid fa-address-card text-xs','Contacto')}</h3>
+<div class="space-y-1.5 text-[0.92em]">
+${contactRows2()}
+</div>
+</div>
+<div class="cv-section-gap">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
+<div class="flex flex-wrap gap-1">
+${hardChips('bg-white px-2 py-0.5 rounded border border-slate-300 text-[0.88em] font-medium shadow-sm')}
+</div>
+</div>
+<div class="cv-section-gap">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
+<ul class="list-disc list-inside text-[0.9em] space-y-0.5">
+${softItems()}
+</ul>
+</div>
+<div class="cv-section-gap">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-1 border-b border-[var(--cv-border-color)] mb-2 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
+<div class="space-y-1 text-[0.9em]">
+${langItems()}
+</div>
+</div>
+</div>
+<div class="col-span-8 flex flex-col">
+<div class="border-b-2 border-[var(--cv-primary-color)] pb-2 mb-4">
+<h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.85em] font-bold text-[var(--cv-primary-color)] leading-tight tracking-tight">${cvState.fullName}</h1>
+<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText.trimEnd()" class="text-[1.1em] font-semibold text-slate-700 mt-0.5">${nl2br(cvState.jobTitle)}</h2>
+</div>
+<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-200 mb-1.5 flex items-center gap-1.5" data-sec="profile">${secInner('profile','fa-solid fa-user text-xs','Perfil Profesional')}</h3>
+<p contenteditable="true" onblur="cvState.profileSummary = this.innerText" class="text-[0.92em] text-slate-700 text-justify leading-relaxed">${cvState.profileSummary}</p>
+</div>
+<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-2">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="experience">${secInner('experience','fa-solid fa-briefcase text-xs','Experiencia Laboral')}</h3>
+<button onclick="addExperienceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
+</div>
+<div class="space-y-3" data-list="experience">
+${cvState.experience.map((exp,idx)=>`
+<div class="editable-item page-break-inside-avoid border-l-2 border-[var(--cv-primary-color)] pl-3 py-0.5" data-id="${exp.id}">
+<div class="item-actions no-print">${expMoveBtns(exp,idx)}<button onclick="removeExperience('${exp.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div class="flex justify-between items-baseline">
+<h4 contenteditable="true" onblur="updateExpItem('${exp.id}', 'role', this.innerText)" class="font-bold text-[0.98em] text-slate-800">${exp.role}</h4>
+<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'period', this.innerText)" class="text-[0.82em] font-semibold text-slate-500 shrink-0 ml-2">${exp.period}</span>
+</div>
+<div class="flex justify-between text-[0.88em] font-medium text-[var(--cv-primary-color)] mb-1">
+<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'company', this.innerText)">${exp.company}</span>
+<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'location', this.innerText)" class="text-slate-400 font-normal text-[0.95em]">${exp.location}</span>
+</div>
+<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', cleanDesc(this.innerHTML))" class="text-[0.9em] text-slate-600 leading-snug space-y-0.5">${exp.description}</div>
+</div>`).join('')}
+</div>
+</div>
+<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-2">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="education">${secInner('education','fa-solid fa-graduation-cap text-xs','Educación y Formación')}</h3>
+<button onclick="addEducationItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
+</div>
+<div class="space-y-2">
+${cvState.education.map((edu)=>`
+<div class="editable-item page-break-inside-avoid">
+<div class="item-actions no-print"><button onclick="removeEducation('${edu.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div class="flex justify-between items-baseline">
+<h4 contenteditable="true" onblur="updateEduItem('${edu.id}', 'degree', this.innerText)" class="font-bold text-[0.95em] text-slate-800">${edu.degree}</h4>
+<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'period', this.innerText)" class="text-[0.82em] font-semibold text-slate-500 shrink-0 ml-2">${edu.period}</span>
+</div>
+<div class="flex justify-between text-[0.88em] text-slate-600">
+<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'institution', this.innerText)">${edu.institution}</span>
+<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'status', this.innerText)" class="font-medium text-slate-500">${edu.status}</span>
+</div>
+</div>`).join('')}
+</div>
+</div>
+<div class="cv-section-gap page-break-inside-avoid">
+<div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-1.5">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="courses">${secInner('courses','fa-solid fa-certificate text-xs','Cursos y Certificaciones')}</h3>
+<button onclick="addCourseItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
+</div>
+<div class="space-y-1.5 text-[0.88em]">
+${cvState.courses.map((crs)=>`
+<div class="editable-item flex justify-between items-center">
+<div class="item-actions no-print"><button onclick="removeCourse('${crs.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div><span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'title', this.innerText)" class="font-semibold text-slate-800">${crs.title}</span> – <span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'institution', this.innerText)" class="text-slate-600">${crs.institution}</span></div>
+<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'year', this.innerText)" class="text-[0.85em] font-medium text-slate-500">${crs.year}</span>
+</div>`).join('')}
+</div>
+</div>
+<div class="cv-section-gap page-break-inside-avoid">
+<div class="flex justify-between items-center border-b border-slate-200 pb-0.5 mb-1.5">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="references">${secInner('references','fa-solid fa-users text-xs','Referencias Laborales')}</h3>
+<button onclick="addReferenceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
+</div>
+<div class="grid grid-cols-2 gap-2 text-[0.88em]">
+${cvState.references.map((ref)=>`
+<div class="editable-item bg-slate-50 p-2 rounded border border-slate-200">
+<div class="item-actions no-print"><button onclick="removeReference('${ref.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'name', this.innerText)" class="font-bold text-slate-800">${ref.name}</div>
+<div contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'title', this.innerText)" class="text-slate-600 text-[0.9em]">${ref.title}</div>
+<div contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'contact', this.innerText)" class="text-[0.85em] text-slate-500 italic mt-0.5">${ref.contact}</div>
+</div>`).join('')}
+</div>
+</div>
+</div>
+</div>`;
+}
 
-  function applyZoom(level) {
-    const factor = level / 100;
-    if (supportsNativeZoom) {
-      zoomContent.style.zoom = String(factor);
-      zoomContent.style.transform = "";
-      zoomContent.style.width = "";
-    } else {
-      // Fallback con transform: scale(). Para que no aparezca scroll
-      // horizontal, compensamos el ancho en proporción inversa al
-      // factor de escala, ya que transform no reacomoda el layout.
-      zoomContent.style.transformOrigin = "top left";
-      zoomContent.style.transform = `scale(${factor})`;
-      zoomContent.style.width = `${100 / factor}%`;
-    }
-    zoomLevelBtn.textContent = `${level}%`;
-    zoomLevelBtn.dataset.level = String(level);
-    localStorage.setItem(STORAGE_KEY, String(level));
-  }
+function renderOneColumnLayout(){
+return `
+<div class="max-w-full">
+<div class="flex items-center gap-5 border-b-2 border-[var(--cv-primary-color)] pb-3 mb-4">
+${cvState.showPhoto?`<img src="${cvState.photoUrl}" alt="Foto Perfil" class="w-24 h-24 object-cover rounded-full border-2 border-[var(--cv-primary-color)] shrink-0 shadow">`:''}
+<div class="flex-1">
+<h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.9em] font-bold text-[var(--cv-primary-color)] leading-tight">${cvState.fullName}</h1>
+<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText.trimEnd()" class="text-[1.15em] font-semibold text-slate-700">${nl2br(cvState.jobTitle)}</h2>
+<div class="flex flex-wrap gap-x-3 gap-y-1 text-[0.85em] text-slate-600 mt-2">
+${contactRows1()}
+</div>
+</div>
+</div>
+<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="profile">${secInner('profile','fa-solid fa-user text-xs','Perfil Profesional')}</h3>
+<p contenteditable="true" onblur="cvState.profileSummary = this.innerText" class="text-[0.92em] text-slate-700 text-justify leading-relaxed">${cvState.profileSummary}</p>
+</div>
+<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="experience">${secInner('experience','fa-solid fa-briefcase text-xs','Experiencia Laboral')}</h3>
+<button onclick="addExperienceItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>
+</div>
+<div class="space-y-3" data-list="experience">
+${cvState.experience.map((exp,idx)=>`
+<div class="editable-item page-break-inside-avoid" data-id="${exp.id}">
+<div class="item-actions no-print">${expMoveBtns(exp,idx)}<button onclick="removeExperience('${exp.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<div class="flex justify-between items-baseline">
+<h4 contenteditable="true" onblur="updateExpItem('${exp.id}', 'role', this.innerText)" class="font-bold text-[0.98em] text-slate-800">${exp.role}</h4>
+<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'period', this.innerText)" class="text-[0.82em] font-semibold text-slate-500">${exp.period}</span>
+</div>
+<div class="flex justify-between text-[0.88em] font-medium text-[var(--cv-primary-color)] mb-1">
+<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'company', this.innerText)">${exp.company}</span>
+<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'location', this.innerText)" class="text-slate-400 font-normal">${exp.location}</span>
+</div>
+<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', cleanDesc(this.innerHTML))" class="text-[0.9em] text-slate-600 leading-snug">${exp.description}</div>
+</div>`).join('')}
+</div>
+</div>
+<div class="grid grid-cols-2 gap-5 cv-section-gap">
+<div>
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5" data-sec="education">${secInner('education','fa-solid fa-graduation-cap text-xs','Educación')}</h3>
+<button onclick="addEducationItem()" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus-circle"></i></button>
+</div>
+<div class="space-y-2">
+${cvState.education.map((edu)=>`
+<div class="editable-item page-break-inside-avoid">
+<div class="item-actions no-print"><button onclick="removeEducation('${edu.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<h4 contenteditable="true" onblur="updateEduItem('${edu.id}', 'degree', this.innerText)" class="font-bold text-[0.92em] text-slate-800">${edu.degree}</h4>
+<div class="text-[0.85em] text-slate-600" contenteditable="true" onblur="updateEduItem('${edu.id}', 'institution', this.innerText)">${edu.institution}</div>
+<div class="flex justify-between text-[0.8em] text-slate-500 font-medium">
+<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'period', this.innerText)">${edu.period}</span>
+<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'status', this.innerText)">${edu.status}</span>
+</div>
+</div>`).join('')}
+</div>
+</div>
+<div class="flex flex-col gap-3" data-stack="skills">
+<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-2 flex items-center gap-1.5" data-sec="skillsHard">${secInner('skillsHard','fa-solid fa-code text-xs','Habilidades Técnicas')}</h3>
+<div class="flex flex-wrap gap-1">
+${hardChips('bg-slate-100 px-2 py-0.5 rounded border border-slate-200 text-[0.85em] font-medium')}
+</div>
+</div>
+<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="languages">${secInner('languages','fa-solid fa-language text-xs','Idiomas')}</h3>
+<div class="space-y-0.5 text-[0.88em]">
+${langItems()}
+</div>
+</div>
+${cvState.showSoftInOneCol?`<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="skillsSoft">${secInner('skillsSoft','fa-solid fa-user-check text-xs','Competencias')}</h3>
+<ul class="list-disc list-inside text-[0.88em] space-y-0.5">${softItems()}</ul>
+</div>`:''}
+</div>
+</div>
+<div class="grid grid-cols-2 gap-5 page-break-inside-avoid">
+<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="courses">${secInner('courses','fa-solid fa-certificate text-xs','Cursos')}</h3>
+<div class="space-y-1 text-[0.85em]">
+${cvState.courses.map((crs)=>`
+<div class="editable-item">
+<div class="item-actions no-print"><button onclick="removeCourse('${crs.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'title', this.innerText)" class="font-semibold text-slate-800">${crs.title}</span> (${crs.year})
+</div>`).join('')}
+</div>
+</div>
+<div>
+<h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5" data-sec="references">${secInner('references','fa-solid fa-users text-xs','Referencias')}</h3>
+<div class="space-y-1 text-[0.85em]">
+${cvState.references.map((ref)=>`
+<div class="editable-item">
+<div class="item-actions no-print"><button onclick="removeReference('${ref.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button></div>
+<span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'name', this.innerText)" class="font-bold">${ref.name}</span> – <span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'title', this.innerText)" class="text-slate-600">${ref.title}</span>
+</div>`).join('')}
+</div>
+</div>
+</div>
+</div>`;
+}
 
-  function changeZoom(delta) {
-    const current = parseInt(zoomLevelBtn.dataset.level, 10) || ZOOM_DEFAULT;
-    applyZoom(clamp(current + delta));
-  }
+/* ===== Layout ATS: una sola columna, sin foto ni íconos, orden de lectura = orden del documento ===== */
+function atsSep(){return '<span class="mx-1.5 text-slate-400">|</span>';}
+function atsContact(){
+const items=contactVisible().filter(it=>it.type!=='birth');
+return items.map((it,i)=>(i?atsSep():'')+`<span class="row-item contact-row relative inline-flex items-center"><span data-ct="${it.type}" contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" style="white-space:pre-line">${escHtml(it.value)}</span>${contactActions(it)}</span>`).join('');
+}
+function atsInline(arr,type){
+const hard=type==='hard';
+return arr.map((sk,i)=>`<span class="row-item ats-inline inline-block${hard?' skill-chip':''}"${hard?` data-skill-idx="${i}"`:''}><span contenteditable="true" onblur="updateSkill('${type}', ${i}, stripTrailComma(this.innerText))">${escHtml(sk)}${i<arr.length-1?',':''}</span><span class="row-actions no-print">${hard?'<span class="skill-grip" title="Arrastrar para cambiar el orden" aria-label="Arrastrar para reordenar"><i class="fa-solid fa-grip-vertical text-[9px]"></i></span>':''}<button onclick="removeSkill('${type}', ${i})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join(' ');
+}
+function atsLangs(){
+return cvState.languages.map((lang,idx)=>(idx?atsSep():'')+`<span class="row-item ats-inline inline-block"><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${escHtml(lang.name)}</span>: <span contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${escHtml(lang.level)}</span><span class="row-actions no-print"><button onclick="removeLanguage(${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></span>`).join('');
+}
+function stripTrailComma(t){return String(t==null?'':t).replace(/\s*,\s*$/,'');}
+const MONTHS_ES={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,set:9,septiembre:9,setiembre:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
+function periodToNumeric(t){
+let v=String(t==null?'':t);
+v=v.replace(/([A-Za-zÁÉÍÓÚáéíóúÑñ]+)\.?\s+(\d{4})/g,(m,mo,y)=>{const n=MONTHS_ES[mo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')];return n?String(n).padStart(2,'0')+'/'+y:m;});
+return v.replace(/\s*[-–—]\s*/g,' - ').replace(/\s{2,}/g,' ').trim();
+}
+function convertDatesNumeric(){
+showConfirm('¿Convertir las fechas de Experiencia y Educación al formato MM/AAAA? Por ejemplo, "Jun 2022 - Jul 2023" pasa a "06/2022 - 07/2023". Cambia el texto del período de cada ítem (en cualquier layout) y se puede deshacer con el historial del CV.',()=>{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+let n=0;
+[cvState.experience,cvState.education].forEach(list=>list.forEach(it=>{const v=periodToNumeric(it.period);if(v!==it.period){it.period=v;n++;}}));
+renderCV();
+cfgToast(n?('Fechas convertidas en '+n+' ítem(s).'):'No había fechas con mes escrito para convertir.');
+});
+}
+function renderAtsLayout(){
+const H='text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5';
+const HR='text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5';
+const addBtn=fn=>`<button onclick="${fn}" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>`;
+const del=(fn,id)=>`<button onclick="${fn}('${id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+const sec={
+experience:()=>`<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
+<h3 class="${HR}" data-sec="experience">${secInner('experience','','Experiencia Laboral')}</h3>${addBtn('addExperienceItem()')}
+</div>
+<div class="space-y-3" data-list="experience">
+${cvState.experience.map((exp,idx)=>`
+<div class="editable-item page-break-inside-avoid" data-id="${exp.id}">
+<div class="item-actions no-print">${expMoveBtns(exp,idx)}${del('removeExperience',exp.id)}</div>
+<div class="text-[0.95em] leading-snug mb-1"><h4 contenteditable="true" onblur="updateExpItem('${exp.id}', 'role', this.innerText)" class="inline font-bold text-slate-800">${exp.role}</h4>${atsSep()}<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'company', this.innerText)" class="font-medium text-[var(--cv-primary-color)]">${exp.company}</span>${atsSep()}<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'location', this.innerText)" class="text-slate-600">${exp.location}</span>${atsSep()}<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'period', this.innerText)" class="font-semibold text-slate-600">${exp.period}</span></div>
+<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', cleanDesc(this.innerHTML))" class="text-[0.9em] text-slate-700 leading-snug space-y-0.5">${exp.description}</div>
+</div>`).join('')}
+</div>
+</div>`,
+education:()=>`<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
+<h3 class="${HR}" data-sec="education">${secInner('education','','Educación')}</h3>${addBtn('addEducationItem()')}
+</div>
+<div class="space-y-2">
+${cvState.education.map(edu=>`
+<div class="editable-item page-break-inside-avoid">
+<div class="item-actions no-print">${del('removeEducation',edu.id)}</div>
+<div class="text-[0.92em] leading-snug"><h4 contenteditable="true" onblur="updateEduItem('${edu.id}', 'degree', this.innerText)" class="inline font-bold text-slate-800">${edu.degree}</h4>${atsSep()}<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'institution', this.innerText)" class="text-slate-700">${edu.institution}</span>${atsSep()}<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'period', this.innerText)" class="font-semibold text-slate-600">${edu.period}</span>${atsSep()}<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'status', this.innerText)" class="text-slate-600">${edu.status}</span></div>
+</div>`).join('')}
+</div>
+</div>`,
+courses:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-1.5">
+<h3 class="${HR}" data-sec="courses">${secInner('courses','','Cursos y Certificaciones')}</h3>${addBtn('addCourseItem()')}
+</div>
+<div class="space-y-1.5 text-[0.88em]">
+${cvState.courses.map(crs=>`
+<div class="editable-item">
+<div class="item-actions no-print">${del('removeCourse',crs.id)}</div>
+<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'title', this.innerText)" class="font-semibold text-slate-800">${crs.title}</span>${atsSep()}<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'institution', this.innerText)" class="text-slate-700">${crs.institution}</span>${atsSep()}<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'year', this.innerText)" class="font-medium text-slate-600">${crs.year}</span>
+</div>`).join('')}
+</div>
+</div>`,
+references:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-1.5">
+<h3 class="${HR}" data-sec="references">${secInner('references','','Referencias Laborales')}</h3>${addBtn('addReferenceItem()')}
+</div>
+<div class="space-y-1.5 text-[0.88em]">
+${cvState.references.map(ref=>`
+<div class="editable-item">
+<div class="item-actions no-print">${del('removeReference',ref.id)}</div>
+<span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'name', this.innerText)" class="font-bold text-slate-800">${ref.name}</span> – <span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'title', this.innerText)" class="text-slate-700">${ref.title}</span> – <span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'contact', this.innerText)" class="text-slate-600">${ref.contact}</span>
+</div>`).join('')}
+</div>
+</div>`,
+skillsHard:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="skillsHard">${secInner('skillsHard','','Habilidades Técnicas')}</h3>
+<div class="text-[0.9em] text-slate-700 leading-relaxed">${atsInline(cvState.skillsHard,'hard')}</div>
+</div>`,
+skillsSoft:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="skillsSoft">${secInner('skillsSoft','','Competencias')}</h3>
+<div class="text-[0.9em] text-slate-700 leading-relaxed">${atsInline(cvState.skillsSoft,'soft')}</div>
+</div>`,
+languages:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="languages">${secInner('languages','','Idiomas')}</h3>
+<div class="text-[0.9em] text-slate-700 leading-relaxed">${atsLangs()}</div>
+</div>`
+};
+const body=cvState.sectionOrder.filter(k=>sec[k]).map(k=>sec[k]()).join('');
+const contact=atsContact();
+return `
+<div class="max-w-full">
+<div class="border-b-2 border-[var(--cv-primary-color)] pb-2 mb-4">
+<h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.9em] font-bold text-[var(--cv-primary-color)] leading-tight">${cvState.fullName}</h1>
+<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText.trimEnd()" class="text-[1.1em] font-semibold text-slate-800">${nl2br(cvState.jobTitle)}</h2>
+${contact?`<div class="ats-contact text-[0.88em] text-slate-700 mt-1.5 leading-relaxed">${contact}</div>`:''}
+</div>
+<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="profile">${secInner('profile','','Perfil Profesional')}</h3>
+<p contenteditable="true" onblur="cvState.profileSummary = this.innerText" class="text-[0.92em] text-slate-700 text-left leading-relaxed">${cvState.profileSummary}</p>
+</div>
+${body}
+</div>`;
+}
 
-  // El botón de porcentaje ("100%") NO solo resetea: fuerza una
-  // recarga sin caché, simulando Ctrl+F5. Se agrega un parámetro
-  // de timestamp para invalidar la caché y se usa location.replace
-  // para no dejar entrada extra en el historial.
-  function hardReload() {
-    const base = window.location.href.split("?")[0].split("#")[0];
-    window.location.replace(`${base}?_=${Date.now()}`);
-  }
+function applyPreset(mode){
+cvState.preset=mode;
+const btnCompact=document.getElementById('btn-preset-compact');
+const btnExtended=document.getElementById('btn-preset-extended');
+if(mode==='compact'){
+cvState.fontSize=11;cvState.lineHeight=1.35;cvState.sectionGap=10;
+btnCompact.className='preset-btn px-3 py-2 rounded-lg border border-blue-500 bg-blue-950/60 text-blue-300 font-medium text-xs flex flex-col items-center justify-center gap-1 transition';
+btnExtended.className='preset-btn px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex flex-col items-center justify-center gap-1 transition';
+}else{
+cvState.fontSize=13;cvState.lineHeight=1.5;cvState.sectionGap=18;
+btnExtended.className='preset-btn px-3 py-2 rounded-lg border border-blue-500 bg-blue-950/60 text-blue-300 font-medium text-xs flex flex-col items-center justify-center gap-1 transition';
+btnCompact.className='preset-btn px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex flex-col items-center justify-center gap-1 transition';
+}
+document.getElementById('slider-font-size').value=cvState.fontSize;
+document.getElementById('val-font-size').innerText=`${cvState.fontSize}px`;
+document.getElementById('slider-line-height').value=cvState.lineHeight;
+document.getElementById('val-line-height').innerText=cvState.lineHeight;
+document.getElementById('slider-section-gap').value=cvState.sectionGap;
+document.getElementById('val-section-gap').innerText=`${cvState.sectionGap}px`;
+renderCV();
+}
 
-  zoomInBtn.addEventListener("click", () => changeZoom(ZOOM_STEP));
-  zoomOutBtn.addEventListener("click", () => changeZoom(-ZOOM_STEP));
-  zoomResetBtn.addEventListener("click", () => applyZoom(ZOOM_DEFAULT));
-  zoomLevelBtn.addEventListener("click", hardReload);
+function styleLayoutButtons(){
+const on='border border-blue-500 bg-blue-900/40 text-white',off='border border-slate-700 bg-slate-800 text-slate-400 hover:text-white';
+[['2-col','btn-layout-2col'],['1-col','btn-layout-1col'],['ats','btn-layout-ats']].forEach(([k,id])=>{
+const b=document.getElementById(id);if(b)b.className='layout-btn px-2 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap '+(cvState.layout===k?on:off);
+});
+}
+let _cuilAtsMemo=false;
+function setLayout(layoutType){
+const prev=cvState.layout;
+if(layoutType==='ats'&&prev!=='ats'){_cuilAtsMemo=!!cvState.showCuil;if(cvState.showCuil)cvState.showCuil=false;}
+else if(prev==='ats'&&layoutType!=='ats'){if(_cuilAtsMemo&&!cvState.showCuil)cvState.showCuil=true;_cuilAtsMemo=false;}
+cvState.layout=layoutType;
+const tc=document.getElementById('toggle-cuil');if(tc)tc.checked=cvState.showCuil;
+renderSectionButtons();
+styleLayoutButtons();
+renderCV();
+}
 
-  applyZoom(loadZoom());
+function setPalette(palKey){cvState.palette=palKey;renderCV();}
+function setFontFamily(font){cvState.fontFamily=font;renderCV();}
+function updateFontSize(val){cvState.fontSize=parseFloat(val);document.getElementById('val-font-size').innerText=`${val}px`;renderCV();}
+function updateLineHeight(val){cvState.lineHeight=parseFloat(val);document.getElementById('val-line-height').innerText=val;renderCV();}
+function updateSectionGap(val){cvState.sectionGap=parseInt(val);document.getElementById('val-section-gap').innerText=`${val}px`;renderCV();}
+function togglePhoto(checked){cvState.showPhoto=checked;renderCV();}
+function toggleCuil(checked){cvState.showCuil=checked;renderCV();}
+function togglePageGuides(checked){
+cvState.showGuides=checked;
+document.getElementById('page-break-line-1').style.display=checked?'block':'none';
+document.getElementById('page-break-line-2').style.display=checked?'block':'none';
+}
+
+function updateStatePath(path,value){
+const keys=path.split('.');
+let curr=cvState;
+for(let i=0;i<keys.length-1;i++){curr=curr[keys[i]];}
+curr[keys[keys.length-1]]=value;
+}
+function updateExpItem(id,field,val){const item=cvState.experience.find(x=>x.id===id);if(item)item[field]=val;}
+function updateEduItem(id,field,val){const item=cvState.education.find(x=>x.id===id);if(item)item[field]=val;}
+function updateCourseItem(id,field,val){const item=cvState.courses.find(x=>x.id===id);if(item)item[field]=val;}
+function updateReferenceItem(id,field,val){const item=cvState.references.find(x=>x.id===id);if(item)item[field]=val;}
+function updateSkill(type,idx,val){
+if(type==='hard')cvState.skillsHard[idx]=val;
+if(type==='soft')cvState.skillsSoft[idx]=val;
+}
+function updateLanguage(idx,field,val){if(cvState.languages[idx])cvState.languages[idx][field]=val;}
+
+function addExperienceItem(){
+cvState.experience.unshift({id:'exp_'+Date.now(),role:'Nuevo Cargo / Puesto',company:'Nombre Empresa S.A.',period:'2022 - Presente',location:'Buenos Aires',description:'• Responsabilidad principal o logro cuantitativo importante.'});
+renderCV();
+}
+function removeExperience(id){cvState.experience=cvState.experience.filter(x=>x.id!==id);renderCV();}
+function addEducationItem(){
+cvState.education.push({id:'edu_'+Date.now(),degree:'Título o Certificación Académica',institution:'Universidad / Instituto',period:'2020 - 2023',status:'En curso / Finalizado'});
+renderCV();
+}
+function removeEducation(id){cvState.education=cvState.education.filter(x=>x.id!==id);renderCV();}
+function addCourseItem(){
+cvState.courses.push({id:'crs_'+Date.now(),title:'Nuevo Curso o Seminario',institution:'Institución / Plataforma',year:'2024'});
+renderCV();
+}
+function removeCourse(id){cvState.courses=cvState.courses.filter(x=>x.id!==id);renderCV();}
+function addReferenceItem(){
+cvState.references.push({id:'ref_'+Date.now(),name:'Nombre del Referente',title:'Puesto & Empresa',contact:'email@ejemplo.com'});
+renderCV();
+}
+function removeReference(id){cvState.references=cvState.references.filter(x=>x.id!==id);renderCV();}
+
+function handlePhotoUpload(e){
+const file=e.target.files[0];
+if(file){
+const reader=new FileReader();
+reader.onload=function(evt){cvState.photoUrl=evt.target.result;renderCV();};
+reader.readAsDataURL(file);
+}
+}
+
+function attachEditableEvents(){
+document.querySelectorAll('[contenteditable="true"]').forEach(el=>{
+el.addEventListener('keydown',(evt)=>{if(evt.key==='Escape')el.blur();});
+});
+}
+
+function checkPageOverflow(){
+setTimeout(()=>{
+const paper=document.getElementById('cv-paper');
+const heightPx=paper.offsetHeight;
+const a4PageHeightPx=1122;
+const indicator=document.getElementById('page-count-indicator');
+if(heightPx>a4PageHeightPx+20){
+indicator.innerText='2 Páginas (Extendido)';
+indicator.className='text-amber-400 font-semibold';
+}else{
+indicator.innerText='1 Página (Perfecto Fit)';
+indicator.className='text-emerald-400 font-semibold';
+}
+},100);
+}
+
+function showPrintNotice(btn){
+let n=document.getElementById('print-notice');
+if(!n){n=document.createElement('div');n.id='print-notice';n.className='no-print';n.setAttribute('role','status');
+n.style.cssText='position:fixed;z-index:70;left:8px;right:8px;max-width:420px;margin:0 auto;box-sizing:border-box;padding:10px 14px;border-radius:10px;font:700 13px/1.3 Inter,sans-serif;text-align:center;color:#000;background:#FFD400;border:1px solid #CA9A00;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .25s;pointer-events:none';
+document.body.appendChild(n);}
+n.textContent="En la página que se presentará a continuación, en 'Tamaño de papel' seleccione 'A4' o en su defecto 'ISO A4'.";
+const r=btn?btn.getBoundingClientRect():null;
+n.style.top=Math.max(8,r&&r.bottom>0&&r.bottom<innerHeight-60?r.bottom+8:8)+'px';
+n.style.opacity='1';clearTimeout(n._h);n._h=setTimeout(()=>{n.style.opacity='0';},PRINT_NOTICE_MS);
+}
+const PRINT_NOTICE_DELAY=1000,PRINT_NOTICE_MS=6500;
+function triggerPrint(ev){
+const mobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'')||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<900);
+if(!mobile){window.print();return;}
+const btn=ev&&ev.currentTarget;
+setTimeout(()=>showPrintNotice(btn),PRINT_NOTICE_DELAY);
+setTimeout(()=>window.print(),PRINT_NOTICE_DELAY+PRINT_NOTICE_MS);
+}
+let pendingConfirm=null,pendingConfirmNo=null;
+function showConfirm(msg,onYes,onNo){
+document.getElementById('confirm-text').textContent=msg;
+pendingConfirm=onYes;pendingConfirmNo=onNo||null;
+const m=document.getElementById('reset-modal');
+m.classList.remove('hidden');m.classList.add('flex');
+}
+function closeConfirm(){
+const m=document.getElementById('reset-modal');
+m.classList.add('hidden');m.classList.remove('flex');
+const n=pendingConfirmNo;pendingConfirm=null;pendingConfirmNo=null;
+if(n)n();
+}
+function runConfirm(){const f=pendingConfirm;pendingConfirmNo=null;closeConfirm();if(f)f();}
+function resetSampleData(){
+showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TODO el texto 'Default' del Modelo y del Perfil de ejemplo?",()=>{clearRecoveryBackup();location.reload();});
+}
+
+/* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
+const ED_KEYS=['preset','layout','fontFamily','fontSize','lineHeight','sectionGap','palette','showPhoto','showCuil','showGuides','sectionOrder','typoByMode'];
+const CV_KEYS=['fullName','jobTitle','sectionTitles','sectionIcons','hiddenSections','sectionSpacing','expSpacing','contactItems','showSoftInOneCol','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references'];
+const HIST_MAX=100;
+const hist={ed:{past:[],future:[],cur:null,timer:null},cv:{past:[],future:[],cur:null}};
+
+function snap(keys){const o={};keys.forEach(k=>{o[k]=cvState[k];});return JSON.stringify(o);}
+function applySnap(json){const o=JSON.parse(json);Object.keys(o).forEach(k=>{cvState[k]=o[k];});}
+
+function initHistory(){
+hist.ed.cur=snap(ED_KEYS);
+hist.cv.cur=snap(CV_KEYS);
+updateHistoryButtons();
+}
+
+function updateHistoryButtons(){
+const set=(id,off)=>{document.querySelectorAll('#'+id+',#'+id+'-2').forEach(b=>{b.disabled=off;});};
+set('btn-ed-undo',!hist.ed.past.length);
+set('btn-ed-redo',!hist.ed.future.length);
+set('btn-cv-undo',!hist.cv.past.length);
+set('btn-cv-redo',!hist.cv.future.length);
+}
+
+function recordEditor(){
+clearTimeout(hist.ed.timer);
+hist.ed.timer=setTimeout(commitEditor,400);
+}
+function commitEditor(){
+clearTimeout(hist.ed.timer);
+const s=snap(ED_KEYS);
+if(s!==hist.ed.cur){
+hist.ed.past.push(hist.ed.cur);
+if(hist.ed.past.length>HIST_MAX)hist.ed.past.shift();
+hist.ed.cur=s;hist.ed.future=[];
+updateHistoryButtons();
+}
+}
+function recordCV(){
+if(hist.cv.cur===null)return;
+const s=snap(CV_KEYS);
+if(s!==hist.cv.cur){
+hist.cv.past.push(hist.cv.cur);
+if(hist.cv.past.length>HIST_MAX)hist.cv.past.shift();
+hist.cv.cur=s;hist.cv.future=[];
+updateHistoryButtons();
+}
+}
+
+function syncEditorUI(){
+renderSectionButtons();
+const on='border border-blue-500 bg-blue-950/60 text-blue-300';
+const off='border border-slate-700 bg-slate-800 text-slate-400 hover:text-white';
+const pb='preset-btn px-3 py-2 rounded-lg font-medium text-xs flex flex-col items-center justify-center gap-1 transition ';
+document.getElementById('btn-preset-compact').className=pb+(cvState.preset==='compact'?on:off);
+document.getElementById('btn-preset-extended').className=pb+(cvState.preset==='extended'?on:off);
+const lb='layout-btn px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-2 ';
+const lon='border border-blue-500 bg-blue-900/40 text-white';
+styleLayoutButtons();
+document.getElementById('font-family-select').value=cvState.fontFamily;
+document.getElementById('slider-font-size').value=cvState.fontSize;
+document.getElementById('val-font-size').innerText=`${cvState.fontSize}px`;
+document.getElementById('slider-line-height').value=cvState.lineHeight;
+document.getElementById('val-line-height').innerText=cvState.lineHeight;
+document.getElementById('slider-section-gap').value=cvState.sectionGap;
+document.getElementById('val-section-gap').innerText=`${cvState.sectionGap}px`;
+document.getElementById('toggle-photo').checked=cvState.showPhoto;
+document.getElementById('toggle-cuil').checked=cvState.showCuil;
+document.getElementById('toggle-guides').checked=cvState.showGuides;
+document.getElementById('page-break-line-1').style.display=cvState.showGuides?'block':'none';
+document.getElementById('page-break-line-2').style.display=cvState.showGuides?'block':'none';
+}
+
+function stepEditor(from,to){
+commitEditor();
+if(!hist.ed[from].length)return;
+hist.ed[to].push(hist.ed.cur);
+hist.ed.cur=hist.ed[from].pop();
+applySnap(hist.ed.cur);
+syncEditorUI();
+renderCV();
+fitPaperToScreen();
+updateHistoryButtons();
+}
+function undoEditor(){stepEditor('past','future');}
+function redoEditor(){stepEditor('future','past');}
+
+function stepCV(from,to){
+recordCV();
+if(!hist.cv[from].length)return;
+hist.cv[to].push(hist.cv.cur);
+hist.cv.cur=hist.cv[from].pop();
+applySnap(hist.cv.cur);
+renderCV();
+updateHistoryButtons();
+}
+function undoCV(){stepCV('past','future');}
+function redoCV(){stepCV('future','past');}
+
+/* Toda acción sobre parámetros del Editor se registra en el historial del Editor */
+['applyPreset','setLayout','setPalette','setFontFamily','updateFontSize','updateLineHeight','updateSectionGap','togglePhoto','toggleCuil','togglePageGuides','moveSection'].forEach(n=>{
+const f=window[n];
+window[n]=function(){const r=f.apply(this,arguments);recordEditor();return r;};
+});
+
+/* ===== Secciones: títulos editables y eliminación ===== */
+const SECTION_KEYS=['contact','skillsHard','skillsSoft','languages','profile','experience','education','courses','references'];
+const escHtml=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* Los saltos de línea del texto guardado (\n) se muestran como <br>; en HTML un \n suelto se colapsa y la línea "volvía" a unirse al re-renderizar */
+const nl2br=v=>String(v==null?'':v).replace(/\r\n?|\n/g,'<br>');
+function secTitle(key,def){const t=cvState.sectionTitles&&cvState.sectionTitles[key];return t||def;}
+const ADD_KEYS=['contact','skillsHard','skillsSoft','languages'];
+function secInner(key,icon,def){
+const ats=cvState.layout==='ats';
+const m=ats?'none':((cvState.sectionIcons&&cvState.sectionIcons[key])||'icon');
+const mark=m==='icon'?`<i class="${icon}"></i> `:(m==='bullet'?`<span class="inline-block shrink-0 bg-current" style="width:.72em;height:.72em"></span> `:'');
+const nx={icon:['fa-square','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[m];
+const tight=ADD_KEYS.includes(key);
+const cyc=ats?'':`<button onclick="toggleSectionIcon('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-slate-500 hover:text-slate-800" title="${nx[1]}"><i class="fa-solid ${nx[0]} text-[10px]"></i></button>`;
+const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ${tight?'ml-1 px-0.5 py-1':'ml-2 p-1'} text-blue-600 hover:text-blue-800" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
+return `${mark}<span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${cyc}${add}<button onclick="requestDeleteSection('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-rose-500 hover:text-rose-700" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+}
+function toggleSectionIcon(key){
+const cur=(cvState.sectionIcons&&cvState.sectionIcons[key])||'icon';
+const next={icon:'bullet',bullet:'none',none:'icon'}[cur];
+if(next==='icon')delete cvState.sectionIcons[key];else cvState.sectionIcons[key]=next;
+renderCV();
+}
+function setSectionTitle(key,text){
+const t=String(text).replace(/\s+/g,' ').trim().slice(0,80);
+if(t){cvState.sectionTitles[key]=t;}
+else if(cvState.sectionTitles[key]){delete cvState.sectionTitles[key];renderCV();}
+}
+const SEC_BTN={
+experience:['Experiencia',"addExperienceItem()"],
+education:['Educación',"addEducationItem()"],
+courses:['Curso/Certif.',"addCourseItem()"],
+references:['Referencia',"addReferenceItem()"],
+skillsHard:['Habilidad Técnica',"addSectionItem('skillsHard')"],
+skillsSoft:['Competencia',"addSectionItem('skillsSoft')"],
+languages:['Idioma',"addSectionItem('languages')"],
+contact:['Contacto',"addSectionItem('contact')"]
+};
+const COL_LEFT=['contact','skillsHard','skillsSoft','languages'],COL_RIGHT=['experience','education','courses','references'];
+function renderSectionButtons(){
+const box=document.getElementById('add-buttons');
+if(!box)return;
+const arrow='flex-1 px-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed';
+const item=(k,i,n)=>{
+const [label,fn]=SEC_BTN[k];
+return `<div class="flex items-stretch gap-1"><button onclick="${fn}" class="flex-1 min-w-0 px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center justify-center gap-1.5 transition"><i class="fa-solid fa-plus text-blue-400"></i> ${label}</button><div class="flex flex-col gap-0.5"><button onclick="moveSection('${k}',-1)" ${i===0?'disabled':''} class="${arrow}" title="Subir en el orden"><i class="fa-solid fa-chevron-up text-[9px]"></i></button><button onclick="moveSection('${k}',1)" ${i===n-1?'disabled':''} class="${arrow}" title="Bajar en el orden"><i class="fa-solid fa-chevron-down text-[9px]"></i></button></div></div>`;
+};
+const ord=cvState.sectionOrder;
+if(cvState.layout==='2-col'){
+/* 2 Columnas: cada columna del CV se ordena de forma independiente, alineada con su lado */
+const col=(keys,title)=>{const l=ord.filter(k=>keys.includes(k));return `<div class="space-y-2"><div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">${title}</div>${l.map((k,i)=>item(k,i,l.length)).join('')}</div>`;};
+box.className='grid grid-cols-2 gap-2 text-xs items-start';
+box.innerHTML=col(COL_LEFT,'Columna Izquierda')+col(COL_RIGHT,'Columna Derecha');
+}else{
+box.className='grid grid-cols-2 gap-2 text-xs';
+box.innerHTML=ord.map((k,i,arr)=>item(k,i,arr.length)).join('');
+}
+}
+function moveSection(k,d){
+const o=cvState.sectionOrder,i=o.indexOf(k);
+if(i<0)return;
+let j=i+d;
+if(cvState.layout==='2-col'){
+/* se intercambia con el vecino de la misma columna en esa dirección */
+const grp=COL_LEFT.includes(k)?COL_LEFT:COL_RIGHT;
+while(j>=0&&j<o.length&&!grp.includes(o[j]))j+=d;
+}
+if(j<0||j>=o.length)return;
+[o[i],o[j]]=[o[j],o[i]];
+renderSectionButtons();
+renderCV();
+}
+function sectionRoot(h){const p=h.parentElement;return p.classList.contains('justify-between')?p.parentElement:p;}
+function applySectionOrder(){
+const root=document.getElementById('cv-root');
+const ord=cvState.sectionOrder;
+root.querySelectorAll('h3[data-sec]').forEach(h=>{
+const i=ord.indexOf(h.dataset.sec);
+if(i>=0)sectionRoot(h).style.order=i+1;
+});
+const st=root.querySelector('[data-stack="skills"]');
+if(st){
+const r=['skillsHard','languages','skillsSoft'].map(k=>ord.indexOf(k)).filter(i=>i>=0);
+if(r.length)st.style.order=Math.min.apply(null,r)+1;
+}
+}
+function applyHiddenSections(){
+const root=document.getElementById('cv-root');
+(cvState.hiddenSections||[]).forEach(key=>{
+root.querySelectorAll('h3[data-sec="'+key+'"]').forEach(h=>{
+const p=h.parentElement;
+if(p.classList.contains('justify-between')){p.parentElement.remove();}
+else if(p.querySelectorAll(':scope > h3').length>1){const n=h.nextElementSibling;h.remove();if(n)n.remove();}
+else{p.remove();}
+});
+});
+}
+function requestDeleteSection(key){
+const h=document.querySelector('#cv-root h3[data-sec="'+key+'"] span');
+const name=h?h.textContent.trim():key;
+showConfirm("¿Está Seguro que desea borrar la Sección '"+name+"' ?",()=>deleteSection(key));
+}
+function deleteSection(key){
+const c=cvState;
+if(!c.hiddenSections.includes(key))c.hiddenSections.push(key);
+const clear={
+contact:()=>{c.contactItems=[];},
+skillsHard:()=>{c.skillsHard=[];},
+skillsSoft:()=>{c.skillsSoft=[];},
+languages:()=>{c.languages=[];},
+profile:()=>{c.profileSummary='';},
+experience:()=>{c.experience=[];},
+education:()=>{c.education=[];},
+courses:()=>{c.courses=[];},
+references:()=>{c.references=[];}
+};
+if(clear[key])clear[key]();
+renderCV();
+}
+/* Agregar contenido desde el panel vuelve a mostrar la sección si estaba eliminada */
+[['addExperienceItem','experience'],['addEducationItem','education'],['addCourseItem','courses'],['addReferenceItem','references']].forEach(([n,k])=>{
+const f=window[n];
+window[n]=function(){
+cvState.hiddenSections=cvState.hiddenSections.filter(x=>x!==k);
+return f.apply(this,arguments);
+};
+});
+
+/* ===== Ítems de Contacto, Habilidades, Competencias e Idiomas ===== */
+const CONTACT_TYPES={
+location:{label:'Ubicación',ic:'fa-solid fa-location-dot',col:'text-[var(--cv-primary-color)]',one:true,ph:'Ciudad, Provincia, País'},
+phone:{label:'Teléfono / WhatsApp',ic:'fa-brands fa-whatsapp',col:'text-emerald-600 font-bold',one:true,ph:'+54 9 11 0000-0000'},
+email:{label:'Email',ic:'fa-solid fa-envelope',col:'text-[var(--cv-primary-color)]',brk:true,one:true,ph:'correo@ejemplo.com'},
+linkedin:{label:'LinkedIn',ic:'fa-brands fa-linkedin',col:'text-blue-700',brk:true,one:true,ph:'linkedin.com/in/usuario'},
+github:{label:'GitHub',ic:'fa-brands fa-github',col:'text-slate-800',brk:true,ph:'github.com/usuario'},
+cuil:{label:'CUIL / DNI',ic:'fa-solid fa-id-card',col:'',row:'text-[0.9em] font-semibold text-slate-700',one:true,ph:'CUIL: 00-00000000-0'},
+birth:{label:'Fecha de nacimiento',ic:'fa-solid fa-cake-candles',col:'',row:'text-[0.88em] text-slate-600',ph:'DD/MM/AAAA'},
+other:{label:'Otro dato',ic:'fa-solid fa-circle-info',col:'text-slate-500',one:true,ph:'Nuevo dato de contacto'}
+};
+const ctype=it=>CONTACT_TYPES[it.type]||CONTACT_TYPES.other;
+const contactVisible=()=>cvState.contactItems.filter(it=>cvState.showCuil||it.type!=='cuil');
+
+const iconMode=it=>(it.icon===false||it.icon==='none')?'none':(it.icon==='bullet'?'bullet':'icon');
+function contactActions(it){
+if(cvState.layout==='ats')return `<span class="row-actions no-print shrink-0 flex gap-2.5 ml-3"><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
+const nxt={icon:['fa-circle','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[iconMode(it)];
+return `<span class="row-actions no-print shrink-0 flex gap-2.5 ml-3"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${nxt[1]}"><i class="fa-solid ${nxt[0]} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
+}
+function contactMark(it,T,two){
+const m=iconMode(it);
+if(m==='none'||cvState.layout==='ats')return '';
+if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] text-[var(--cv-primary-color)] ${two?'w-4 text-center shrink-0 leading-none':''}"></i>`+(two?'':' ');
+return two?`<i class="${T.ic} ${T.col} w-4 text-center shrink-0 leading-none text-xs"></i>`:`<i class="${T.ic} ${T.col}"></i> `;
+}
+function contactRows2(){
+return contactVisible().map(it=>{
+const T=ctype(it);
+return `<div class="row-item contact-row relative flex items-center gap-2 ${T.row||''}">${contactMark(it,T,true)}<span data-ct="${it.type}" contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" class="min-w-0 ${FIT_TYPES.includes(it.type)?'':(T.brk?'break-all':'')}"${FIT_TYPES.includes(it.type)?' data-fit="1" style="white-space:nowrap;flex:1 1 0;overflow:hidden"':' style="white-space:pre-line"'}>${escHtml(it.value)}</span>${contactActions(it)}</div>`;
+}).join('');
+}
+function contactRows1(){
+return contactVisible().filter(it=>ctype(it).one).map(it=>{
+const T=ctype(it);
+return `<span class="row-item flex items-center gap-1 ${it.type==='cuil'?'font-medium':''}">${contactMark(it,T,false)}<span contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)">${escHtml(it.value)}</span>${contactActions(it)}</span>`;
+}).join('');
+}
+function hardChips(cls){
+return cvState.skillsHard.map((skill,idx)=>`<span class="row-item skill-chip inline-block ${cls}" data-skill-idx="${idx}"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3 relative"><span class="skill-grip" title="Arrastrar para cambiar el orden" aria-label="Arrastrar para reordenar"><i class="fa-solid fa-grip-vertical text-[9px]"></i></span><button onclick="removeSkill('hard', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join('');
+}
+function softItems(){
+return cvState.skillsSoft.map((skill,idx)=>`<li class="row-item"><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3"><button onclick="removeSkill('soft', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></li>`).join('');
+}
+function langItems(){
+return cvState.languages.map((lang,idx)=>`<div class="row-item"><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${escHtml(lang.name)}</span>: <span class="text-slate-600" contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${escHtml(lang.level)}</span><span class="row-actions no-print ml-3"><button onclick="removeLanguage(${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></div>`).join('');
+}
+
+function updateContactValue(id,val){const it=cvState.contactItems.find(x=>x.id===id);if(it)it.value=val;}
+function removeContact(id){cvState.contactItems=cvState.contactItems.filter(x=>x.id!==id);renderCV();}
+function toggleContactIcon(id){const it=cvState.contactItems.find(x=>x.id===id);if(it){it.icon={icon:'bullet',bullet:'none',none:'icon'}[iconMode(it)];renderCV();}}
+/* ===== Arrastrar y soltar Habilidades Técnicas (mouse y táctil, mediante el asa de cada ítem) ===== */
+let skillDrag=null;
+function startSkillDrag(e){
+const g=e.target&&e.target.closest?e.target.closest('.skill-grip'):null;
+if(!g||skillDrag||(e.pointerType==='mouse'&&e.button!==0))return;
+const chip=g.closest('.skill-chip');if(!chip)return;
+e.preventDefault();
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const from=parseInt(chip.dataset.skillIdx,10);
+if(!(from>=0)||from>=cvState.skillsHard.length)return;
+const box=chip.parentElement;
+const ghost=document.createElement('div');ghost.id='skill-ghost';ghost.className='no-print';
+ghost.textContent=cvState.skillsHard[from];document.body.appendChild(ghost);
+const line=document.createElement('div');line.id='skill-drop';line.className='no-print';line.style.display='none';document.body.appendChild(line);
+chip.classList.add('skill-dragging');
+document.body.style.userSelect='none';document.body.style.cursor='grabbing';
+skillDrag={from,box,chip,ghost,line,pos:from,x:e.clientX,y:e.clientY,id:e.pointerId,g:g,timer:null};
+try{g.setPointerCapture(e.pointerId);}catch(_){}
+g.addEventListener('pointermove',skillDragMove);g.addEventListener('pointerup',skillDragEnd);g.addEventListener('pointercancel',skillDragCancel);
+document.addEventListener('keydown',skillDragKey);
+skillDrag.timer=setInterval(skillAutoScroll,30);
+skillDragMove(e);
+}
+function skillDragMove(e){
+const d=skillDrag;if(!d)return;
+d.x=e.clientX;d.y=e.clientY;
+d.ghost.style.left=(d.x+12)+'px';d.ghost.style.top=(d.y+12)+'px';
+skillDragTarget();
+}
+function skillDragTarget(){
+const d=skillDrag;if(!d)return;
+const chips=[...d.box.querySelectorAll(':scope>.skill-chip')];
+if(!chips.length)return;
+let best=null,bd=1e12;
+chips.forEach(c=>{const r=c.getBoundingClientRect();const cx=Math.max(r.left,Math.min(d.x,r.right)),cy=Math.max(r.top,Math.min(d.y,r.bottom));const dist=(cx-d.x)*(cx-d.x)+(cy-d.y)*(cy-d.y)*4;if(dist<bd){bd=dist;best=c;}});
+const r=best.getBoundingClientRect(),i=chips.indexOf(best),after=d.x>r.left+r.width/2;
+d.pos=i+(after?1:0);
+d.line.style.display='block';d.line.style.height=r.height+'px';d.line.style.top=r.top+'px';d.line.style.left=((after?r.right:r.left)-(after?0:3))+'px';
+}
+function skillAutoScroll(){
+const d=skillDrag;if(!d)return;
+const sc=document.getElementById('preview-container');if(!sc)return;
+const cr=sc.getBoundingClientRect(),zone=60;
+let dy=0;
+if(d.y<cr.top+zone)dy=-Math.ceil((cr.top+zone-d.y)/4);
+else if(d.y>cr.bottom-zone)dy=Math.ceil((d.y-(cr.bottom-zone))/4);
+if(dy&&sc.scrollHeight>sc.clientHeight){sc.scrollTop+=Math.max(-24,Math.min(24,dy));skillDragTarget();}
+}
+function skillDragCleanup(){
+const d=skillDrag;if(!d)return null;
+clearInterval(d.timer);
+d.g.removeEventListener('pointermove',skillDragMove);d.g.removeEventListener('pointerup',skillDragEnd);d.g.removeEventListener('pointercancel',skillDragCancel);
+document.removeEventListener('keydown',skillDragKey);
+try{d.g.releasePointerCapture(d.id);}catch(_){}
+d.ghost.remove();d.line.remove();d.chip.classList.remove('skill-dragging');
+document.body.style.userSelect='';document.body.style.cursor='';
+skillDrag=null;return d;
+}
+function skillDragEnd(){
+const d=skillDragCleanup();if(!d)return;
+const to=d.pos>d.from?d.pos-1:d.pos;
+if(to===d.from)return;
+const arr=cvState.skillsHard,it=arr.splice(d.from,1)[0];
+arr.splice(to,0,it);
+renderCV();
+}
+function skillDragCancel(){skillDragCleanup();}
+function skillDragKey(e){if(e.key==='Escape')skillDragCleanup();}
+/* ===== Experimental: achicar para ahorrar una página ===== */
+/* Mínimos que se respetan (si el valor actual ya es menor, ese parámetro no se toca) */
+const SHRINK_MIN={fontSize:10,lineHeight:1.15,sectionGap:6};
+let shrinkStack=[];
+const typoSnap=()=>({preset:cvState.preset,fontSize:cvState.fontSize,lineHeight:cvState.lineHeight,sectionGap:cvState.sectionGap});
+const fmtLH=v=>String(Math.round(v*100)/100);
+function shrinkMsg(t,warn){
+const m=document.getElementById('shrink-msg');if(!m)return;
+m.textContent=t;m.classList.remove('hidden');m.style.color=warn?'#fbbf24':'#94a3b8';
+}
+function updateGrowLabel(){
+const l=document.getElementById('grow-label');if(!l)return;
+const n=pageCount();l.textContent='Optimizar tamaño a '+n+' página'+(n===1?'':'s');
+}
+/* Aumenta un "grado" por toque, sin superar la cantidad de páginas actual. Máximos que se respetan (si el valor actual ya es mayor, no se toca) */
+const GROW_MAX={fontSize:14,lineHeight:1.6,sectionGap:24};
+/* Jerarquía de grados: primero un aumento combinado y proporcional; si no entra, solo espaciado; si no, de a un parámetro */
+const GROW_STEPS=[{f:0.5,l:0.05,g:1},{f:0,l:0.05,g:2},{f:0,l:0,g:2},{f:0,l:0.05,g:1},{f:0,l:0,g:1},{f:0,l:0.05,g:0},{f:0.5,l:0,g:0}];
+function growToFitPages(){
+const cur=typoSnap();
+applyCssVariables();paginate();
+const X=pageCount();
+const r=(v,st)=>Math.round(Math.round(v/st)*st*100)/100;
+const up=(v,d,mx,st)=>v>=mx?v:Math.min(mx,r(v+d,st));
+let chosen=null,nNew=X,fill=null,atMax=true;
+for(const st of GROW_STEPS){
+const t={fontSize:up(cur.fontSize,st.f,GROW_MAX.fontSize,0.5),lineHeight:up(cur.lineHeight,st.l,GROW_MAX.lineHeight,0.05),sectionGap:st.g?up(cur.sectionGap,st.g,GROW_MAX.sectionGap,1):cur.sectionGap};
+if(t.fontSize===cur.fontSize&&t.lineHeight===cur.lineHeight&&t.sectionGap===cur.sectionGap)continue;
+atMax=false;
+const n=shrinkTry(t);
+if(n<=X){chosen=t;nNew=n;fill=document.getElementById('cv-paper').dataset.lastFill;break;}
+}
+shrinkTry(cur);
+if(!chosen){
+shrinkMsg(atMax?'Ya se alcanzaron los valores máximos (letra '+GROW_MAX.fontSize+' px, interlineado '+fmtLH(GROW_MAX.lineHeight)+', espacio entre secciones '+GROW_MAX.sectionGap+' px).':'No hay más margen: un grado más de tamaño o espaciado pasaría de '+X+' página'+(X===1?'':'s')+'. El contenido ya aprovecha bien el espacio disponible.',true);
+return;
+}
+shrinkStack.push(cur);
+Object.assign(cvState,{fontSize:chosen.fontSize,lineHeight:chosen.lineHeight,sectionGap:chosen.sectionGap});
+syncEditorUI();renderCV();recordEditor();
+shrinkMsg('Grado aumentado (se mantienen '+nNew+' página'+(nNew===1?'':'s')+'). Letra: '+cur.fontSize+' → '+chosen.fontSize+' px · Interlineado: '+fmtLH(cur.lineHeight)+' → '+fmtLH(chosen.lineHeight)+' · Espacio entre secciones: '+cur.sectionGap+' → '+chosen.sectionGap+' px. Contenido principal en la última página: ~'+fill+'% de su alto. Tocá de nuevo para seguir, o "Deshacer" para volver un paso.');
+shrinkUpdateUndoBtn();
+}
+function shrinkUpdateUndoBtn(){const b=document.getElementById('btn-shrink-undo');if(b)b.disabled=!shrinkStack.length;}
+/* Prueba un estado de tipografía sin volver a dibujar todo el CV: solo variables CSS + paginación */
+function shrinkTry(t){
+cvState.fontSize=t.fontSize;cvState.lineHeight=t.lineHeight;cvState.sectionGap=t.sectionGap;
+applyCssVariables();paginate();
+return pageCount();
+}
+function shrinkToSavePage(){
+const cur=typoSnap(),n0=(applyCssVariables(),paginate(),pageCount());
+if(n0<=1){shrinkMsg('El CV ya ocupa 1 página: no hay nada que ahorrar.');return;}
+const target=n0-1;
+const fF=Math.min(cur.fontSize,SHRINK_MIN.fontSize),fL=Math.min(cur.lineHeight,SHRINK_MIN.lineHeight),fG=Math.min(cur.sectionGap,SHRINK_MIN.sectionGap);
+const r=(v,st)=>Math.round(Math.round(v/st)*st*100)/100;
+const states=[];
+const push=t=>{const l=states[states.length-1]||cur;if(t.fontSize!==l.fontSize||t.lineHeight!==l.lineHeight||t.sectionGap!==l.sectionGap)states.push(t);};
+/* Fase 1: se reducen juntos, en proporción, el interlineado y el espacio entre secciones (la letra no se toca) */
+for(let i=1;i<=20;i++){const k=i/20;push({fontSize:cur.fontSize,lineHeight:r(cur.lineHeight-(cur.lineHeight-fL)*k,0.05),sectionGap:Math.round(cur.sectionGap-(cur.sectionGap-fG)*k)});}
+/* Fase 2: recién si no alcanzó, se reduce también el tamaño de letra, de a 0,5 px, hasta su mínimo */
+for(let f=cur.fontSize-0.5;f>=fF-1e-9;f-=0.5)push({fontSize:r(f,0.5),lineHeight:fL,sectionGap:fG});
+let pick=-1;
+if(states.length&&shrinkTry(states[states.length-1])<=target){
+let lo=0,hi=states.length-1;
+while(lo<hi){const mid=(lo+hi)>>1;if(shrinkTry(states[mid])<=target)hi=mid;else lo=mid+1;}
+pick=lo;
+}
+if(pick<0){
+shrinkTry(cur);
+shrinkMsg('No fue posible pasar de '+n0+' a '+target+' páginas respetando los mínimos (letra '+SHRINK_MIN.fontSize+' px, interlineado '+fmtLH(SHRINK_MIN.lineHeight)+', espacio entre secciones '+SHRINK_MIN.sectionGap+' px). No se cambió nada. Probá reduciendo contenido o eliminando alguna sección.',true);
+return;
+}
+const t=states[pick],nNew=shrinkTry(t);
+shrinkTry(cur);
+shrinkStack.push(cur);
+Object.assign(cvState,{fontSize:t.fontSize,lineHeight:t.lineHeight,sectionGap:t.sectionGap});
+syncEditorUI();renderCV();recordEditor();
+shrinkMsg('Se pasó de '+n0+' a '+nNew+' página'+(nNew===1?'':'s')+'. Letra: '+cur.fontSize+' → '+t.fontSize+' px · Interlineado: '+fmtLH(cur.lineHeight)+' → '+fmtLH(t.lineHeight)+' · Espacio entre secciones: '+cur.sectionGap+' → '+t.sectionGap+' px. Si no te convence, usá "Deshacer".');
+shrinkUpdateUndoBtn();
+}
+function undoShrink(){
+const t=shrinkStack.pop();
+if(!t){shrinkUpdateUndoBtn();return;}
+cvState.preset=t.preset;
+Object.assign(cvState,{fontSize:t.fontSize,lineHeight:t.lineHeight,sectionGap:t.sectionGap});
+syncEditorUI();renderCV();recordEditor();
+shrinkMsg('Se volvió al estado anterior: letra '+t.fontSize+' px · interlineado '+fmtLH(t.lineHeight)+' · espacio entre secciones '+t.sectionGap+' px.');
+shrinkUpdateUndoBtn();
+}
+function removeSkill(type,idx){
+if(type==='hard')cvState.skillsHard.splice(idx,1);
+else cvState.skillsSoft.splice(idx,1);
+renderCV();
+}
+function removeLanguage(idx){cvState.languages.splice(idx,1);renderCV();}
+
+function unhideSection(k){cvState.hiddenSections=cvState.hiddenSections.filter(x=>x!==k);}
+function addSectionItem(key){
+if(key==='contact'){showTypePicker();return;}
+unhideSection(key);
+if(key==='skillsHard')cvState.skillsHard.push('Nueva habilidad');
+else if(key==='skillsSoft'){cvState.skillsSoft.push('Nueva competencia');if(cvState.layout!=='2-col')cvState.showSoftInOneCol=true;}
+else if(key==='languages')cvState.languages.push({name:'Idioma',level:'Nivel'});
+renderCV();
+}
+function addContactItem(type){
+unhideSection('contact');
+cvState.contactItems.push({id:'ct_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),type:type,value:CONTACT_TYPES[type].ph,icon:true});
+renderCV();
+}
+function showTypePicker(){
+document.getElementById('type-options').innerHTML=Object.keys(CONTACT_TYPES).map(k=>`<button onclick="pickContactType('${k}')" class="px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs flex items-center gap-2 text-left"><i class="${CONTACT_TYPES[k].ic} w-4 text-center"></i><span>${CONTACT_TYPES[k].label}</span></button>`).join('');
+const m=document.getElementById('type-modal');m.classList.remove('hidden');m.classList.add('flex');
+}
+function closeTypePicker(){const m=document.getElementById('type-modal');m.classList.add('hidden');m.classList.remove('flex');}
+function pickContactType(t){closeTypePicker();addContactItem(t);}
+
+/* ===== Descargas confiables + copia de recuperación temporal (solo para exportaciones) =====
+   Motivo de las descargas "perdidas": el navegador (Chrome/Edge) bloquea las descargas automáticas
+   que no nacen de un clic (por ejemplo, un segundo archivo disparado por un temporizador, o uno que
+   termina de generarse varios segundos después del clic). El bloqueo queda activo en esa pestaña hasta
+   recargarla y la página no puede detectarlo. Por eso: (1) cada archivo se descarga desde un clic propio,
+   (2) se ofrece "Descargar de nuevo" y (3) antes de exportar se guarda una copia TEMPORAL de los datos
+   personales en sessionStorage (se borra al cerrar la pestaña) para poder restaurarlos tras recargar. */
+const RECOV_KEY='cvRecoveryBackup',RECOV_MAX_MS=60*60*1000;
+function ssSet(k,v){try{sessionStorage.setItem(k,v);return true;}catch(e){return false;}}
+function ssGet(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
+function ssDel(k){try{sessionStorage.removeItem(k);}catch(e){}}
+function saveRecoveryBackup(reason){
+try{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const content=JSON.parse(snap(CV_KEYS));
+const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:content};
+const ph=(typeof cvState.photoUrl==='string'&&cvState.photoUrl.indexOf('data:image/')===0&&cvState.photoUrl.length<1500000)?cvState.photoUrl:null;
+const rec={savedAt:Date.now(),reason:reason||'',data:data,photo:ph};
+if(!ssSet(RECOV_KEY,JSON.stringify(rec))){rec.photo=null;ssSet(RECOV_KEY,JSON.stringify(rec));}
+}catch(e){}
+}
+function clearRecoveryBackup(){ssDel(RECOV_KEY);}
+function checkRecoveryBackup(){
+const raw=ssGet(RECOV_KEY);if(!raw)return;
+let rec,data;
+try{rec=JSON.parse(raw);data=normalizeImport(rec.data);}catch(e){ssDel(RECOV_KEY);return;}
+const age=Date.now()-(+rec.savedAt||0);
+if(!(age>=0&&age<RECOV_MAX_MS)){ssDel(RECOV_KEY);return;}
+const mins=Math.round(age/60000);
+showConfirm('Se encontró una copia de recuperación de tus datos personales, guardada '+(mins<1?'hace menos de 1 minuto':'hace '+mins+' min')+' durante una exportación que pudo no completarse. ¿Querés restaurarla? Sí = restaurar. No = descartar la copia.',()=>{
+Object.keys(data).forEach(k=>{cvState[k]=data[k];});
+if(typeof rec.photo==='string'&&rec.photo.indexOf('data:image/')===0)cvState.photoUrl=rec.photo;
+ssDel(RECOV_KEY);renderCV();cfgToast('Datos personales restaurados.');
+},()=>{ssDel(RECOV_KEY);});
+}
+window.addEventListener('load',()=>setTimeout(checkRecoveryBackup,700));
+
+let _dlPanelEl=null,_dlPanelTimer=null;
+function hideDlPanel(){clearTimeout(_dlPanelTimer);if(_dlPanelEl){_dlPanelEl.remove();_dlPanelEl=null;}}
+function showDlPanel(msg,actions,ms){
+hideDlPanel();
+const p=document.createElement('div');p.className='no-print';
+p.style.cssText='position:fixed;right:16px;bottom:64px;z-index:70;max-width:340px;padding:12px 14px;border-radius:12px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);';
+const t=document.createElement('div');t.style.cssText='line-height:1.45;margin-bottom:8px;';t.textContent=msg;p.appendChild(t);
+const row=document.createElement('div');row.style.cssText='display:flex;flex-wrap:wrap;gap:6px;';
+const mk=(text,fn,close)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid #475569;background:#1e293b;color:#e2e8f0;font:500 11px Inter,sans-serif;cursor:pointer;';b.onclick=()=>{try{fn();}catch(e){console.error(e);}if(close)hideDlPanel();};row.appendChild(b);};
+actions.forEach(a=>mk(a.text,a.fn,a.close!==false));
+mk('Cerrar',()=>{},true);
+p.appendChild(row);document.body.appendChild(p);_dlPanelEl=p;
+_dlPanelTimer=setTimeout(hideDlPanel,ms||180000);
+}
+function triggerDownload(blob,name){
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';a.style.display='none';
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function offerDownloadHelp(blob,name,extra,msg){
+const acts=[{text:'Descargar de nuevo',fn:()=>triggerDownload(blob,name),close:false}].concat(extra||[],[{text:'Ya la tengo (borrar copia temporal)',fn:clearRecoveryBackup}]);
+showDlPanel(msg||('Si la descarga de "'+name+'" no comenzó o no se abrió el cuadro para guardar, tocá "Descargar de nuevo". Si ves el aviso de descargas bloqueadas en la barra de direcciones del navegador, elegí Permitir. Tus datos están respaldados temporalmente por si hay que recargar la página.'),acts);
+}
+
+/* ===== Exportar / Importar (JSON) ===== */
+function exportCV(opts){
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const content=JSON.parse(snap(CV_KEYS));delete content.sectionSpacing;delete content.expSpacing;
+const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:content};
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const fname='cv-datos-'+new Date().toISOString().slice(0,10)+'.json';
+saveRecoveryBackup('exportar datos');
+triggerDownload(blob,fname);
+if(!(opts&&opts.silent===true))offerDownloadHelp(blob,fname);
+return {blob:blob,name:fname};
+}
+
+const plain=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f]/g,' ').slice(0,n||300);
+const normIcon=v=>(v===false||v==='none')?'none':(v==='bullet'?'bullet':'icon');
+const hasType=t=>typeof t==='string'&&Object.prototype.hasOwnProperty.call(CONTACT_TYPES,t);
+const cleanText=v=>String(v==null?'':v).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* Descripción (HTML editable): se conserva solo el formato seguro (negrita, cursiva, subrayado y saltos de línea).
+   Cualquier otra etiqueta (span con estilos pegados, font, etc.) se desenvuelve dejando solo su texto, y se descartan los atributos. */
+const escHtmlTxt=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function cleanDesc(v){
+let s=String(v==null?'':v);
+/* Repara archivos exportados con la versión anterior, donde las etiquetas quedaron escapadas como texto (&lt;span ...&gt;) */
+s=s.replace(/&lt;(\/?(?:span|div|p|b|i|u|em|strong|br|font)\b(?:(?!&gt;)[\s\S])*?)&gt;/gi,'<$1>');
+const doc=new DOMParser().parseFromString('<body>'+s+'</body>','text/html');
+const KEEP={B:'b',STRONG:'b',I:'i',EM:'i',U:'u'},BLOCK={DIV:1,P:1,LI:1};
+const walk=n=>{
+let out='';
+n.childNodes.forEach(c=>{
+if(c.nodeType===3){out+=escHtmlTxt(c.nodeValue);return;}
+if(c.nodeType!==1)return;
+const t=c.tagName;
+if(t==='SCRIPT'||t==='STYLE'||t==='TEMPLATE')return;
+if(t==='BR'){out+='<br>';return;}
+const inner=walk(c);
+if(BLOCK[t]){out+='<br>'+inner;return;}
+if(KEEP[t]){out+=inner?'<'+KEEP[t]+'>'+inner+'</'+KEEP[t]+'>':'';return;}
+out+=inner;
+});
+return out;
+};
+return walk(doc.body).replace(/^(<br>)+/,'');
+}
+
+function normalizeImport(d){
+const bad=k=>new Error("El campo '"+k+"' tiene un formato inválido.");
+if(!d||typeof d!=='object'||d.app!=='editor-cv-argentina'||!d.content||typeof d.content!=='object'){
+throw new Error('El archivo no es una exportación válida de este editor.');
+}
+const c=d.content,o={},stamp=Date.now();
+['fullName','jobTitle','profileSummary'].forEach(k=>{
+if(k in c){if(typeof c[k]!=='string')throw bad(k);o[k]=cleanText(c[k]);}
+});
+const list=(k,prefix,fields,descField)=>{
+if(!(k in c))return;
+if(!Array.isArray(c[k]))throw bad(k);
+o[k]=c[k].slice(0,200).map((it,i)=>{
+const r={id:prefix+'_imp_'+stamp+'_'+i};
+fields.forEach(f=>{r[f]=(f===descField?cleanDesc:cleanText)(it&&it[f]);});
+return r;
+});
+};
+list('experience','exp',['role','company','period','location','description'],'description');
+list('education','edu',['degree','institution','period','status']);
+list('courses','crs',['title','institution','year']);
+list('references','ref',['name','title','contact']);
+['skillsHard','skillsSoft'].forEach(k=>{
+if(k in c){if(!Array.isArray(c[k]))throw bad(k);o[k]=c[k].slice(0,100).map(x=>plain(x,200));}
+});
+if('languages' in c){
+if(!Array.isArray(c.languages))throw bad('languages');
+o.languages=c.languages.slice(0,50).map(l=>({name:plain(l&&l.name,100),level:plain(l&&l.level,100)}));
+}
+if('contactItems' in c){
+if(!Array.isArray(c.contactItems))throw bad('contactItems');
+o.contactItems=c.contactItems.slice(0,50).map((it,i)=>({id:'ct_imp_'+stamp+'_'+i,type:hasType(it&&it.type)?it.type:'other',value:plain(it&&it.value),icon:normIcon(it&&it.icon)}));
+}else if('contact' in c){
+if(!c.contact||typeof c.contact!=='object')throw bad('contact');
+o.contactItems=['location','phone','email','linkedin','github','cuil','birth'].filter(f=>typeof c.contact[f]==='string'&&c.contact[f]!=='').map((f,i)=>({id:'ct_imp_'+stamp+'_'+i,type:f,value:plain(c.contact[f]),icon:true}));
+}
+if('showSoftInOneCol' in c)o.showSoftInOneCol=c.showSoftInOneCol===true;
+if('sectionIcons' in c){
+if(!c.sectionIcons||typeof c.sectionIcons!=='object')throw bad('sectionIcons');
+o.sectionIcons={};
+SECTION_KEYS.forEach(k=>{const v=c.sectionIcons[k];if(v==='bullet'||v==='none')o.sectionIcons[k]=v;});
+}
+if('sectionTitles' in c){
+if(!c.sectionTitles||typeof c.sectionTitles!=='object')throw bad('sectionTitles');
+o.sectionTitles={};
+SECTION_KEYS.forEach(k=>{
+const t=c.sectionTitles[k];
+if(typeof t==='string'&&t.trim())o.sectionTitles[k]=t.replace(/\s+/g,' ').trim().slice(0,80);
+});
+}
+if('hiddenSections' in c){
+if(!Array.isArray(c.hiddenSections))throw bad('hiddenSections');
+o.hiddenSections=SECTION_KEYS.filter(k=>c.hiddenSections.includes(k));
+}
+return o;
+}
+
+function importCV(e){
+const file=e.target.files[0];
+e.target.value='';
+if(!file)return;
+if(file.size>2*1024*1024){alert('No se pudo importar: el archivo es demasiado grande.');return;}
+const reader=new FileReader();
+reader.onerror=()=>alert('No se pudo importar: no se pudo leer el archivo.');
+reader.onload=()=>{
+let data;
+try{data=normalizeImport(JSON.parse(reader.result));}
+catch(err){alert('No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido.':err.message));return;}
+showConfirm("Se reemplazará todo el texto actual del CV por el contenido del archivo '"+file.name+"'. Podés revertirlo con el botón Deshacer del CV. ¿Continuar?",()=>{
+Object.keys(data).forEach(k=>{cvState[k]=data[k];});
+renderCV();
+});
+};
+reader.readAsText(file);
+}
+
+/* ===== Espaciado previo independiente (secciones de la columna derecha y experiencias) ===== */
+function visualKids(main){
+return [...main.children].map((el,i)=>({el:el,i:i,o:parseInt(el.style.order||'0',10)})).sort((a,b)=>a.o-b.o||a.i-b.i).map(x=>x.el);
+}
+function spacingWidget(kind,key,val,ov){
+return `<div class="spacing-ctl no-print"><button onclick="adjustSpacing('${kind}','${key}',-2)" title="Reducir espacio previo">&minus;</button><span>${val}px</span><button onclick="adjustSpacing('${kind}','${key}',2)" title="Aumentar espacio previo">+</button><button onclick="resetSpacing('${kind}','${key}')" ${ov?'':'disabled'} title="Restablecer al espaciado general"><i class="fa-solid fa-rotate-left" style="font-size:8px"></i></button></div>`;
+}
+function applySpacing(){
+const root=document.getElementById('cv-root');
+const exp=cvState.expSpacing||{},sec=cvState.sectionSpacing||{};
+root.querySelectorAll('[data-list="experience"]').forEach(list=>{
+[...list.children].forEach((it,i)=>{
+const id=it.dataset.id;
+if(!id)return;
+const base=i>0?12:0,ov=exp[id];
+it.classList.add('sec-wrap');it.dataset.sp='exp:'+id;it.dataset.base=base;
+if(ov!==undefined){it.dataset.ov='1';it.style.setProperty('--sp-mt',ov+'px');}
+it.insertAdjacentHTML('afterbegin',spacingWidget('exp',id,ov!==undefined?ov:base,ov!==undefined));
+});
+});
+const main=root.querySelector('.col-span-8');
+if(!main)return;
+const gap=cvState.sectionGap,kids=visualKids(main);
+kids.forEach((k,i)=>{
+const h=k.querySelector('h3[data-sec]');
+if(!h)return;
+const key=h.dataset.sec,prev=kids[i-1];
+const base=(prev&&prev.querySelector('h3[data-sec]'))?gap:16,ov=sec[key];
+k.classList.add('sec-wrap');k.dataset.sp='sec:'+key;k.dataset.base=base;
+if(ov!==undefined){k.dataset.ov='1';k.style.setProperty('--sp-mt',(ov-base)+'px');}
+k.insertAdjacentHTML('afterbegin',spacingWidget('sec',key,ov!==undefined?ov:base,ov!==undefined));
+});
+}
+function adjustSpacing(kind,key,d){
+const el=document.querySelector('#cv-root [data-sp="'+kind+':'+key+'"]');
+if(!el)return;
+const store=kind==='sec'?cvState.sectionSpacing:cvState.expSpacing;
+const cur=store[key]!==undefined?store[key]:parseFloat(el.dataset.base);
+store[key]=Math.max(0,Math.min(80,cur+d));
+renderCV();
+}
+function resetSpacing(kind,key){
+const store=kind==='sec'?cvState.sectionSpacing:cvState.expSpacing;
+delete store[key];
+renderCV();
+}
+
+/* ===== Restablecer lo configurado manualmente desde la Vista Previa (los íconos quedan excluidos) ===== */
+function resetPreviewConfig(){
+if(!Object.keys(cvState.sectionSpacing||{}).length&&!Object.keys(cvState.expSpacing||{}).length){cfgToast('No hay cambios manuales para restablecer en la Vista Previa.');return;}
+showConfirm('¿Restablecer lo configurado manualmente desde la Vista Previa (espaciados previos de secciones y experiencias)? No se modifican los íconos ni los textos.',()=>{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+cvState.sectionSpacing={};cvState.expSpacing={};
+renderCV();
+cfgToast('Configuración de la Vista Previa restablecida.');
+});
+}
+
+/* ===== Subir / bajar Experiencias ===== */
+function expMoveBtns(exp,idx){
+const n=cvState.experience.length;
+const b='text-slate-400 hover:text-slate-700 p-1 disabled:opacity-30 disabled:cursor-not-allowed';
+return `<button onclick="moveExperience('${exp.id}',-1)" ${idx===0?'disabled':''} class="${b}" title="Subir experiencia"><i class="fa-solid fa-arrow-up text-xs"></i></button><button onclick="moveExperience('${exp.id}',1)" ${idx===n-1?'disabled':''} class="${b}" title="Bajar experiencia"><i class="fa-solid fa-arrow-down text-xs"></i></button>`;
+}
+function moveExperience(id,d){
+const a=cvState.experience,i=a.findIndex(x=>x.id===id),j=i+d;
+if(i<0||j<0||j>=a.length)return;
+[a[i],a[j]]=[a[j],a[i]];
+renderCV();
+}
+
+/* ===== Zoom del CV: 100% = hoja A4 a tamaño real · mínimo = hoja ajustada al ancho de pantalla · 5 pasos equidistantes ===== */
+const ZOOM_STEPS=5,ZOOM_KEY='cvZoomStep';
+/* En móviles el "px CSS" no mide lo mismo que en una PC (96 px por pulgada): Android ≈ 160, iPhone ≈ 163, iPad ≈ 132.
+   REAL_K = cuántos px CSS se necesitan para dibujar lo mismo que 1 px CSS de PC, de modo que 100% sea el A4 físico real. */
+/* Calibración por dispositivo: el navegador no informa el tamaño físico de la pantalla, por eso se mide una vez con una regla */
+let cvCal=1;
+const CAL_KEY='cvCalFactor',CAL_BAR_MM=50;
+function loadCal(){try{const v=parseFloat(localStorage.getItem(CAL_KEY));cvCal=(v>=0.5&&v<=2)?v:1;}catch(e){cvCal=1;}}
+function saveCal(){try{localStorage.setItem(CAL_KEY,String(cvCal));}catch(e){}}
+const CAL_LAST_KEY='cvCalLastMm';
+let cvCalLast=null;
+function loadCalLast(){try{const v=parseFloat(localStorage.getItem(CAL_LAST_KEY));cvCalLast=(v>=20&&v<=120)?v:null;}catch(e){cvCalLast=null;}}
+function saveCalLast(){try{if(cvCalLast===null)localStorage.removeItem(CAL_LAST_KEY);else localStorage.setItem(CAL_LAST_KEY,String(cvCalLast));}catch(e){}}
+const unitK=()=>REAL_K*cvCal;
+function renderCalBar(){
+document.getElementById('cal-bar').style.width=(CAL_BAR_MM*MM*unitK())+'px';
+document.getElementById('cal-info').textContent='Ajuste actual: '+(cvCal*100).toFixed(1)+'%';
+document.getElementById('cal-last').textContent='Último valor Aplicado para la calibración: '+(cvCalLast===null?'—':cvCalLast.toFixed(1))+' mm. (ajuste: '+(cvCal*100).toFixed(1)+'%)';
+}
+function openCal(){
+const m=document.getElementById('cal-modal');m.classList.remove('hidden');m.classList.add('flex');
+document.getElementById('cal-input').value=CAL_BAR_MM;renderCalBar();
+}
+function closeCal(){const m=document.getElementById('cal-modal');m.classList.add('hidden');m.classList.remove('flex');}
+function applyCal(){
+const v=parseFloat(String(document.getElementById('cal-input').value).replace(',','.'));
+if(!(v>=20&&v<=120)){cfgToast('Ingresá la medida real de la barra, entre 20 y 120 mm.',true);return;}
+cvCal=Math.min(2,Math.max(0.5,cvCal*CAL_BAR_MM/v));
+cvCalLast=v;saveCalLast();
+saveCal();document.getElementById('cal-input').value=CAL_BAR_MM;renderCalBar();fitPaperToScreen();
+cfgToast('Calibración aplicada. Si la barra aún no mide 50 mm, volvé a medirla y repetí.');
+}
+function resetCal(){cvCal=1;saveCal();cvCalLast=null;saveCalLast();renderCalBar();fitPaperToScreen();}
+const REAL_K=(()=>{
+const ua=navigator.userAgent||'';
+if(/iPhone|iPod/i.test(ua))return 163/96;
+if(/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1))return 132/96;
+if(/Android/i.test(ua))return 160/96;
+try{if(matchMedia('(pointer:coarse)').matches&&matchMedia('(hover:none)').matches)return 160/96;}catch(e){}
+return 1;
 })();
-</script>
+let cvStep=null;
+function zoomBounds(){
+const container=document.getElementById('preview-container'),bars=document.getElementById('sticky-bars');
+const cs=getComputedStyle(container);
+const availW=container.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+const availH=container.clientHeight-(bars?bars.offsetHeight:0)-8;
+const fitW=Math.floor(availW/(210*MM)/unitK()*1000)/1000;
+/* pantalla más angosta que la hoja: ancho A4 = ancho de pantalla; pantalla ancha (escritorio): hoja completa a la vista */
+let min=fitW<1?fitW:Math.min(1,Math.floor(availH/(297*MM)/unitK()*1000)/1000);
+if(!(min>0))min=1;
+min=Math.max(0.1,Math.min(1,min));
+return {min:min,fitW:fitW};
+}
+function zoomScale(step,b){b=b||zoomBounds();return b.min+(1-b.min)*step/ZOOM_STEPS;}
+function defaultStep(b){b=b||zoomBounds();return b.fitW<1?0:ZOOM_STEPS;}
+function loadZoom(){
+loadCal();loadCalLast();
+let v=NaN;
+try{v=parseInt(localStorage.getItem(ZOOM_KEY),10);}catch(e){}
+cvStep=(v>=0&&v<=ZOOM_STEPS)?v:defaultStep();
+}
+function saveZoom(){try{localStorage.setItem(ZOOM_KEY,String(cvStep));}catch(e){}}
+function updateZoomUI(){
+const b=zoomBounds();
+if(cvStep===null)loadZoom();
+document.getElementById('zoom-label').textContent=Math.round(zoomScale(cvStep,b)*100)+'%';
+document.getElementById('zoom-out').disabled=cvStep<=0;
+document.getElementById('zoom-in').disabled=cvStep>=ZOOM_STEPS;
+document.getElementById('zoom-reset').disabled=cvStep===defaultStep(b);
+document.getElementById('zoom-100').disabled=cvStep>=ZOOM_STEPS;
+}
+function setZoom(v){cvStep=Math.min(ZOOM_STEPS,Math.max(0,v));saveZoom();fitPaperToScreen();}
+function zoomIn(){setZoom(cvStep+1);}
+function zoomOut(){setZoom(cvStep-1);}
+function zoomReset(){setZoom(defaultStep());}
+function zoomTo100(){setZoom(ZOOM_STEPS);}
 
-<script>
-(function () {
-  // ============================================================
-  //  SINCRONIZACIÓN CON GOOGLE SHEETS
-  // ============================================================
-  // Esta app NO busca columnas por nombre. Toma las columnas que
-  // existan en la planilla, en el orden en que aparezcan, y decide
-  // cómo mostrar cada valor según su propio contenido (por ejemplo,
-  // si "parece" una URL o no). Si agregás, quitás o reordenás
-  // columnas en la planilla, la página se adapta sola sin tocar el
-  // código.
-  const SHEET_ID = "1mzoehxrAi-RDe_5ZqpbSGsgiP-ayrNwO4H2rUnXQtxQ";  const GID = "523565073";
-  const REFRESH_MS = 86400000; // vuelve a sincronizar cada 24 horas
-  const URL_REGEX = /^https?:\/\//i;
+/* Aplica el zoom elegido a la hoja (se recalcula al cambiar el tamaño de la pantalla) */
+function fitPaperToScreen(){
+const paper=document.getElementById('cv-paper');
+const b=zoomBounds();
+if(cvStep===null)loadZoom();
+paper.style.zoom=zoomScale(cvStep,b)*unitK();
+updateZoomUI();
+}
 
-  // "headers=1" le indica explícitamente a Google que la fila 1 es el
-  // encabezado. Sin este parámetro, si la planilla no lo detecta sola,
-  // los encabezados quedan vacíos y la fila 1 se cuela como si fuera
-  // el primer registro de datos.
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=1`;
+window.onload=function(){
+renderSectionButtons();
+initHistory();
+document.getElementById('cv-root').addEventListener('focusout',()=>setTimeout(recordCV,0));
+loadZoom();updateZoomUI();
+renderCV();
+fitPaperToScreen();
+};
 
-  // ------------------------------------------------------------
-  // Listado de hojas ("Sheets") cuyo nombre contiene "tabLR".
-  //
-  // Se usa la Google Sheets API v4 (sheets.googleapis.com), que sí
-  // soporta CORS para lectura pública y es el método vigente para
-  // leer metadatos (como el título de cada pestaña) sin backend
-  // propio. Requiere una API key de Google Cloud con la "Google
-  // Sheets API" habilitada (no requiere OAuth para leer un archivo
-  // público; alcanza con restringir la key por dominio/referer).
-  //
-  // Por qué NO se usa el viejo feed "spreadsheets.google.com/feeds/
-  // worksheets/.../public/basic": esa API (v3, GData) está
-  // descontinuada, solo expone datos si el archivo fue
-  // explícitamente "Publicado en la web" (distinto de "Cualquiera
-  // con el enlace puede ver") y, aun así, en la mayoría de los
-  // casos el navegador bloquea la respuesta por falta del header
-  // CORS "Access-Control-Allow-Origin" — por eso siempre caía en
-  // el mensaje de error genérico.
-  // ------------------------------------------------------------
-  const SHEETS_API_KEY = "AIzaSyA2Zs9dcx7mUf5kdHeziIneA2c_7BqJlKY"; // reemplazar por tu key
-  const SHEETS_METADATA_URL =
-    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}` +
-    `?key=${SHEETS_API_KEY}&fields=sheets.properties.title,sheets.properties.sheetId`;
-  const TABLR_KEYWORD = "tabLR";
-  // Estructura final del enlace generado para cada hoja "tabLR":
-  // https://luchorcompartidos.github.io/tablaN/index.html?sheetId=<SHEET_ID>&gid=<GID_de_la_hoja>
-  const TABLR_BASE_URL = "https://luchorcompartidos.github.io/tabla"; // + número secuencial (1, 2, 3...)
+window.onresize=function(){
+fitPaperToScreen();
+checkPageOverflow();
+};
 
-  const statusEl = document.getElementById("sheet-sync-status");
-  const timeEl = document.getElementById("sheet-sync-time");
-  const listEl = document.getElementById("sheet-sync-list");
-  const countEl = document.getElementById("sheet-sync-count");
-  const tablrSectionEl = document.getElementById("tablr-section");
-  const tablrHeadingEl = document.getElementById("tablr-heading");
-  const tablrStatusEl = document.getElementById("tablr-status");
-  const tablrLinksEl = document.getElementById("tablr-links");
+/* ===== Paginación A4 real: la Vista Previa replica el PDF ===== */
+const MM=96/25.4;
+/* Paginar mide la hoja a zoom 1, lo que acorta momentáneamente el área desplazable y el navegador "recorta" la posición de scroll:
+   por eso la pantalla saltaba al editar en páginas posteriores. Se guarda y restaura el scroll, y se mantiene visible el cursor. */
+function paginate(){
+const paper=document.getElementById('cv-paper');
+if(!paper)return;
+const saved=[];
+for(let e=paper;e;e=e.parentElement)if(e.scrollTop||e.scrollLeft)saved.push([e,e.scrollTop,e.scrollLeft]);
+const wx=window.scrollX,wy=window.scrollY;
+_paginate();
+updateGrowLabel();
+saved.forEach(a=>{if(a[0].scrollTop!==a[1])a[0].scrollTop=a[1];if(a[0].scrollLeft!==a[2])a[0].scrollLeft=a[2];});
+if(window.scrollX!==wx||window.scrollY!==wy)window.scrollTo(wx,wy);
+keepCaretVisible();
+}
+function keepCaretVisible(){
+const ae=document.activeElement;
+if(!ae||!ae.isContentEditable||!ae.closest||!ae.closest('#cv-root'))return;
+const sel=window.getSelection();
+let r=null;
+if(sel&&sel.rangeCount){const rg=sel.getRangeAt(0).cloneRange();rg.collapse(false);const rs=rg.getClientRects();r=rs.length?rs[rs.length-1]:null;}
+if(!r||(!r.height&&!r.width))r=ae.getBoundingClientRect();
+const box=document.getElementById('preview-container');
+const cr=box?box.getBoundingClientRect():{top:0,bottom:innerHeight};
+const vv=window.visualViewport;
+const vTop=Math.max(0,cr.top),vBot=Math.min(cr.bottom,vv?vv.offsetTop+vv.height:innerHeight);
+let top=vTop+8;
+const bar=box&&box.querySelector('.sticky');if(bar){const b=bar.getBoundingClientRect();if(b.bottom>top&&b.top<vBot)top=b.bottom+8;}
+const bot=vBot-40;
+let d=0;
+if(r.bottom>bot)d=r.bottom-bot;else if(r.top<top)d=r.top-top;
+if(d&&box&&box.scrollHeight>box.clientHeight)box.scrollTop+=d;
+else if(d)window.scrollBy(0,d);
+}
+function _paginate(){
+const paper=document.getElementById('cv-paper'),root=document.getElementById('cv-root');
+if(!paper||!root||!root.firstElementChild)return;
+const z=paper.style.zoom;paper.style.zoom=1;
+fitContacts();
+root.querySelectorAll('.pg-clone').forEach(e=>e.remove());
+paper.querySelectorAll('.cv-ruler-x').forEach(e=>e.remove());
+root.querySelectorAll('.pg-first').forEach(e=>{e.classList.remove('pg-first');e.style.marginTop='';});
+paper.classList.remove('paged');paper.style.height='';
+const P=297*MM,PAD=12*MM;
+/* La posición de la hoja se vuelve a leer en cada medición: si el navegador ajusta el scroll (anclaje de scroll) mientras se empuja un bloque, una referencia fija quedaba desfasada y dejaba un hueco en blanco */
+const Ty=()=>paper.getBoundingClientRect().top;
+const SEL='.page-break-inside-avoid,.editable-item,.flex.justify-between.items-center.border-b,.grid.grid-cols-2.cv-section-gap';
+const all=[...root.querySelectorAll(SEL)].filter(e=>!e.closest('.col-span-4')&&!(e.parentElement&&e.parentElement.closest(SEL)));
+all.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
+let maxB=0;
+all.forEach((a,i)=>{
+let r=a.getBoundingClientRect(),y0=r.top-Ty(),y1=r.bottom-Ty();
+if(a.matches('.border-b')&&all[i+1])y1=Math.max(y1,all[i+1].getBoundingClientRect().bottom-Ty());
+const pg=Math.floor((y0+1)/P);
+if(y1>(pg+1)*P-PAD&&(y1-y0)<P-2*PAD){
+const want=(pg+1)*P+PAD;
+a.style.marginTop=(parseFloat(getComputedStyle(a).marginTop)+want-y0)+'px';
+for(let it=0;it<3;it++){const d=want-(a.getBoundingClientRect().top-Ty());if(Math.abs(d)<0.5)break;a.style.marginTop=(parseFloat(a.style.marginTop)+d)+'px';}
+a.classList.add('pg-first');
+}
+maxB=Math.max(maxB,a.getBoundingClientRect().bottom-Ty());
+});
+const n=Math.max(1,Math.ceil((maxB+PAD-2)/P));
+if(n>1){
+paper.classList.add('paged');paper.style.setProperty('--cv-pages',n);paper.style.height=(n*297)+'mm';
+for(let k=1;k<n;k++){const rl=document.createElement('div');rl.className='cv-ruler cv-ruler-x no-print';rl.setAttribute('aria-hidden','true');rl.style.top=(k*297)+'mm';rl.innerHTML=RULER_SVG;paper.appendChild(rl);}
+if(cvState.layout!=='ats'){const hd=document.createElement('div');hd.className='pg-clone';hd.textContent='CV de '+n+' Páginas';
+hd.style.cssText='position:absolute;top:8.2mm;right:15mm;font-size:9px;font-weight:300;letter-spacing:.2px;color:#9ca3af;line-height:1;white-space:nowrap;pointer-events:none';
+root.appendChild(hd);}
+const left=root.querySelector('.col-span-4');
+if(left){
+const pr=paper.getBoundingClientRect(),lr=left.getBoundingClientRect();
+for(let k=1;k<n;k++){
+const c=left.cloneNode(true);
+c.classList.add('pg-clone');
+c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+c.querySelectorAll('.no-print').forEach(e=>e.remove());
+c.querySelectorAll('[data-sec]').forEach(e=>e.removeAttribute('data-sec'));
+const img=c.querySelector('img');if(img&&img.parentElement!==c)img.parentElement.remove();
+c.insertAdjacentHTML('afterbegin','<div style="padding-bottom:8px;border-bottom:1px solid var(--cv-border-color);max-width:100%"><div class="font-bold leading-tight text-[var(--cv-primary-color)]" style="font-size:1.15em;overflow-wrap:anywhere;word-break:break-word">'+escHtml(cvState.fullName)+'</div><div style="font-size:1em;font-style:italic;font-weight:400;color:#64748b;margin-top:3px;line-height:1.25">(cont.) [<span style="font-size:1em;font-style:italic;font-weight:bold;color:#64748b;margin-top:3px;line-height:1.25">Página '+(k+1)+'<span style="font-size:1em;font-style:italic;font-weight:400;color:#64748b;margin-top:3px;line-height:1.25"> de '+n+']</span></span></div></div>');
+c.style.position='absolute';c.style.left=(lr.left-pr.left)+'px';c.style.top=(k*P+PAD)+'px';c.style.width=lr.width+'px';
+root.appendChild(c);
+}}}
+paper.dataset.lastFill=Math.round((maxB-(n-1)*P)/P*100);
+const ind=document.getElementById('page-count-indicator');
+if(ind){ind.innerText=n===1?'1 Página (Perfecto Fit)':n+' Páginas (Extendido)';ind.className=(n===1?'text-emerald-400':'text-amber-400')+' font-semibold';}
+paper.style.zoom=z;
+}
+function checkPageOverflow(){clearTimeout(window._pgT);window._pgT=setTimeout(()=>{paginate();requestAnimationFrame(()=>requestAnimationFrame(paginate));},30);}
+window.addEventListener('load',()=>{
+document.getElementById('cv-root').addEventListener('input',checkPageOverflow);
+document.getElementById('cv-root').addEventListener('pointerdown',startSkillDrag);
+/* Pegar siempre como texto plano: evita arrastrar estilos (tamaño, fuente, color) de la página o programa de origen */
+document.getElementById('cv-root').addEventListener('paste',e=>{
+const el=e.target&&e.target.closest?e.target.closest('[contenteditable="true"]'):null;
+if(!el)return;
+e.preventDefault();
+let t=((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r\n?/g,'\n');
+if(el.tagName!=='DIV'&&el.tagName!=='P')t=t.replace(/\s*\n\s*/g,' ');
+document.execCommand('insertText',false,t);
+});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(checkPageOverflow);
+checkPageOverflow();
+});
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+/* ===== Impresión: una hoja A4 fija por página, recortando el mismo lienzo de la Vista Previa ===== */
+/* Los controles de edición (.no-print) ocupan espacio en la Vista Previa (p. ej. los botones junto a cada título).
+   Para imprimir o exportar a PDF se ocultan SIN quitarlos del flujo, así el PDF queda idéntico a la Vista Previa
+   y el texto de la página 2 respeta el margen superior de 12 mm. */
+function ghostNoPrint(root){root.querySelectorAll('.no-print').forEach(e=>{e.classList.remove('no-print');e.classList.add('ghost');});}
+function buildPrint(){
+const paper=document.getElementById('cv-paper');
+if(paper.getBoundingClientRect().height>0)paginate();
+const n=paper.classList.contains('paged')?(parseInt(paper.style.getPropertyValue('--cv-pages'))||1):1;
+const old=document.getElementById('print-pages');if(old)old.remove();
+const box=document.createElement('div');box.id='print-pages';
+for(let k=0;k<n;k++){
+const s=document.createElement('div');s.className='print-sheet';
+const c=paper.cloneNode(true);
+c.removeAttribute('id');
+c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+ghostNoPrint(c);
+c.style.cssText='position:absolute;left:0;top:'+(-k*297)+'mm;height:'+(n*297)+'mm;zoom:1;';
+s.appendChild(c);box.appendChild(s);
+}
+document.body.appendChild(box);
+}
+window.addEventListener('beforeprint',buildPrint);
+window.addEventListener('afterprint',()=>{const b=document.getElementById('print-pages');if(b)b.remove();});
 
-  // ------------------------------------------------------------
-  // FORMATO DE FECHAS (DD/MM/AAAA)
-  //
-  // Cuando una columna de la planilla es de tipo Fecha, Google
-  // devuelve el valor como texto "Date(año,mes,día)" donde el mes
-  // va de 0 a 11 (enero = 0). Para columnas Fecha y hora agrega
-  // ",hora,minuto,segundo". Esta función lo convierte a DD/MM/AAAA.
-  // También reconoce fechas escritas como texto en formato ISO
-  // (AAAA-MM-DD) y las convierte igual.
-  // Devuelve null si el valor NO es una fecha (así el resto de los
-  // valores se muestra exactamente como antes).
-  //
-  // Si querés mostrar también la hora en las columnas Fecha y hora,
-  // cambiá DATE_SHOW_TIME a true (resultado: DD/MM/AAAA HH:MM).
-  // ------------------------------------------------------------
-  const DATE_SHOW_TIME = false;
-  const GVIZ_DATE_REGEX = /^Date\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+),\s*(\d+)(?:,\s*(\d+))?)?\)$/;
-  const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}.*)?$/;
+/* ===== Una sola línea para E-Mail / LinkedIn / CUIL en la columna izquierda ===== */
+const FIT_TYPES=['email','linkedin','cuil'];
+function fitContacts(){
+const spans=[...document.querySelectorAll('#cv-root .col-span-4:not(.pg-clone) [data-ct]')];
+spans.forEach(el=>{el.style.fontSize='';});
+const fit=el=>{
+let f=parseFloat(getComputedStyle(el).fontSize);
+while(el.scrollWidth>el.clientWidth+0.5&&f>5){f-=0.25;el.style.fontSize=f+'px';}
+return parseFloat(getComputedStyle(el).fontSize);
+};
+/* 1) El E-Mail (uno de los textos más largos) se ajusta a una sola línea y fija el tamaño de referencia */
+let ref=null;
+spans.filter(e=>e.dataset.ct==='email').forEach(el=>{const f=fit(el);ref=ref===null?f:Math.min(ref,f);});
+/* 2) LinkedIn conserva su propio ajuste; GitHub conserva su tamaño y su formato */
+spans.filter(e=>e.dataset.ct==='linkedin').forEach(fit);
+/* 3) El resto de los campos usa por defecto el tamaño del E-Mail (si no cabe en una línea, se reduce) */
+spans.filter(e=>!['email','linkedin','github'].includes(e.dataset.ct)).forEach(el=>{
+if(ref!==null)el.style.fontSize=ref+'px';
+if(el.hasAttribute('data-fit'))fit(el);
+});
+}
 
-  function pad2(n) {
-    return String(n).padStart(2, "0");
-  }
+/* ===== Restablecer: Datos (contenido) y Configuración (panel del Editor) por separado ===== */
+const INITIAL=JSON.parse(JSON.stringify(cvState));
+const DATA_KEYS=['fullName','jobTitle','sectionTitles','hiddenSections','contactItems','profileSummary','experience','education','courses','skillsHard','skillsSoft','languages','references','photoUrl'];
+const clone=v=>JSON.parse(JSON.stringify(v));
+function resetAllData(){
+showConfirm('¿Restablecer todos los datos cargados (textos, listas, foto) a los valores iniciales? No se modifica ninguna configuración.',()=>{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+DATA_KEYS.forEach(k=>{
+let init=clone(INITIAL[k]);
+if(k==='contactItems'){
+init=init.map(it=>{const cur=cvState.contactItems.find(x=>x.id===it.id);if(cur)it.icon=cur.icon;return it;});
+}
+if(JSON.stringify(cvState[k])!==JSON.stringify(init))cvState[k]=init;
+});
+renderCV();
+});
+}
+function resetSettings(){
+showConfirm('¿Restablecer toda la configuración del Panel del Editor a los valores iniciales? No se modifican los datos del CV ni lo configurado desde la Vista Previa.',()=>{
+ED_KEYS.forEach(k=>{
+if(JSON.stringify(cvState[k])!==JSON.stringify(INITIAL[k]))cvState[k]=clone(INITIAL[k]);
+});
+syncEditorUI();
+renderCV();
+fitPaperToScreen();
+recordEditor();
+});
+}
 
-  function formatDateValue(v, colType) {
-    if (typeof v !== "string") return null;
+/* ===== Enter en campos editables: cada salto de línea es un paso propio del historial del CV ===== */
+document.addEventListener('keydown',e=>{
+if(e.key!=='Enter')return;
+const el=e.target;
+if(!el||!el.isContentEditable||!el.closest('#cv-root'))return;
+const sync=()=>{if(typeof el.onblur==='function')el.onblur.call(el);};
+sync();recordCV();
+window._enterField=el.getAttribute('onblur');
+window._enterPending=el;
+const done=()=>{if(window._enterPending!==el)return;window._enterPending=null;sync();recordCV();hist.cv.merge=true;};
+el.addEventListener('input',done,{once:true});
+setTimeout(done,50);
+},true);
+/* recordCV con "fusión": el texto tipeado tras un Enter se une a ese mismo paso */
+function recordCV(){
+if(hist.cv.cur===null)return;
+const s=snap(CV_KEYS);
+if(s===hist.cv.cur)return;
+if(hist.cv.merge){hist.cv.merge=false;hist.cv.cur=s;hist.cv.future=[];updateHistoryButtons();return;}
+hist.cv.past.push(hist.cv.cur);
+if(hist.cv.past.length>HIST_MAX)hist.cv.past.shift();
+hist.cv.cur=s;hist.cv.future=[];
+updateHistoryButtons();
+}
+window.addEventListener('load',()=>{document.getElementById('cv-root').addEventListener('focusout',()=>setTimeout(()=>{hist.cv.merge=false;},10));});
+function restoreCaret(){
+const k=window._enterField;if(!k)return;
+const el=[...document.querySelectorAll('#cv-root [contenteditable]')].find(x=>x.getAttribute('onblur')===k&&!x.closest('.pg-clone'));
+if(!el)return;
+el.focus();
+const r=document.createRange();r.selectNodeContents(el);r.collapse(false);
+const s=window.getSelection();s.removeAllRanges();s.addRange(r);
+window._enterField=null;
+}
+function undoCV(){stepCV('past','future');restoreCaret();}
+function redoCV(){stepCV('future','past');window._enterField=null;}
 
-    const g = v.match(GVIZ_DATE_REGEX);
-    if (g) {
-      const year = g[1];
-      const month = Number(g[2]) + 1; // Google usa meses 0-11
-      const day = g[3];
-      let out = `${pad2(day)}/${pad2(month)}/${year}`;
-      if (DATE_SHOW_TIME && colType === "datetime" && g[4] !== undefined) {
-        out += ` ${pad2(g[4])}:${pad2(g[5])}`;
-      }
-      return out;
-    }
+/* ===== Ajustes de Tipografía: restablecer y marcar valores alterados ===== */
+const TYPO_SLIDERS=[['slider-font-size','val-font-size','fontSize'],['slider-line-height','val-line-height','lineHeight'],['slider-section-gap','val-section-gap','sectionGap']];
+function updateTypographyMarks(){
+TYPO_SLIDERS.forEach(([sid,vid,key])=>{
+const s=document.getElementById(sid),v=document.getElementById(vid);
+if(!s||!v)return;
+const alt=Number(cvState[key])!==Number(INITIAL[key]);
+s.classList.toggle('altered',alt);
+v.style.color=alt?'#fb7185':'';
+});
+}
+(function(){const rc=window.renderCV;window.renderCV=function(){const r=rc.apply(this,arguments);updateTypographyMarks();return r;};})();
+function resetTypography(){
+Object.assign(cvState,clone(MODE_DEFAULTS[cvState.preset]));syncTypoStore();
+syncEditorUI();
+renderCV();
+fitPaperToScreen();
+recordEditor();
+}
+window.addEventListener('load',()=>{syncEditorUI();updateTypographyMarks();});
 
-    const iso = v.match(ISO_DATE_REGEX);
-    if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+/* ===== Exportar / Importar la Configuración del Editor (sin lo configurado desde la Vista Previa) ===== */
+function exportEditorConfig(opts){
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+commitEditor();syncTypoStore();
+const o={};ED_KEYS.forEach(k=>{o[k]=clone(cvState[k]);});
+const data={app:'editor-cv-argentina',type:'editor-config',version:1,exportedAt:new Date().toISOString(),config:o};
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const fname='cv-configuracion-editor-'+new Date().toISOString().slice(0,10)+'.json';
+triggerDownload(blob,fname);
+if(!(opts&&opts.silent===true))offerDownloadHelp(blob,fname);
+return {blob:blob,name:fname};
+}
+function importEditorConfig(e){
+const file=e.target.files[0];
+e.target.value='';
+if(!file)return;
+if(file.size>1024*1024){alert('No se pudo importar: el archivo es demasiado grande.');return;}
+const reader=new FileReader();
+reader.onerror=()=>alert('No se pudo importar: no se pudo leer el archivo.');
+reader.onload=()=>{
+let cfg;
+try{
+const d=JSON.parse(reader.result);
+if(!d||typeof d!=='object'||d.app!=='editor-cv-argentina'||d.type!=='editor-config'||!d.config||typeof d.config!=='object')throw new Error('El archivo no es una exportación de la configuración del Editor.');
+cfg=sanitizeConfig(d.config);
+if(!cfg)throw new Error('El archivo no contiene valores de configuración válidos.');
+}catch(err){alert('No se pudo importar: '+(err instanceof SyntaxError?'el archivo no es un JSON válido.':err.message));return;}
+showConfirm("Se reemplazará la configuración actual del Editor por la del archivo '"+file.name+"'. No se modifican los datos del CV ni lo configurado desde la Vista Previa. ¿Continuar?",()=>{
+Object.assign(cvState,clone(cfg));
+syncTypoStore();
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
+cfgToast('Configuración del Editor importada.');
+});
+};
+reader.readAsText(file);
+}
+/* Genera los 2 archivos: Datos Personales y Configuración del Editor */
+function exportAll(){
+const r=exportCV({silent:true});
+offerDownloadHelp(r.blob,r.name,[{text:'Descargar configuración del Editor',fn:()=>exportEditorConfig({silent:true})}],'Se generó el archivo de datos personales. Los navegadores bloquean las descargas automáticas múltiples, así que el segundo archivo (configuración del Editor) se descarga con su propio botón. Si la primera descarga no comenzó, tocá "Descargar de nuevo".');
+}
 
-    return null;
-  }
-
-  // Convierte el valor de una celda en texto, aplicando formato de
-  // fecha cuando corresponde. Devuelve "" si la celda está vacía.
-  function cellText(cell, colType) {
-    if (!cell || cell.v === null || cell.v === undefined) return "";
-    const formattedDate = formatDateValue(cell.v, colType);
-    return formattedDate !== null ? formattedDate : String(cell.v);
-  }
-
-  // Devuelve el valor de una celda como texto, o "" si está vacía / no existe
-  function cellValue(row, colIndex, colType) {
-    return cellText(row.c[colIndex], colType).trim();
-  }
-
-  // Igual que cellValue, pero SIN recortar espacios. Se usa solo para la
-  // primera columna, porque ahí un espacio en blanco (" ") debe contar
-  // como "tiene un carácter" y no como celda vacía.
-  function cellValueRaw(row, colIndex, colType) {
-    return cellText(row.c[colIndex], colType);
-  }
-
-  function isUrl(value) {
-    return URL_REGEX.test(value);
-  }
-
-  // A partir de una URL, arma un texto de enlace legible sin depender del
-  // nombre de la columna: usa el dominio (sin "www."), que suele bastar
-  // para identificar de qué servicio se trata (spotify, youtube, etc).
-  function linkLabelFromUrl(value) {
-    try {
-      const host = new URL(value).hostname.replace(/^www\./, "");
-      return host;
-    } catch (e) {
-      return "Abrir enlace";
-    }
-  }
-
-  function formatValue(value) {
-    if (isUrl(value)) {
-      const safeUrl = escapeHtml(value);
-      const label = escapeHtml(linkLabelFromUrl(value));
-      return `<a href="${safeUrl}" target="_blank" rel="noopener">${label}</a>`;
-    }
-    return escapeHtml(value);
-  }
-
-  // Recorre TODAS las hojas ("Sheets") del archivo de Google Drive
-  // referenciado (no solo la hoja activa por GID) y, para cada una
-  // cuyo nombre contenga "tabLR", arma y lista un hipervínculo con
-  // la estructura: https://luchorcompartidos.github.io/<nombre de la hoja>
-  //
-  // Esta sección se muestra fuera y arriba del catálogo "LR WEB
-  // CATALOG Genérico". El contenedor completo (#tablr-section)
-  // solo se hace visible si hay algo que mostrar (enlaces o un
-  // mensaje de error/estado); el título "Tablas LR" solo se
-  // muestra si se encontró al menos un enlace.
-  async function syncTabLRLinks() {
-    tablrSectionEl.classList.add("tablr-visible");
-    tablrHeadingEl.classList.remove("tablr-visible");
-    tablrLinksEl.innerHTML = "";
-    tablrStatusEl.textContent = 'Buscando hojas "tabLR"...';
-
-    if (!SHEETS_API_KEY || SHEETS_API_KEY === "TU_API_KEY_DE_GOOGLE_CLOUD_AQUI") {
-      tablrStatusEl.textContent =
-        'Falta configurar SHEETS_API_KEY (ver comentario en el código) para poder listar las hojas "tabLR".';
-      return;
-    }
-
-    try {
-      const res = await fetch(SHEETS_METADATA_URL);
-      if (!res.ok) {
-        // Se intenta leer el cuerpo JSON de error que devuelve Google
-        // (suele traer error.message con el motivo exacto: key
-        // inválida, referer no permitido, API no habilitada, etc.)
-        let detail = `HTTP ${res.status}`;
-        try {
-          const errJson = await res.json();
-          if (errJson && errJson.error && errJson.error.message) {
-            detail = errJson.error.message;
-          }
-        } catch (parseErr) {
-          // el cuerpo no era JSON; nos quedamos con el código HTTP
-        }
-        throw new Error(detail);
-      }
-      const json = await res.json();
-      const sheetsMeta = json.sheets || [];
-
-      // El título de cada pestaña viene en sheet.properties.title, y su
-      // GID real dentro del archivo (el mismo que usa la URL nativa de
-      // Google Sheets como "#gid=...") viene en sheet.properties.sheetId.
-      // El orden de "sheetsMeta" respeta el orden real de las pestañas
-      // en el archivo de Drive (así lo devuelve la Sheets API v4), y
-      // "sheetEntries" conserva ese mismo orden al filtrar solo las que
-      // contienen "tabLR". Por eso el número secuencial de la URL
-      // (tabla1, tabla2, tabla3...) se asigna según la posición dentro
-      // de este arreglo ya filtrado, no según el nombre de la hoja.
-      const sheetEntries = sheetsMeta
-        .map(sheet => ({
-          name: (sheet.properties && sheet.properties.title) ? sheet.properties.title.trim() : "",
-          gid: (sheet.properties && sheet.properties.sheetId !== undefined && sheet.properties.sheetId !== null)
-            ? String(sheet.properties.sheetId)
-            : ""
-        }))
-        .filter(entry => entry.name.length > 0 && entry.name.includes(TABLR_KEYWORD));
-
-      if (sheetEntries.length === 0) {
-        tablrStatusEl.textContent = "";
-        tablrSectionEl.classList.remove("tablr-visible");
-        return;
-      }
-
-      tablrHeadingEl.classList.add("tablr-visible");
-      tablrLinksEl.innerHTML = sheetEntries
-        .map((entry, index) => {
-          const sequentialNumber = index + 1; // tabla1, tabla2, tabla3...
-          // SHEET_ID identifica el archivo completo; gid identifica la
-          // hoja/pestaña puntual dentro de ese archivo. Ambos se pasan
-          // como parámetros de consulta en la URL final.
-          const href = escapeHtml(
-            `${TABLR_BASE_URL}${sequentialNumber}/index.html?sheetId=${SHEET_ID}&gid=${entry.gid}`
-          );
-          return `<a class="tablr-link" href="${href}" target="_blank" rel="noopener">${escapeHtml(entry.name)}</a>`;
-        })
-        .join("");
-      tablrStatusEl.textContent = "";
-    } catch (err) {
-      // Se muestra el motivo real del error (antes solo iba a la
-      // consola con un mensaje genérico en pantalla).
-      tablrStatusEl.textContent = `No se pudo obtener el listado de hojas "tabLR": ${err.message}`;
-      console.error(err);
-    }
-  }
-
-  async function syncSheet() {
-    statusEl.textContent = "Sincronizando...";
-    try {
-      const res = await fetch(url);
-      const text = await res.text();
-      // La respuesta viene envuelta como: google.visualization.Query.setResponse({...});
-      const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
-      const rows = json.table.rows;
-      const cols = json.table.cols;
-
-      // Columnas a considerar, en el orden de la planilla:
-      // - Si el encabezado de la columna (Fila 1) NO tiene ningún carácter,
-      //   la columna entera se descarta (no se procesa en ninguna fila).
-      // - Si el encabezado tiene al menos 1 carácter, aunque sea un espacio
-      //   en blanco, la columna SÍ se considera. En ese caso, si el
-      //   encabezado queda vacío al recortar espacios, se usa "ColumnaX"
-      //   como nombre, donde X es el número de columna en la planilla
-      //   origen (1 = primera columna de la hoja, 2 = segunda, etc).
-      // - Se conserva también el tipo de dato de la columna ("date",
-      //   "datetime", "string", etc.) para poder formatear las fechas.
-      const activeColumns = cols
-        .map((c, i) => ({ sheetIndex: i, rawLabel: c.label || "", type: c.type || "string" }))
-        .filter(c => c.rawLabel.length > 0)
-        .map(c => {
-          const trimmed = c.rawLabel.trim();
-          return {
-            sheetIndex: c.sheetIndex,
-            type: c.type,
-            header: trimmed !== "" ? trimmed : `Columna${c.sheetIndex + 1}`
-          };
-        });
-
-      // Arma primero la lista de registros (filas con al menos un dato) para
-      // poder contarlos antes de convertirlos en HTML.
-      const recordFields = activeColumns.length === 0 ? [] : rows
-        .map(r => {
-          // La primera columna ACTIVA decide si el registro existe: si no
-          // tiene NINGÚN carácter se descarta. Si tiene al menos un
-          // carácter (aunque sea un espacio en blanco " "), el registro se
-          // toma y se muestra igual que cualquier otro (por eso acá NO se
-          // usa cellValue, que recorta espacios, sino cellValueRaw).
-          const firstColumn = activeColumns[0];
-          const firstColRaw = cellValueRaw(r, firstColumn.sheetIndex, firstColumn.type);
-          if (firstColRaw.length === 0) return null;
-
-          // El resto de las columnas activas sigue funcionando como antes:
-          // se descartan las que no tengan dato.
-          const restFields = activeColumns
-            .slice(1)
-            .map(col => ({ header: col.header, value: cellValue(r, col.sheetIndex, col.type) }))
-            .filter(f => f.value !== "");
-
-          return [{ header: firstColumn.header, value: firstColRaw }, ...restFields];
-        })
-        .filter(fields => fields !== null); // descarta solo las filas sin primera columna
-
-      countEl.textContent = `Actualizados: ${recordFields.length} Registros`;
-
-      listEl.innerHTML = recordFields
-        .map(fields => {
-          // La primera columna con dato de la fila se usa como título del
-          // registro (posición, no nombre). El resto se lista debajo.
-          const [titleField, ...restFields] = fields;
-
-          const titleHtml = isUrl(titleField.value)
-            ? `<a href="${escapeHtml(titleField.value)}" target="_blank" rel="noopener">${escapeHtml(titleField.value)}</a>`
-            : escapeHtml(titleField.value);
-
-          const restHtml = restFields
-            .map(f => `<span class="extra-field"><strong>${escapeHtml(f.header)}:</strong> ${formatValue(f.value)}</span>`)
-            .join("");
-
-          return `
-            <div class="record">
-              <span class="record-title">${titleHtml}</span>
-              ${restHtml}
-            </div>`;
-        })
-        .join("");
-
-      if (!listEl.innerHTML) {
-        listEl.innerHTML = '<p style="color:#999;font-size:14px;">No se encontraron registros.</p>';
-      }
-
-      statusEl.textContent = "";
-      timeEl.textContent = new Date().toLocaleTimeString();
-    } catch (err) {
-      statusEl.textContent = "No se pudo sincronizar. Verificá que la hoja sea pública ('cualquiera con el enlace').";
-      console.error(err);
-    }
-  }
-
-  function refreshAll() {
-    syncTabLRLinks();
-    syncSheet();
-  }
-
-  document.getElementById("sheet-sync-refresh").addEventListener("click", refreshAll);
-  refreshAll();
-  setInterval(refreshAll, REFRESH_MS);
+/* ===== Configuración guardada en memoria (localStorage) ===== */
+const CFG_KEY='cvSavedConfig',CFG_SKIP='cvSkipPreload';
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(e){return false;}};
+const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
+function sanitizeConfig(c){
+if(!c||typeof c!=='object')return null;
+const o={};
+const fonts=[...document.querySelectorAll('#font-family-select option')].map(x=>x.value);
+const num=(v,a,b)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,v)):null;};
+if(['compact','extended'].includes(c.preset))o.preset=c.preset;
+if(['2-col','1-col','ats'].includes(c.layout))o.layout=c.layout;
+if(fonts.includes(c.fontFamily))o.fontFamily=c.fontFamily;
+const fs=num(c.fontSize,9,15);if(fs!==null)o.fontSize=fs;
+const lh=num(c.lineHeight,1.1,1.8);if(lh!==null)o.lineHeight=lh;
+const sg=num(c.sectionGap,6,26);if(sg!==null)o.sectionGap=Math.round(sg);
+if(typeof c.palette==='string'&&Object.prototype.hasOwnProperty.call(palettes,c.palette))o.palette=c.palette;
+['showPhoto','showCuil','showGuides'].forEach(k=>{if(typeof c[k]==='boolean')o[k]=c[k];});
+if(Array.isArray(c.sectionOrder)&&c.sectionOrder.length===INITIAL.sectionOrder.length&&INITIAL.sectionOrder.every(k=>c.sectionOrder.includes(k)))o.sectionOrder=c.sectionOrder.slice();
+if(c.typoByMode&&typeof c.typoByMode==='object'){
+const tm={};
+['compact','extended'].forEach(m=>{
+const s=c.typoByMode[m]||{},d=MODE_DEFAULTS[m];
+const a=num(s.fontSize,9,15),b=num(s.lineHeight,1.1,1.8),g=num(s.sectionGap,6,26);
+tm[m]={fontFamily:fonts.includes(s.fontFamily)?s.fontFamily:d.fontFamily,fontSize:a===null?d.fontSize:a,lineHeight:b===null?d.lineHeight:b,sectionGap:g===null?d.sectionGap:Math.round(g)};
+});
+o.typoByMode=tm;
+}
+return Object.keys(o).length?o:null;
+}
+function readSavedConfig(){
+const raw=lsGet(CFG_KEY);if(!raw)return null;
+try{const d=JSON.parse(raw);const c=sanitizeConfig(d&&d.config);return c?{config:c,savedAt:d.savedAt}:null;}catch(e){return null;}
+}
+/* Precarga al abrir la página: solo se omite si la configuración fue restablecida desde un botón */
+(function(){
+if(lsGet(CFG_SKIP)==='1')return;
+const s=readSavedConfig();
+if(s){Object.assign(cvState,clone(s.config));syncTypoStore();}
 })();
-</script>
+function cfgToast(msg,err,ms){
+let t=document.getElementById('cfg-toast');
+if(!t){t=document.createElement('div');t.id='cfg-toast';t.className='no-print';t.style.cssText='position:fixed;right:16px;bottom:16px;z-index:60;padding:8px 14px;border-radius:10px;font:500 12px Inter,sans-serif;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .25s;opacity:0;pointer-events:none';document.body.appendChild(t);}
+t.textContent=msg;t.style.background=err?'#9f1239':'#047857';t.style.opacity='1';
+clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},ms||2400);
+}
+function updateConfigUI(){
+const s=readSavedConfig(),skip=lsGet(CFG_SKIP)==='1';
+const b=document.getElementById('btn-cfg-use'),st=document.getElementById('cfg-status');
+if(b)b.disabled=!s;
+if(st){
+if(!s)st.textContent='Sin configuración guardada.';
+else{
+const d=new Date(s.savedAt);
+st.textContent='Guardada'+(isNaN(d)?'':': '+d.toLocaleString('es-AR'))+(skip?' · Precarga desactivada tras un restablecimiento (se reactiva al guardar o usar la configuración).':' · Se precarga al abrir la página.');
+}
+}
+}
+function saveConfig(){
+commitEditor();
+syncTypoStore();
+const o={};ED_KEYS.forEach(k=>{o[k]=clone(cvState[k]);});
+if(lsSet(CFG_KEY,JSON.stringify({savedAt:Date.now(),config:o}))){lsDel(CFG_SKIP);cfgToast('Configuración guardada en memoria.');}
+else cfgToast('No se pudo guardar: el navegador bloquea el almacenamiento.',true);
+updateConfigUI();
+}
+function useSavedConfig(){
+const s=readSavedConfig();
+if(!s){cfgToast('No hay una configuración guardada.',true);updateConfigUI();return;}
+Object.assign(cvState,clone(s.config));
+lsDel(CFG_SKIP);
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();
+updateConfigUI();cfgToast('Configuración guardada aplicada.');
+}
+/* Los botones de restablecer configuración desactivan la precarga de lo guardado */
+function resetSettings(){
+showConfirm('¿Restablecer toda la configuración del Panel del Editor a los valores iniciales? No se modifican los datos del CV ni lo configurado desde la Vista Previa.',()=>{
+ED_KEYS.forEach(k=>{
+if(JSON.stringify(cvState[k])!==JSON.stringify(INITIAL[k]))cvState[k]=clone(INITIAL[k]);
+});
+lsSet(CFG_SKIP,'1');
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
+});
+}
+function resetTypography(){
+Object.assign(cvState,clone(MODE_DEFAULTS[cvState.preset]));syncTypoStore();
+lsSet(CFG_SKIP,'1');
+syncEditorUI();renderCV();fitPaperToScreen();recordEditor();updateConfigUI();
+}
+window.addEventListener('load',updateConfigUI);
 
+/* ===== Tipografía: valores propios y Default por Modo (1 Página / 2 Páginas) ===== */
+function syncTypoStore(){
+if(!cvState.typoByMode)cvState.typoByMode=clone(MODE_DEFAULTS);
+cvState.typoByMode[cvState.preset]={fontFamily:cvState.fontFamily,fontSize:cvState.fontSize,lineHeight:cvState.lineHeight,sectionGap:cvState.sectionGap};
+}
+function applyPreset(mode){
+syncTypoStore();
+cvState.preset=mode;
+Object.assign(cvState,clone(cvState.typoByMode[mode]||MODE_DEFAULTS[mode]));
+syncEditorUI();
+renderCV();
+}
+(function(){const rc=window.renderCV;window.renderCV=function(){syncTypoStore();return rc.apply(this,arguments);};})();
+function updateTypographyMarks(){
+const d=MODE_DEFAULTS[cvState.preset]||MODE_DEFAULTS.compact;
+const fmt={fontSize:v=>v+'px',lineHeight:v=>String(v),sectionGap:v=>v+'px'};
+[['slider-font-size','val-font-size','def-font-size','fontSize'],['slider-line-height','val-line-height','def-line-height','lineHeight'],['slider-section-gap','val-section-gap','def-section-gap','sectionGap']].forEach(([sid,vid,did,key])=>{
+const s=document.getElementById(sid),v=document.getElementById(vid),l=document.getElementById(did);
+if(!s||!v)return;
+const alt=Number(cvState[key])!==Number(d[key]);
+s.classList.toggle('altered',alt);
+v.style.color=alt?'#fb7185':'';
+if(l)l.textContent='(Default: '+fmt[key](d[key])+')';
+});
+}
+window.addEventListener('load',()=>{syncTypoStore();updateTypographyMarks();setTimeout(updateGrowLabel,400);});
+
+/* ===== Guardar el CV como PDF o Word (.docx) directamente desde la Vista Previa ===== */
+const LIB_URLS={
+docx:['https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js','https://unpkg.com/docx@9.6.1/dist/index.iife.js'],
+pdflib:['https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js','https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'],
+h2i:['https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js','https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js']
+};
+const LIB_READY={docx:()=>window.docx,pdflib:()=>window.PDFLib,h2i:()=>window.htmlToImage};
+const _libP={};
+function loadLib(name){
+if(LIB_READY[name]())return Promise.resolve();
+if(_libP[name])return _libP[name];
+const urls=LIB_URLS[name].slice();
+_libP[name]=new Promise((res,rej)=>{
+const next=()=>{
+const u=urls.shift();
+if(!u){delete _libP[name];rej(new Error('No se pudo cargar una librería necesaria. Verificá tu conexión a internet.'));return;}
+const s=document.createElement('script');s.src=u;
+let done=false;
+const tm=setTimeout(()=>{if(done)return;done=true;s.remove();next();},20000);
+s.onload=()=>{if(done)return;done=true;clearTimeout(tm);LIB_READY[name]()?res():next();};
+s.onerror=()=>{if(done)return;done=true;clearTimeout(tm);s.remove();next();};
+document.head.appendChild(s);
+};
+next();
+});
+return _libP[name];
+}
+function cvFileName(ext){
+const base=String(cvState.fullName||'CV').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'CV';
+return 'CV-'+base+'.'+ext;
+}
+function downloadBlob(blob,name){
+triggerDownload(blob,name);
+offerDownloadHelp(blob,name);
+}
+function pageCount(){
+const paper=document.getElementById('cv-paper');
+return paper.classList.contains('paged')?(parseInt(paper.style.getPropertyValue('--cv-pages'))||1):1;
+}
+/* --- PDF con texto real (seleccionable y copiable): fondo/íconos como imagen + texto vectorial encima --- */
+function cvxParseColor(s){const m=String(s).match(/[\d.]+/g)||[0,0,0];return {r:(+m[0]||0)/255,g:(+m[1]||0)/255,b:(+m[2]||0)/255,a:m.length>3?+m[3]:1};}
+function cvxCollectRuns(sheet){
+const sr=sheet.getBoundingClientRect(),runs=[];
+const tw=document.createTreeWalker(sheet,NodeFilter.SHOW_TEXT);
+const rg=document.createRange();
+let node;
+while((node=tw.nextNode())){
+const raw=node.nodeValue;
+if(!raw||!raw.trim())continue;
+const el=node.parentElement;if(!el)continue;
+const cs=getComputedStyle(el);
+if(cs.display==='none'||cs.visibility==='hidden'||parseFloat(cs.opacity)===0)continue;
+const st={fs:parseFloat(cs.fontSize),bold:parseInt(cs.fontWeight,10)>=600,italic:/italic|oblique/.test(cs.fontStyle),upper:cs.textTransform==='uppercase',col:cvxParseColor(cs.color)};
+const frags=[],re=/\S+/g;let m;
+while((m=re.exec(raw))){
+rg.setStart(node,m.index);rg.setEnd(node,m.index+m[0].length);
+const rs=[...rg.getClientRects()].filter(r=>r.width>0&&r.height>0);
+if(rs.length===1)frags.push({t:m[0],r:rs[0],sp:true});
+else if(rs.length>1){
+for(let i=0;i<m[0].length;i++){
+rg.setStart(node,m.index+i);rg.setEnd(node,m.index+i+1);
+const r1=rg.getClientRects()[0];
+if(r1&&r1.width>0)frags.push({t:m[0][i],r:r1,sp:i===0});
+}
+}
+}
+let line=null;
+const flush=()=>{if(line){runs.push(Object.assign({},st,line));line=null;}};
+frags.forEach(f=>{
+if(line&&Math.abs(f.r.top-line.top)<st.fs*0.5){line.text+=(f.sp?' ':'')+f.t;line.x0=Math.min(line.x0,f.r.left);line.x1=Math.max(line.x1,f.r.right);}
+else{flush();line={text:f.t,x0:f.r.left,x1:f.r.right,top:f.r.top,h:f.r.height};}
+});
+flush();
+}
+return {runs:runs,sr:sr};
+}
+function cvxFreezeAndHide(sheet){
+sheet.querySelectorAll('*').forEach(el=>{
+const cs=getComputedStyle(el);
+if(cs.backgroundColor!=='rgba(0, 0, 0, 0)'&&cs.backgroundColor!=='transparent')el.style.backgroundColor=cs.backgroundColor;
+['Top','Right','Bottom','Left'].forEach(s=>{if(parseFloat(cs['border'+s+'Width'])>0)el.style['border'+s+'Color']=cs['border'+s+'Color'];});
+if(el.tagName==='LI')el.style.setProperty('color',cs.color,'important');
+if(el.tagName==='I'){el.style.setProperty('color',cs.color,'important');el.style.setProperty('-webkit-text-fill-color',cs.color,'important');}
+});
+if(!document.getElementById('cvx-style')){
+const st=document.createElement('style');st.id='cvx-style';
+st.textContent='.cvx-notext *:not(i):not(li){color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important}';
+document.head.appendChild(st);
+}
+sheet.classList.add('cvx-notext');
+}
+const CVX_BAD=/[^\u0020-\u007E\u00A0-\u00FF\u2022\u2013\u2014\u2018\u2019\u201C\u201D\u2026\u20AC]/g;
+function cvxClean(s){return s.replace(/[\u25AA\u25AB]/g,'-').replace(/\u2192/g,'->').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/\u00A0/g,' ').replace(CVX_BAD,'?');}
+function cvxDrawRuns(page,fonts,runs,sr){
+const S=595.28/sr.width,H=841.89;
+runs.forEach(r=>{
+const cy=r.top+r.h/2-sr.top,cx=(r.x0+r.x1)/2-sr.left;
+if(cy<0||cy>sr.height||cx<0||cx>sr.width)return;
+const text=cvxClean(r.upper?r.text.toUpperCase():r.text);
+if(!text.trim())return;
+const f=fonts[r.bold&&r.italic?'bi':r.bold?'b':r.italic?'i':'r'];
+const size=r.fs*S;
+let w;try{w=f.widthOfTextAtSize(text,size);}catch(e){return;}
+const W=(r.x1-r.x0)*S,n=text.length;
+let tc=n>1?(W-w)/(n-1):0;
+tc=Math.max(-size*0.12,Math.min(size*0.6,tc));
+const base=r.top+r.h*0.8-sr.top;
+page.pushOperators(PDFLib.setCharacterSpacing(tc));
+page.drawText(text,{x:(r.x0-sr.left)*S,y:H-base*S,size:size,font:f,color:PDFLib.rgb(r.col.r,r.col.g,r.col.b),opacity:r.col.a<1?r.col.a:undefined});
+page.pushOperators(PDFLib.setCharacterSpacing(0));
+});
+}
+async function exportPDF(){
+await Promise.all([loadLib('h2i'),loadLib('pdflib')]);
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+paginate();
+const paper=document.getElementById('cv-paper'),n=pageCount();
+const host=document.createElement('div');
+host.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;pointer-events:none';
+document.body.appendChild(host);
+try{
+const doc=await PDFLib.PDFDocument.create();
+doc.setTitle('CV - '+(cvState.fullName||''));
+doc.setAuthor(String(cvState.fullName||''));
+const SF=PDFLib.StandardFonts;
+const fonts={r:await doc.embedFont(SF.Helvetica),b:await doc.embedFont(SF.HelveticaBold),i:await doc.embedFont(SF.HelveticaOblique),bi:await doc.embedFont(SF.HelveticaBoldOblique)};
+for(let k=0;k<n;k++){
+const sheet=document.createElement('div');
+sheet.style.cssText='position:relative;width:210mm;height:297mm;overflow:hidden;background:#fff';
+const c=paper.cloneNode(true);
+c.removeAttribute('id');
+c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+ghostNoPrint(c);
+c.style.cssText='position:absolute;left:0;top:'+(-k*297)+'mm;width:210mm;height:'+(n*297)+'mm;margin:0;box-shadow:none;transition:none;zoom:1;';
+sheet.appendChild(c);host.appendChild(sheet);
+const info=cvxCollectRuns(sheet);
+cvxFreezeAndHide(sheet);
+const opts={pixelRatio:2,backgroundColor:'#ffffff',imagePlaceholder:'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'};
+let canvas;
+try{canvas=await htmlToImage.toCanvas(sheet,opts);}
+catch(e1){canvas=await htmlToImage.toCanvas(sheet,Object.assign({skipFonts:true},opts));}
+const jpg=canvas.toDataURL('image/jpeg',0.92).split(',')[1];
+const img=await doc.embedJpg(Uint8Array.from(atob(jpg),ch=>ch.charCodeAt(0)));
+const page=doc.addPage([595.28,841.89]);
+page.drawImage(img,{x:0,y:0,width:595.28,height:841.89});
+cvxDrawRuns(page,fonts,info.runs,info.sr);
+host.removeChild(sheet);
+}
+const bytes=await doc.save();
+downloadBlob(new Blob([bytes],{type:'application/pdf'}),cvFileName('pdf'));
+}finally{host.remove();}
+}
+
+const txtDecode=s=>{const t=document.createElement('textarea');t.innerHTML=String(s==null?'':s);return t.value;};
+const htmlLines=h=>{const d=document.createElement('div');d.innerHTML=String(h||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(div|p|li)>/gi,'\n');return d.textContent.split('\n').map(s=>s.replace(/\u00a0/g,' ').trim()).filter(Boolean);};
+async function photoPng(){
+if(cvState.layout==='ats'||!cvState.showPhoto||!cvState.photoUrl)return null;
+try{
+const img=new Image();img.crossOrigin='anonymous';
+await new Promise((ok,ko)=>{img.onload=ok;img.onerror=ko;img.src=cvState.photoUrl;});
+const S=400,cv=document.createElement('canvas');cv.width=cv.height=S;
+const x=cv.getContext('2d');x.beginPath();x.arc(S/2,S/2,S/2,0,Math.PI*2);x.clip();
+const m=Math.min(img.naturalWidth,img.naturalHeight),sx=(img.naturalWidth-m)/2,sy=(img.naturalHeight-m)/2;
+x.drawImage(img,sx,sy,m,m,0,0,S,S);
+const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+return new Uint8Array(await blob.arrayBuffer());
+}catch(e){return null;}
+}
+async function exportDOCX(){
+await loadLib('docx');
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const D=window.docx,pal=palettes[cvState.palette]||palettes.navy;
+const hx=c=>c.replace('#','');
+const font=(String(cvState.fontFamily).split(',')[0]||'Calibri').replace(/['"]/g,'').trim();
+const B=Math.round(cvState.fontSize*1.5),LINE=Math.round(240*cvState.lineHeight),GAP=cvState.sectionGap*15;
+const two=cvState.layout==='2-col',ats=cvState.layout==='ats',hidden=cvState.hiddenSections||[];
+const LW=3300,RW=10206-LW,TABW=(two?RW:10206)-(two?320:0);
+const R=(text,o)=>new D.TextRun(Object.assign({text:String(text)},o||{}));
+const P=(children,o)=>new D.Paragraph(Object.assign({children:children},o||{}));
+const sp=(b,a)=>({before:b||0,after:a||0,line:LINE});
+const title=(key,def)=>txt2(secTitle(key,def));
+const txt2=s=>txtDecode(s);
+const heading=(key,def)=>P([R(title(key,def).toUpperCase(),{bold:true,color:hx(pal.primary),size:Math.round(B*1.05)})],{spacing:{before:GAP,after:70,line:LINE},keepNext:true,border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:hx(pal.border),space:2}}});
+const tabs=w=>[{type:D.TabStopType.RIGHT,position:w}];
+const gray='64748B',dark='1F2937';
+const SEPR=sz=>R(' | ',{size:sz,color:'94A3B8'});
+const show=k=>!hidden.includes(k);
+const SEC=two
+?{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación y Formación',courses:'Cursos y Certificaciones',references:'Referencias Laborales'}
+:{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación',courses:ats?'Cursos y Certificaciones':'Cursos',references:ats?'Referencias Laborales':'Referencias'};
+const blocks={
+contact:()=>{
+const items=cvState.contactItems.filter(it=>cvState.showCuil||it.type!=='cuil');
+if(!items.length)return [];
+return [heading('contact',SEC.contact)].concat(items.map(it=>P([R(txtDecode(it.value).replace(/\n+/g,' '),{size:Math.round(B*0.92),color:dark,bold:it.type==='cuil'})],{spacing:sp(0,50)})));
+},
+skillsHard:()=>cvState.skillsHard.length?[heading('skillsHard',SEC.skillsHard)].concat(ats?[P([R(cvState.skillsHard.map(x=>txtDecode(x)).join(', '),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)})]:cvState.skillsHard.map(s=>P([R('▪  '+txtDecode(s),{size:Math.round(B*0.92),color:dark})],{spacing:sp(0,40)}))):[],
+skillsSoft:()=>cvState.skillsSoft.length?[heading('skillsSoft',SEC.skillsSoft)].concat(ats?[P([R(cvState.skillsSoft.map(x=>txtDecode(x)).join(', '),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)})]:cvState.skillsSoft.map(s=>P([R('•  '+txtDecode(s),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)}))):[],
+languages:()=>cvState.languages.length?[heading('languages',SEC.languages)].concat(ats?[P([].concat(...cvState.languages.map((l,i)=>(i?[SEPR(Math.round(B*0.9))]:[]).concat([R(txtDecode(l.name),{bold:true,size:Math.round(B*0.9),color:dark}),R(': '+txtDecode(l.level),{size:Math.round(B*0.9),color:gray})]))),{spacing:sp(0,40)})]:cvState.languages.map(l=>P([R(txtDecode(l.name),{bold:true,size:Math.round(B*0.9),color:dark}),R(': '+txtDecode(l.level),{size:Math.round(B*0.9),color:gray})],{spacing:sp(0,40)}))):[],
+profile:()=>cvState.profileSummary?[heading('profile',SEC.profile),P([R(txtDecode(cvState.profileSummary),{size:Math.round(B*0.92),color:'334155'})],{alignment:ats?D.AlignmentType.LEFT:D.AlignmentType.JUSTIFIED,spacing:sp(0,60)})]:[],
+experience:()=>{
+if(!cvState.experience.length)return [];
+const out=[heading('experience',SEC.experience)];
+cvState.experience.forEach((e,i)=>{
+if(ats){const z=Math.round(B*0.92);out.push(P([R(txtDecode(e.role),{bold:true,size:Math.round(B*0.98),color:'1E293B'}),SEPR(z),R(txtDecode(e.company),{size:z,color:hx(pal.primary)}),SEPR(z),R(txtDecode(e.location),{size:Math.round(B*0.88),color:gray}),SEPR(z),R(txtDecode(e.period),{bold:true,size:Math.round(B*0.88),color:gray})],{keepNext:true,spacing:sp(i?120:40,40)}));}else{out.push(P([R(txtDecode(e.role),{bold:true,size:Math.round(B*0.98),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?120:40,0)}));
+out.push(P([R(txtDecode(e.company),{bold:true,size:Math.round(B*0.88),color:hx(pal.primary)}),R('\t'+txtDecode(e.location),{size:Math.round(B*0.84),color:'94A3B8'})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(0,40)}));}
+htmlLines(e.description).forEach(l=>out.push(P([R(l,{size:Math.round(B*0.9),color:'475569'})],{spacing:sp(0,20),indent:l.startsWith('•')?{left:200,hanging:200}:undefined})));
+});
+return out;
+},
+education:()=>{
+if(!cvState.education.length)return [];
+const out=[heading('education',SEC.education)];
+cvState.education.forEach((e,i)=>{
+if(ats){const z=Math.round(B*0.9);out.push(P([R(txtDecode(e.degree),{bold:true,size:Math.round(B*0.95),color:'1E293B'}),SEPR(z),R(txtDecode(e.institution),{size:z,color:'475569'}),SEPR(z),R(txtDecode(e.period),{bold:true,size:Math.round(B*0.86),color:gray}),SEPR(z),R(txtDecode(e.status),{size:Math.round(B*0.86),color:gray})],{spacing:sp(i?100:40,30)}));}else{out.push(P([R(txtDecode(e.degree),{bold:true,size:Math.round(B*0.95),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?100:40,0)}));
+out.push(P([R(txtDecode(e.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(e.status),{size:Math.round(B*0.84),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,30)}));}
+});
+return out;
+},
+courses:()=>{
+if(!cvState.courses.length)return [];
+if(ats)return [heading('courses',SEC.courses)].concat(cvState.courses.map(c=>{const z=Math.round(B*0.88);return P([R(txtDecode(c.title),{bold:true,size:z,color:'1E293B'}),SEPR(z),R(txtDecode(c.institution),{size:z,color:'475569'}),SEPR(z),R(txtDecode(c.year),{size:Math.round(B*0.84),color:gray})],{spacing:sp(0,50)});}));
+return [heading('courses',SEC.courses)].concat(cvState.courses.map(c=>P([R(txtDecode(c.title),{bold:true,size:Math.round(B*0.88),color:'1E293B'}),R(' – '+txtDecode(c.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(c.year),{size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,50)})));
+},
+references:()=>{
+if(!cvState.references.length)return [];
+const out=[heading('references',SEC.references)];
+cvState.references.forEach(r=>{
+out.push(P([R(txtDecode(r.name),{bold:true,size:Math.round(B*0.9),color:'1E293B'})],{keepNext:true,spacing:sp(60,0)}));
+out.push(P([R(txtDecode(r.title),{size:Math.round(B*0.86),color:'475569'})],{keepNext:true,spacing:sp(0,0)}));
+out.push(P([R(txtDecode(r.contact),{italics:true,size:Math.round(B*0.82),color:gray})],{spacing:sp(0,40)}));
+});
+return out;
+}
+};
+const build=keys=>[].concat(...keys.filter(show).map(k=>blocks[k]()));
+const nameBlock=[
+P([R(txtDecode(cvState.fullName),{bold:true,size:Math.round(B*1.85),color:hx(pal.primary)})],{spacing:{before:0,after:0,line:LINE}}),
+P(txtDecode(cvState.jobTitle).split(/\r?\n/).map((l,i)=>R(l,Object.assign({bold:true,size:Math.round(B*1.1),color:'334155'},i?{break:1}:{}))),{spacing:{before:0,after:100,line:LINE},border:{bottom:{style:D.BorderStyle.SINGLE,size:12,color:hx(pal.primary),space:4}}})
+];
+const order=cvState.sectionOrder;
+let children;
+const png=await photoPng();
+const photoPara=png?[P([new D.ImageRun({type:'png',data:png,transformation:{width:100,height:100}})],{alignment:D.AlignmentType.CENTER,spacing:{before:0,after:120}})]:[];
+if(two){
+const leftKeys=order.filter(k=>['contact','skillsHard','skillsSoft','languages'].includes(k));
+const rightKeys=['profile'].concat(order.filter(k=>['experience','education','courses','references'].includes(k)));
+const none={style:D.BorderStyle.NONE,size:0,color:'FFFFFF'};
+const nb={top:none,bottom:none,left:none,right:none};
+const left=photoPara.concat(build(leftKeys));
+const right=nameBlock.concat(build(rightKeys));
+children=[new D.Table({
+width:{size:10206,type:D.WidthType.DXA},columnWidths:[LW,RW],layout:D.TableLayoutType.FIXED,
+borders:{top:none,bottom:none,left:none,right:none,insideHorizontal:none,insideVertical:none},
+rows:[new D.TableRow({children:[
+new D.TableCell({width:{size:LW,type:D.WidthType.DXA},borders:nb,shading:{type:D.ShadingType.CLEAR,fill:hx(pal.sidebar),color:'auto'},margins:{top:160,bottom:160,left:170,right:170},children:left.length?left:[P([])]}),
+new D.TableCell({width:{size:RW,type:D.WidthType.DXA},borders:nb,margins:{top:60,bottom:60,left:260,right:60},children:right})
+]})]
+}),P([])];
+}else{
+const contact=cvState.contactItems.filter(it=>(cvState.showCuil||it.type!=='cuil')&&(ats?it.type!=='birth':ctype(it).one)).map(it=>txtDecode(it.value).replace(/\n+/g,' ')).join(ats?' | ':'   |   ');
+const head=photoPara.concat(nameBlock);
+if(contact)head.push(P([R(contact,{size:Math.round(B*0.85),color:'475569'})],{spacing:sp(40,40)}));
+const keys=['profile'].concat(order.filter(k=>k!=='contact'&&(k!=='skillsSoft'||cvState.showSoftInOneCol||cvState.layout==='ats')));
+children=head.concat(build(keys));
+}
+const docu=new D.Document({
+creator:txtDecode(cvState.fullName),title:'CV - '+txtDecode(cvState.fullName),
+styles:{default:{document:{run:{font:font,size:B,color:dark}}}},
+sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:680,bottom:680,left:850,right:850}}},children:children}]
+});
+const blob=await D.Packer.toBlob(docu);
+downloadBlob(blob,cvFileName('docx'));
+}
+
+let _saving=false;
+async function saveCVAs(fmt){
+closeSaveMenu();
+if(_saving)return;
+saveRecoveryBackup('guardar '+fmt);
+_saving=true;
+const btn=document.getElementById('btn-save-cv'),lbl=btn&&btn.querySelector('.lbl');
+if(btn){btn.disabled=true;lbl.textContent='Generando '+(fmt==='pdf'?'PDF':'Word')+'…';}
+try{
+const run=fmt==='pdf'?exportPDF():exportDOCX();
+await Promise.race([run,new Promise((_,rej)=>setTimeout(()=>rej(new Error('la exportación tardó demasiado. Tus datos siguen en pantalla; probá de nuevo')),150000))]);
+cfgToast('Archivo '+(fmt==='pdf'?'PDF':'Word (.docx)')+' generado.');
+}catch(err){
+console.error(err);
+cfgToast('No se pudo generar el archivo: '+(err&&err.message?err.message:'revisá tu conexión e intentá de nuevo'),true);
+}finally{
+_saving=false;
+if(btn){btn.disabled=false;lbl.textContent='Guardar CV';}
+}
+}
+function toggleSaveMenu(ev){
+if(ev)ev.stopPropagation();
+document.getElementById('save-menu-list').classList.toggle('hidden');
+}
+function closeSaveMenu(){const m=document.getElementById('save-menu-list');if(m)m.classList.add('hidden');}
+document.addEventListener('click',e=>{if(!e.target.closest('#save-menu'))closeSaveMenu();});
+
+/* ===== Regla de referencia (solo Vista Previa; no se imprime ni se exporta) ===== */
+/* Dibujada en milímetros dentro de la hoja: escala junto con el zoom y mide 21 cm de ancho */
+const RULER_SVG=(()=>{
+let a='',b='',c='',lab='';
+for(let i=0;i<=210;i++){
+const x=i*10;
+if(i%10===0)c+='M'+x+' 0V42';
+else if(i%5===0)b+='M'+x+' 0V29';
+else a+='M'+x+' 0V17';
+}
+for(let n=0;n<=20;n++)lab+='<text x="'+(n*100+9)+'" y="63" font-size="24">'+n+'</text>';
+return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2100 70" preserveAspectRatio="none">'
++'<rect width="2100" height="70" fill="#fef3c7" fill-opacity=".96"/>'
++'<rect y="68" width="2100" height="2" fill="#d97706" fill-opacity=".75"/>'
++'<path d="'+a+'" stroke="#78350f" stroke-width="2"/>'
++'<path d="'+b+'" stroke="#78350f" stroke-width="2.6"/>'
++'<path d="'+c+'" stroke="#78350f" stroke-width="3.6"/>'
++'<g fill="#78350f" font-family="Arial, Helvetica, sans-serif">'+lab+'<text x="2090" y="63" font-size="22" font-style="italic" text-anchor="end">cm</text></g></svg>';
+})();
+window.addEventListener('load',()=>{const r=document.getElementById('ruler-1');if(r)r.innerHTML=RULER_SVG;});
+</script>
 </body>
 </html>
