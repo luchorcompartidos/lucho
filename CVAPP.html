@@ -17,6 +17,7 @@ tailwind.config={theme:{extend:{colors:{brand:{50:'#f0f7ff',100:'#e0effe',500:'#
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
 .cv-container{font-family:var(--cv-font-family);font-size:var(--cv-base-size);line-height:var(--cv-line-height);color:var(--cv-text-color)}
+#preview-container,#paper-wrap{overflow-anchor:none}
 .a4-paper{width:210mm;min-height:297mm;padding:var(--cv-page-padding);background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.3);position:relative;margin:0 auto;box-sizing:border-box;transition:all .2s ease}
 .page-break-line{position:absolute;left:0;right:0;top:297mm;border-top:2px dashed #ef4444;pointer-events:none;z-index:20}
 .page-break-badge{position:absolute;right:10px;top:-21px;background:#ef4444;color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px}
@@ -33,10 +34,17 @@ body{font-family:'Inter',sans-serif;background-color:#0f172a;color:#f8fafc}
 [contenteditable="true"]{outline:none;border-radius:2px;transition:background-color .15s ease,box-shadow .15s ease}
 [contenteditable="true"]:hover{background-color:rgba(59,130,246,.08);cursor:text}
 [contenteditable="true"]:focus{background-color:rgba(59,130,246,.12);box-shadow:0 0 0 2px rgba(59,130,246,.4)}
+/* Texto uniforme: lo pegado o heredado dentro de un campo editable nunca fija su propio tamaño, fuente ni color */
+#cv-root [contenteditable] *{font-size:inherit!important;font-family:inherit!important;line-height:inherit!important;color:inherit!important;background:transparent!important}
 .editable-item{position:relative}
 .editable-item .item-actions{position:absolute;right:-38px;top:0;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity .2s ease}
 .editable-item:hover .item-actions{opacity:1}
 .row-actions{opacity:0;transition:opacity .2s ease}
+.skill-grip{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:1px;width:10px;height:14px;display:flex;align-items:center;justify-content:center;color:#94a3b8;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.skill-grip:hover{color:#2563eb}
+.skill-chip.skill-dragging{opacity:.35}
+#skill-drop{position:fixed;z-index:85;width:3px;border-radius:2px;background:#2563eb;pointer-events:none;box-shadow:0 0 0 1px #fff}
+#skill-ghost{position:fixed;z-index:90;pointer-events:none;padding:2px 8px;border-radius:6px;background:#1d4ed8;color:#fff;font:600 12px Inter,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
 .row-item:hover .row-actions,.row-item:focus-within .row-actions{opacity:1}
 @media (hover:none){.row-actions{opacity:1}}
 .zoom-btn{min-width:36px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;font-size:14px;transition:background .15s}
@@ -69,6 +77,10 @@ html,body{background:#fff!important;color:#000!important;margin:0!important;padd
 #slider-font-size::-moz-range-thumb,#slider-line-height::-moz-range-thumb,#slider-section-gap::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--thumb);border:0;cursor:pointer}
 #cv-paper,#cv-paper *{transition:none!important}
 #print-pages{display:none}
+.ats-contact .contact-row .row-actions{left:50%;top:auto;bottom:100%;transform:translateX(-50%);margin:0!important;padding:2px 6px;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);z-index:30}
+.ats-inline{position:relative}
+.ats-inline>.row-actions{position:absolute!important;left:50%;bottom:100%;transform:translateX(-50%);margin:0!important;padding:2px 6px;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;gap:6px;z-index:30;white-space:nowrap}
+.ats-inline .skill-grip{position:static;transform:none;margin:0 2px 0 0}
 @media print{
 html{height:auto!important}
 body{display:block!important;height:auto!important;overflow:visible!important}
@@ -123,20 +135,38 @@ body{display:block!important;height:auto!important;overflow:visible!important}
 <span>2 Páginas (Extendido)</span>
 </button>
 </div>
+<div class="pt-1 space-y-1.5">
+<button id="btn-shrink" onclick="shrinkToSavePage()" title="Reduce de forma proporcional el espaciado y, si hace falta, el tamaño de letra, respetando valores mínimos, para intentar ahorrar una página" class="w-full px-3 py-2 rounded-lg border border-amber-500/50 bg-amber-950/30 hover:bg-amber-900/40 text-amber-300 font-medium text-xs flex items-center justify-center gap-2 transition">
+<i class="fa-solid fa-compress"></i><span>Achicar para ahorrar página</span><span class="text-[9px] uppercase tracking-wider bg-amber-500/20 border border-amber-500/40 rounded px-1.5 py-0.5">Experimental</span>
+</button>
+<button id="btn-grow" onclick="growToFitPages()" title="Con cada toque aumenta un grado el tamaño de letra y el espaciado, sin pasar la cantidad de páginas actual y respetando valores máximos, para aprovechar mejor el espacio de la última página" class="w-full px-3 py-2 rounded-lg border border-amber-500/50 bg-amber-950/30 hover:bg-amber-900/40 text-amber-300 font-medium text-xs flex items-center justify-center gap-2 transition">
+<i class="fa-solid fa-expand"></i><span id="grow-label">Optimizar tamaño a 1 página</span><span class="text-[9px] uppercase tracking-wider bg-amber-500/20 border border-amber-500/40 rounded px-1.5 py-0.5">Experimental</span>
+</button>
+<button id="btn-shrink-undo" onclick="undoShrink()" disabled class="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center justify-center gap-2 transition disabled:opacity-40 disabled:cursor-not-allowed">
+<i class="fa-solid fa-rotate-left"></i><span>Deshacer: volver al estado anterior</span>
+</button>
+<p id="shrink-msg" class="text-[11px] text-slate-400 leading-snug hidden"></p>
+</div>
 </div>
 
 <div class="space-y-2">
 <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Estructura del Diseño</label>
-<div class="grid grid-cols-2 gap-2">
-<button onclick="setLayout('2-col')" id="btn-layout-2col" class="layout-btn px-3 py-2 rounded-lg border border-blue-500 bg-blue-900/30 text-white font-medium text-xs flex items-center justify-center gap-2">
+<div class="grid grid-cols-3 gap-1.5">
+<button onclick="setLayout('2-col')" id="btn-layout-2col" class="layout-btn px-2 py-2 rounded-lg border border-blue-500 bg-blue-900/30 text-white font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap">
 <i class="fa-solid fa-table-columns"></i>
 <span>2 Columnas</span>
 </button>
-<button onclick="setLayout('1-col')" id="btn-layout-1col" class="layout-btn px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-2">
+<button onclick="setLayout('1-col')" id="btn-layout-1col" class="layout-btn px-2 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap">
 <i class="fa-solid fa-bars font-bold"></i>
 <span>1 Columna</span>
 </button>
+<button onclick="setLayout('ats')" id="btn-layout-ats" title="Una sola columna, sin foto ni íconos, texto plano en orden de lectura" class="layout-btn px-2 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap">
+<i class="fa-solid fa-robot"></i>
+<span>1 Col. ATS</span>
+</button>
 </div>
+<p class="text-[11px] text-slate-500 leading-snug">ATS: una sola columna, sin foto ni íconos, contacto en una línea y habilidades como texto separado por comas, para que los filtros de selección lo lean en orden. Cargo, empresa, lugar y fechas van en una sola línea; el CUIL queda oculto al activar este modo (podés volver a mostrarlo con su interruptor).</p>
+<button onclick="convertDatesNumeric()" class="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center justify-center gap-2 transition"><i class="fa-solid fa-calendar-days"></i><span>Convertir fechas a MM/AAAA</span></button>
 </div>
 
 <div class="space-y-2">
@@ -405,7 +435,7 @@ monochrome:{primary:'#18181b',secondary:'#3f3f46',text:'#09090b',sidebar:'#f4f4f
 function renderCV(){
 applyCssVariables();
 const root=document.getElementById('cv-root');
-root.innerHTML=cvState.layout==='2-col'?renderTwoColumnLayout():renderOneColumnLayout();
+root.innerHTML=cvState.layout==='2-col'?renderTwoColumnLayout():(cvState.layout==='ats'?renderAtsLayout():renderOneColumnLayout());
 applyHiddenSections();
 applySectionOrder();
 applySpacing();
@@ -461,7 +491,7 @@ ${langItems()}
 <div class="col-span-8 flex flex-col">
 <div class="border-b-2 border-[var(--cv-primary-color)] pb-2 mb-4">
 <h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.85em] font-bold text-[var(--cv-primary-color)] leading-tight tracking-tight">${cvState.fullName}</h1>
-<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText" class="text-[1.1em] font-semibold text-slate-700 mt-0.5">${cvState.jobTitle}</h2>
+<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText.trimEnd()" class="text-[1.1em] font-semibold text-slate-700 mt-0.5">${nl2br(cvState.jobTitle)}</h2>
 </div>
 <div class="cv-section-gap page-break-inside-avoid">
 <h3 class="text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-200 mb-1.5 flex items-center gap-1.5" data-sec="profile">${secInner('profile','fa-solid fa-user text-xs','Perfil Profesional')}</h3>
@@ -484,7 +514,7 @@ ${cvState.experience.map((exp,idx)=>`
 <span contenteditable="true" onblur="updateExpItem('${exp.id}', 'company', this.innerText)">${exp.company}</span>
 <span contenteditable="true" onblur="updateExpItem('${exp.id}', 'location', this.innerText)" class="text-slate-400 font-normal text-[0.95em]">${exp.location}</span>
 </div>
-<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', this.innerHTML)" class="text-[0.9em] text-slate-600 leading-snug space-y-0.5">${exp.description}</div>
+<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', cleanDesc(this.innerHTML))" class="text-[0.9em] text-slate-600 leading-snug space-y-0.5">${exp.description}</div>
 </div>`).join('')}
 </div>
 </div>
@@ -548,7 +578,7 @@ return `
 ${cvState.showPhoto?`<img src="${cvState.photoUrl}" alt="Foto Perfil" class="w-24 h-24 object-cover rounded-full border-2 border-[var(--cv-primary-color)] shrink-0 shadow">`:''}
 <div class="flex-1">
 <h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.9em] font-bold text-[var(--cv-primary-color)] leading-tight">${cvState.fullName}</h1>
-<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText" class="text-[1.15em] font-semibold text-slate-700">${cvState.jobTitle}</h2>
+<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText.trimEnd()" class="text-[1.15em] font-semibold text-slate-700">${nl2br(cvState.jobTitle)}</h2>
 <div class="flex flex-wrap gap-x-3 gap-y-1 text-[0.85em] text-slate-600 mt-2">
 ${contactRows1()}
 </div>
@@ -575,7 +605,7 @@ ${cvState.experience.map((exp,idx)=>`
 <span contenteditable="true" onblur="updateExpItem('${exp.id}', 'company', this.innerText)">${exp.company}</span>
 <span contenteditable="true" onblur="updateExpItem('${exp.id}', 'location', this.innerText)" class="text-slate-400 font-normal">${exp.location}</span>
 </div>
-<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', this.innerHTML)" class="text-[0.9em] text-slate-600 leading-snug">${exp.description}</div>
+<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', cleanDesc(this.innerHTML))" class="text-[0.9em] text-slate-600 leading-snug">${exp.description}</div>
 </div>`).join('')}
 </div>
 </div>
@@ -642,6 +672,120 @@ ${cvState.references.map((ref)=>`
 </div>`;
 }
 
+/* ===== Layout ATS: una sola columna, sin foto ni íconos, orden de lectura = orden del documento ===== */
+function atsSep(){return '<span class="mx-1.5 text-slate-400">|</span>';}
+function atsContact(){
+const items=contactVisible().filter(it=>it.type!=='birth');
+return items.map((it,i)=>(i?atsSep():'')+`<span class="row-item contact-row relative inline-flex items-center"><span data-ct="${it.type}" contenteditable="true" onblur="updateContactValue('${it.id}', this.innerText)" style="white-space:pre-line">${escHtml(it.value)}</span>${contactActions(it)}</span>`).join('');
+}
+function atsInline(arr,type){
+const hard=type==='hard';
+return arr.map((sk,i)=>`<span class="row-item ats-inline inline-block${hard?' skill-chip':''}"${hard?` data-skill-idx="${i}"`:''}><span contenteditable="true" onblur="updateSkill('${type}', ${i}, stripTrailComma(this.innerText))">${escHtml(sk)}${i<arr.length-1?',':''}</span><span class="row-actions no-print">${hard?'<span class="skill-grip" title="Arrastrar para cambiar el orden" aria-label="Arrastrar para reordenar"><i class="fa-solid fa-grip-vertical text-[9px]"></i></span>':''}<button onclick="removeSkill('${type}', ${i})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join(' ');
+}
+function atsLangs(){
+return cvState.languages.map((lang,idx)=>(idx?atsSep():'')+`<span class="row-item ats-inline inline-block"><span class="font-semibold" contenteditable="true" onblur="updateLanguage(${idx}, 'name', this.innerText)">${escHtml(lang.name)}</span>: <span contenteditable="true" onblur="updateLanguage(${idx}, 'level', this.innerText)">${escHtml(lang.level)}</span><span class="row-actions no-print"><button onclick="removeLanguage(${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></span>`).join('');
+}
+function stripTrailComma(t){return String(t==null?'':t).replace(/\s*,\s*$/,'');}
+const MONTHS_ES={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,set:9,septiembre:9,setiembre:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
+function periodToNumeric(t){
+let v=String(t==null?'':t);
+v=v.replace(/([A-Za-zÁÉÍÓÚáéíóúÑñ]+)\.?\s+(\d{4})/g,(m,mo,y)=>{const n=MONTHS_ES[mo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')];return n?String(n).padStart(2,'0')+'/'+y:m;});
+return v.replace(/\s*[-–—]\s*/g,' - ').replace(/\s{2,}/g,' ').trim();
+}
+function convertDatesNumeric(){
+showConfirm('¿Convertir las fechas de Experiencia y Educación al formato MM/AAAA? Por ejemplo, "Jun 2022 - Jul 2023" pasa a "06/2022 - 07/2023". Cambia el texto del período de cada ítem (en cualquier layout) y se puede deshacer con el historial del CV.',()=>{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+let n=0;
+[cvState.experience,cvState.education].forEach(list=>list.forEach(it=>{const v=periodToNumeric(it.period);if(v!==it.period){it.period=v;n++;}}));
+renderCV();
+cfgToast(n?('Fechas convertidas en '+n+' ítem(s).'):'No había fechas con mes escrito para convertir.');
+});
+}
+function renderAtsLayout(){
+const H='text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] pb-0.5 border-b border-slate-300 mb-1.5 flex items-center gap-1.5';
+const HR='text-[1.05em] font-bold uppercase tracking-wider text-[var(--cv-primary-color)] flex items-center gap-1.5';
+const addBtn=fn=>`<button onclick="${fn}" class="no-print text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Agregar</button>`;
+const del=(fn,id)=>`<button onclick="${fn}('${id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Eliminar"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
+const sec={
+experience:()=>`<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
+<h3 class="${HR}" data-sec="experience">${secInner('experience','','Experiencia Laboral')}</h3>${addBtn('addExperienceItem()')}
+</div>
+<div class="space-y-3" data-list="experience">
+${cvState.experience.map((exp,idx)=>`
+<div class="editable-item page-break-inside-avoid" data-id="${exp.id}">
+<div class="item-actions no-print">${expMoveBtns(exp,idx)}${del('removeExperience',exp.id)}</div>
+<div class="text-[0.95em] leading-snug mb-1"><h4 contenteditable="true" onblur="updateExpItem('${exp.id}', 'role', this.innerText)" class="inline font-bold text-slate-800">${exp.role}</h4>${atsSep()}<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'company', this.innerText)" class="font-medium text-[var(--cv-primary-color)]">${exp.company}</span>${atsSep()}<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'location', this.innerText)" class="text-slate-600">${exp.location}</span>${atsSep()}<span contenteditable="true" onblur="updateExpItem('${exp.id}', 'period', this.innerText)" class="font-semibold text-slate-600">${exp.period}</span></div>
+<div contenteditable="true" onblur="updateExpItem('${exp.id}', 'description', cleanDesc(this.innerHTML))" class="text-[0.9em] text-slate-700 leading-snug space-y-0.5">${exp.description}</div>
+</div>`).join('')}
+</div>
+</div>`,
+education:()=>`<div class="cv-section-gap">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-2">
+<h3 class="${HR}" data-sec="education">${secInner('education','','Educación')}</h3>${addBtn('addEducationItem()')}
+</div>
+<div class="space-y-2">
+${cvState.education.map(edu=>`
+<div class="editable-item page-break-inside-avoid">
+<div class="item-actions no-print">${del('removeEducation',edu.id)}</div>
+<div class="text-[0.92em] leading-snug"><h4 contenteditable="true" onblur="updateEduItem('${edu.id}', 'degree', this.innerText)" class="inline font-bold text-slate-800">${edu.degree}</h4>${atsSep()}<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'institution', this.innerText)" class="text-slate-700">${edu.institution}</span>${atsSep()}<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'period', this.innerText)" class="font-semibold text-slate-600">${edu.period}</span>${atsSep()}<span contenteditable="true" onblur="updateEduItem('${edu.id}', 'status', this.innerText)" class="text-slate-600">${edu.status}</span></div>
+</div>`).join('')}
+</div>
+</div>`,
+courses:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-1.5">
+<h3 class="${HR}" data-sec="courses">${secInner('courses','','Cursos y Certificaciones')}</h3>${addBtn('addCourseItem()')}
+</div>
+<div class="space-y-1.5 text-[0.88em]">
+${cvState.courses.map(crs=>`
+<div class="editable-item">
+<div class="item-actions no-print">${del('removeCourse',crs.id)}</div>
+<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'title', this.innerText)" class="font-semibold text-slate-800">${crs.title}</span>${atsSep()}<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'institution', this.innerText)" class="text-slate-700">${crs.institution}</span>${atsSep()}<span contenteditable="true" onblur="updateCourseItem('${crs.id}', 'year', this.innerText)" class="font-medium text-slate-600">${crs.year}</span>
+</div>`).join('')}
+</div>
+</div>`,
+references:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<div class="flex justify-between items-center border-b border-slate-300 pb-0.5 mb-1.5">
+<h3 class="${HR}" data-sec="references">${secInner('references','','Referencias Laborales')}</h3>${addBtn('addReferenceItem()')}
+</div>
+<div class="space-y-1.5 text-[0.88em]">
+${cvState.references.map(ref=>`
+<div class="editable-item">
+<div class="item-actions no-print">${del('removeReference',ref.id)}</div>
+<span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'name', this.innerText)" class="font-bold text-slate-800">${ref.name}</span> – <span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'title', this.innerText)" class="text-slate-700">${ref.title}</span> – <span contenteditable="true" onblur="updateReferenceItem('${ref.id}', 'contact', this.innerText)" class="text-slate-600">${ref.contact}</span>
+</div>`).join('')}
+</div>
+</div>`,
+skillsHard:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="skillsHard">${secInner('skillsHard','','Habilidades Técnicas')}</h3>
+<div class="text-[0.9em] text-slate-700 leading-relaxed">${atsInline(cvState.skillsHard,'hard')}</div>
+</div>`,
+skillsSoft:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="skillsSoft">${secInner('skillsSoft','','Competencias')}</h3>
+<div class="text-[0.9em] text-slate-700 leading-relaxed">${atsInline(cvState.skillsSoft,'soft')}</div>
+</div>`,
+languages:()=>`<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="languages">${secInner('languages','','Idiomas')}</h3>
+<div class="text-[0.9em] text-slate-700 leading-relaxed">${atsLangs()}</div>
+</div>`
+};
+const body=cvState.sectionOrder.filter(k=>sec[k]).map(k=>sec[k]()).join('');
+const contact=atsContact();
+return `
+<div class="max-w-full">
+<div class="border-b-2 border-[var(--cv-primary-color)] pb-2 mb-4">
+<h1 contenteditable="true" onblur="cvState.fullName = this.innerText" class="text-[1.9em] font-bold text-[var(--cv-primary-color)] leading-tight">${cvState.fullName}</h1>
+<h2 contenteditable="true" onblur="cvState.jobTitle = this.innerText.trimEnd()" class="text-[1.1em] font-semibold text-slate-800">${nl2br(cvState.jobTitle)}</h2>
+${contact?`<div class="ats-contact text-[0.88em] text-slate-700 mt-1.5 leading-relaxed">${contact}</div>`:''}
+</div>
+<div class="cv-section-gap page-break-inside-avoid">
+<h3 class="${H}" data-sec="profile">${secInner('profile','','Perfil Profesional')}</h3>
+<p contenteditable="true" onblur="cvState.profileSummary = this.innerText" class="text-[0.92em] text-slate-700 text-left leading-relaxed">${cvState.profileSummary}</p>
+</div>
+${body}
+</div>`;
+}
+
 function applyPreset(mode){
 cvState.preset=mode;
 const btnCompact=document.getElementById('btn-preset-compact');
@@ -664,18 +808,21 @@ document.getElementById('val-section-gap').innerText=`${cvState.sectionGap}px`;
 renderCV();
 }
 
-function setLayout(layoutType){
-cvState.layout=layoutType;
-renderSectionButtons();
-const btn2=document.getElementById('btn-layout-2col');
-const btn1=document.getElementById('btn-layout-1col');
-if(layoutType==='2-col'){
-btn2.className='layout-btn px-3 py-2 rounded-lg border border-blue-500 bg-blue-900/40 text-white font-medium text-xs flex items-center justify-center gap-2';
-btn1.className='layout-btn px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-2';
-}else{
-btn1.className='layout-btn px-3 py-2 rounded-lg border border-blue-500 bg-blue-900/40 text-white font-medium text-xs flex items-center justify-center gap-2';
-btn2.className='layout-btn px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-white font-medium text-xs flex items-center justify-center gap-2';
+function styleLayoutButtons(){
+const on='border border-blue-500 bg-blue-900/40 text-white',off='border border-slate-700 bg-slate-800 text-slate-400 hover:text-white';
+[['2-col','btn-layout-2col'],['1-col','btn-layout-1col'],['ats','btn-layout-ats']].forEach(([k,id])=>{
+const b=document.getElementById(id);if(b)b.className='layout-btn px-2 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 whitespace-nowrap '+(cvState.layout===k?on:off);
+});
 }
+let _cuilAtsMemo=false;
+function setLayout(layoutType){
+const prev=cvState.layout;
+if(layoutType==='ats'&&prev!=='ats'){_cuilAtsMemo=!!cvState.showCuil;if(cvState.showCuil)cvState.showCuil=false;}
+else if(prev==='ats'&&layoutType!=='ats'){if(_cuilAtsMemo&&!cvState.showCuil)cvState.showCuil=true;_cuilAtsMemo=false;}
+cvState.layout=layoutType;
+const tc=document.getElementById('toggle-cuil');if(tc)tc.checked=cvState.showCuil;
+renderSectionButtons();
+styleLayoutButtons();
 renderCV();
 }
 
@@ -778,21 +925,22 @@ const btn=ev&&ev.currentTarget;
 setTimeout(()=>showPrintNotice(btn),PRINT_NOTICE_DELAY);
 setTimeout(()=>window.print(),PRINT_NOTICE_DELAY+PRINT_NOTICE_MS);
 }
-let pendingConfirm=null;
-function showConfirm(msg,onYes){
+let pendingConfirm=null,pendingConfirmNo=null;
+function showConfirm(msg,onYes,onNo){
 document.getElementById('confirm-text').textContent=msg;
-pendingConfirm=onYes;
+pendingConfirm=onYes;pendingConfirmNo=onNo||null;
 const m=document.getElementById('reset-modal');
 m.classList.remove('hidden');m.classList.add('flex');
 }
 function closeConfirm(){
 const m=document.getElementById('reset-modal');
 m.classList.add('hidden');m.classList.remove('flex');
-pendingConfirm=null;
+const n=pendingConfirmNo;pendingConfirm=null;pendingConfirmNo=null;
+if(n)n();
 }
-function runConfirm(){const f=pendingConfirm;closeConfirm();if(f)f();}
+function runConfirm(){const f=pendingConfirm;pendingConfirmNo=null;closeConfirm();if(f)f();}
 function resetSampleData(){
-showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TODO el texto 'Default' del Modelo y del Perfil de ejemplo?",()=>location.reload());
+showConfirm("¿Está seguro que desea Borrar las modificaciones y restablecer TODO el texto 'Default' del Modelo y del Perfil de ejemplo?",()=>{clearRecoveryBackup();location.reload();});
 }
 
 /* ===== Historial independiente: Editor (parámetros) y CV (textos) ===== */
@@ -852,8 +1000,7 @@ document.getElementById('btn-preset-compact').className=pb+(cvState.preset==='co
 document.getElementById('btn-preset-extended').className=pb+(cvState.preset==='extended'?on:off);
 const lb='layout-btn px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-2 ';
 const lon='border border-blue-500 bg-blue-900/40 text-white';
-document.getElementById('btn-layout-2col').className=lb+(cvState.layout==='2-col'?lon:off);
-document.getElementById('btn-layout-1col').className=lb+(cvState.layout==='1-col'?lon:off);
+styleLayoutButtons();
 document.getElementById('font-family-select').value=cvState.fontFamily;
 document.getElementById('slider-font-size').value=cvState.fontSize;
 document.getElementById('val-font-size').innerText=`${cvState.fontSize}px`;
@@ -903,14 +1050,17 @@ window[n]=function(){const r=f.apply(this,arguments);recordEditor();return r;};
 /* ===== Secciones: títulos editables y eliminación ===== */
 const SECTION_KEYS=['contact','skillsHard','skillsSoft','languages','profile','experience','education','courses','references'];
 const escHtml=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+/* Los saltos de línea del texto guardado (\n) se muestran como <br>; en HTML un \n suelto se colapsa y la línea "volvía" a unirse al re-renderizar */
+const nl2br=v=>String(v==null?'':v).replace(/\r\n?|\n/g,'<br>');
 function secTitle(key,def){const t=cvState.sectionTitles&&cvState.sectionTitles[key];return t||def;}
 const ADD_KEYS=['contact','skillsHard','skillsSoft','languages'];
 function secInner(key,icon,def){
-const m=(cvState.sectionIcons&&cvState.sectionIcons[key])||'icon';
+const ats=cvState.layout==='ats';
+const m=ats?'none':((cvState.sectionIcons&&cvState.sectionIcons[key])||'icon');
 const mark=m==='icon'?`<i class="${icon}"></i> `:(m==='bullet'?`<span class="inline-block shrink-0 bg-current" style="width:.72em;height:.72em"></span> `:'');
 const nx={icon:['fa-square','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[m];
 const tight=ADD_KEYS.includes(key);
-const cyc=`<button onclick="toggleSectionIcon('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-slate-500 hover:text-slate-800" title="${nx[1]}"><i class="fa-solid ${nx[0]} text-[10px]"></i></button>`;
+const cyc=ats?'':`<button onclick="toggleSectionIcon('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-slate-500 hover:text-slate-800" title="${nx[1]}"><i class="fa-solid ${nx[0]} text-[10px]"></i></button>`;
 const add=ADD_KEYS.includes(key)?`<button onclick="addSectionItem('${key}')" class="no-print ${tight?'ml-1 px-0.5 py-1':'ml-2 p-1'} text-blue-600 hover:text-blue-800" title="Agregar ítem"><i class="fa-solid fa-plus-circle text-xs"></i></button>`:'';
 return `${mark}<span contenteditable="true" onblur="setSectionTitle('${key}', this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escHtml(secTitle(key,def))}</span>${cyc}${add}<button onclick="requestDeleteSection('${key}')" class="no-print ${tight?'ml-1.5 px-0.5 py-1':'ml-3 p-1'} text-rose-500 hover:text-rose-700" title="Eliminar sección"><i class="fa-solid fa-trash-can text-xs"></i></button>`;
 }
@@ -1041,12 +1191,13 @@ const contactVisible=()=>cvState.contactItems.filter(it=>cvState.showCuil||it.ty
 
 const iconMode=it=>(it.icon===false||it.icon==='none')?'none':(it.icon==='bullet'?'bullet':'icon');
 function contactActions(it){
+if(cvState.layout==='ats')return `<span class="row-actions no-print shrink-0 flex gap-2.5 ml-3"><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
 const nxt={icon:['fa-circle','Cambiar ícono por viñeta'],bullet:['fa-eye-slash','Quitar viñeta'],none:['fa-rotate-left','Restablecer ícono']}[iconMode(it)];
 return `<span class="row-actions no-print shrink-0 flex gap-2.5 ml-3"><button onclick="toggleContactIcon('${it.id}')" class="text-slate-500 hover:text-slate-800" title="${nxt[1]}"><i class="fa-solid ${nxt[0]} text-[10px]"></i></button><button onclick="removeContact('${it.id}')" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span>`;
 }
 function contactMark(it,T,two){
 const m=iconMode(it);
-if(m==='none')return '';
+if(m==='none'||cvState.layout==='ats')return '';
 if(m==='bullet')return `<i class="fa-solid fa-circle text-[6px] text-[var(--cv-primary-color)] ${two?'w-4 text-center shrink-0 leading-none':''}"></i>`+(two?'':' ');
 return two?`<i class="${T.ic} ${T.col} w-4 text-center shrink-0 leading-none text-xs"></i>`:`<i class="${T.ic} ${T.col}"></i> `;
 }
@@ -1063,7 +1214,7 @@ return `<span class="row-item flex items-center gap-1 ${it.type==='cuil'?'font-m
 }).join('');
 }
 function hardChips(cls){
-return cvState.skillsHard.map((skill,idx)=>`<span class="row-item inline-block ${cls}"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3"><button onclick="removeSkill('hard', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join('');
+return cvState.skillsHard.map((skill,idx)=>`<span class="row-item skill-chip inline-block ${cls}" data-skill-idx="${idx}"><span contenteditable="true" onblur="updateSkill('hard', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3 relative"><span class="skill-grip" title="Arrastrar para cambiar el orden" aria-label="Arrastrar para reordenar"><i class="fa-solid fa-grip-vertical text-[9px]"></i></span><button onclick="removeSkill('hard', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-xmark text-[10px]"></i></button></span></span>`).join('');
 }
 function softItems(){
 return cvState.skillsSoft.map((skill,idx)=>`<li class="row-item"><span contenteditable="true" onblur="updateSkill('soft', ${idx}, this.innerText)">${escHtml(skill)}</span><span class="row-actions no-print ml-3"><button onclick="removeSkill('soft', ${idx})" class="text-rose-500 hover:text-rose-700" title="Eliminar ítem"><i class="fa-solid fa-trash-can text-[10px]"></i></button></span></li>`).join('');
@@ -1075,6 +1226,164 @@ return cvState.languages.map((lang,idx)=>`<div class="row-item"><span class="fon
 function updateContactValue(id,val){const it=cvState.contactItems.find(x=>x.id===id);if(it)it.value=val;}
 function removeContact(id){cvState.contactItems=cvState.contactItems.filter(x=>x.id!==id);renderCV();}
 function toggleContactIcon(id){const it=cvState.contactItems.find(x=>x.id===id);if(it){it.icon={icon:'bullet',bullet:'none',none:'icon'}[iconMode(it)];renderCV();}}
+/* ===== Arrastrar y soltar Habilidades Técnicas (mouse y táctil, mediante el asa de cada ítem) ===== */
+let skillDrag=null;
+function startSkillDrag(e){
+const g=e.target&&e.target.closest?e.target.closest('.skill-grip'):null;
+if(!g||skillDrag||(e.pointerType==='mouse'&&e.button!==0))return;
+const chip=g.closest('.skill-chip');if(!chip)return;
+e.preventDefault();
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const from=parseInt(chip.dataset.skillIdx,10);
+if(!(from>=0)||from>=cvState.skillsHard.length)return;
+const box=chip.parentElement;
+const ghost=document.createElement('div');ghost.id='skill-ghost';ghost.className='no-print';
+ghost.textContent=cvState.skillsHard[from];document.body.appendChild(ghost);
+const line=document.createElement('div');line.id='skill-drop';line.className='no-print';line.style.display='none';document.body.appendChild(line);
+chip.classList.add('skill-dragging');
+document.body.style.userSelect='none';document.body.style.cursor='grabbing';
+skillDrag={from,box,chip,ghost,line,pos:from,x:e.clientX,y:e.clientY,id:e.pointerId,g:g,timer:null};
+try{g.setPointerCapture(e.pointerId);}catch(_){}
+g.addEventListener('pointermove',skillDragMove);g.addEventListener('pointerup',skillDragEnd);g.addEventListener('pointercancel',skillDragCancel);
+document.addEventListener('keydown',skillDragKey);
+skillDrag.timer=setInterval(skillAutoScroll,30);
+skillDragMove(e);
+}
+function skillDragMove(e){
+const d=skillDrag;if(!d)return;
+d.x=e.clientX;d.y=e.clientY;
+d.ghost.style.left=(d.x+12)+'px';d.ghost.style.top=(d.y+12)+'px';
+skillDragTarget();
+}
+function skillDragTarget(){
+const d=skillDrag;if(!d)return;
+const chips=[...d.box.querySelectorAll(':scope>.skill-chip')];
+if(!chips.length)return;
+let best=null,bd=1e12;
+chips.forEach(c=>{const r=c.getBoundingClientRect();const cx=Math.max(r.left,Math.min(d.x,r.right)),cy=Math.max(r.top,Math.min(d.y,r.bottom));const dist=(cx-d.x)*(cx-d.x)+(cy-d.y)*(cy-d.y)*4;if(dist<bd){bd=dist;best=c;}});
+const r=best.getBoundingClientRect(),i=chips.indexOf(best),after=d.x>r.left+r.width/2;
+d.pos=i+(after?1:0);
+d.line.style.display='block';d.line.style.height=r.height+'px';d.line.style.top=r.top+'px';d.line.style.left=((after?r.right:r.left)-(after?0:3))+'px';
+}
+function skillAutoScroll(){
+const d=skillDrag;if(!d)return;
+const sc=document.getElementById('preview-container');if(!sc)return;
+const cr=sc.getBoundingClientRect(),zone=60;
+let dy=0;
+if(d.y<cr.top+zone)dy=-Math.ceil((cr.top+zone-d.y)/4);
+else if(d.y>cr.bottom-zone)dy=Math.ceil((d.y-(cr.bottom-zone))/4);
+if(dy&&sc.scrollHeight>sc.clientHeight){sc.scrollTop+=Math.max(-24,Math.min(24,dy));skillDragTarget();}
+}
+function skillDragCleanup(){
+const d=skillDrag;if(!d)return null;
+clearInterval(d.timer);
+d.g.removeEventListener('pointermove',skillDragMove);d.g.removeEventListener('pointerup',skillDragEnd);d.g.removeEventListener('pointercancel',skillDragCancel);
+document.removeEventListener('keydown',skillDragKey);
+try{d.g.releasePointerCapture(d.id);}catch(_){}
+d.ghost.remove();d.line.remove();d.chip.classList.remove('skill-dragging');
+document.body.style.userSelect='';document.body.style.cursor='';
+skillDrag=null;return d;
+}
+function skillDragEnd(){
+const d=skillDragCleanup();if(!d)return;
+const to=d.pos>d.from?d.pos-1:d.pos;
+if(to===d.from)return;
+const arr=cvState.skillsHard,it=arr.splice(d.from,1)[0];
+arr.splice(to,0,it);
+renderCV();
+}
+function skillDragCancel(){skillDragCleanup();}
+function skillDragKey(e){if(e.key==='Escape')skillDragCleanup();}
+/* ===== Experimental: achicar para ahorrar una página ===== */
+/* Mínimos que se respetan (si el valor actual ya es menor, ese parámetro no se toca) */
+const SHRINK_MIN={fontSize:10,lineHeight:1.15,sectionGap:6};
+let shrinkStack=[];
+const typoSnap=()=>({preset:cvState.preset,fontSize:cvState.fontSize,lineHeight:cvState.lineHeight,sectionGap:cvState.sectionGap});
+const fmtLH=v=>String(Math.round(v*100)/100);
+function shrinkMsg(t,warn){
+const m=document.getElementById('shrink-msg');if(!m)return;
+m.textContent=t;m.classList.remove('hidden');m.style.color=warn?'#fbbf24':'#94a3b8';
+}
+function updateGrowLabel(){
+const l=document.getElementById('grow-label');if(!l)return;
+const n=pageCount();l.textContent='Optimizar tamaño a '+n+' página'+(n===1?'':'s');
+}
+/* Aumenta un "grado" por toque, sin superar la cantidad de páginas actual. Máximos que se respetan (si el valor actual ya es mayor, no se toca) */
+const GROW_MAX={fontSize:14,lineHeight:1.6,sectionGap:24};
+/* Jerarquía de grados: primero un aumento combinado y proporcional; si no entra, solo espaciado; si no, de a un parámetro */
+const GROW_STEPS=[{f:0.5,l:0.05,g:1},{f:0,l:0.05,g:2},{f:0,l:0,g:2},{f:0,l:0.05,g:1},{f:0,l:0,g:1},{f:0,l:0.05,g:0},{f:0.5,l:0,g:0}];
+function growToFitPages(){
+const cur=typoSnap();
+applyCssVariables();paginate();
+const X=pageCount();
+const r=(v,st)=>Math.round(Math.round(v/st)*st*100)/100;
+const up=(v,d,mx,st)=>v>=mx?v:Math.min(mx,r(v+d,st));
+let chosen=null,nNew=X,fill=null,atMax=true;
+for(const st of GROW_STEPS){
+const t={fontSize:up(cur.fontSize,st.f,GROW_MAX.fontSize,0.5),lineHeight:up(cur.lineHeight,st.l,GROW_MAX.lineHeight,0.05),sectionGap:st.g?up(cur.sectionGap,st.g,GROW_MAX.sectionGap,1):cur.sectionGap};
+if(t.fontSize===cur.fontSize&&t.lineHeight===cur.lineHeight&&t.sectionGap===cur.sectionGap)continue;
+atMax=false;
+const n=shrinkTry(t);
+if(n<=X){chosen=t;nNew=n;fill=document.getElementById('cv-paper').dataset.lastFill;break;}
+}
+shrinkTry(cur);
+if(!chosen){
+shrinkMsg(atMax?'Ya se alcanzaron los valores máximos (letra '+GROW_MAX.fontSize+' px, interlineado '+fmtLH(GROW_MAX.lineHeight)+', espacio entre secciones '+GROW_MAX.sectionGap+' px).':'No hay más margen: un grado más de tamaño o espaciado pasaría de '+X+' página'+(X===1?'':'s')+'. El contenido ya aprovecha bien el espacio disponible.',true);
+return;
+}
+shrinkStack.push(cur);
+Object.assign(cvState,{fontSize:chosen.fontSize,lineHeight:chosen.lineHeight,sectionGap:chosen.sectionGap});
+syncEditorUI();renderCV();recordEditor();
+shrinkMsg('Grado aumentado (se mantienen '+nNew+' página'+(nNew===1?'':'s')+'). Letra: '+cur.fontSize+' → '+chosen.fontSize+' px · Interlineado: '+fmtLH(cur.lineHeight)+' → '+fmtLH(chosen.lineHeight)+' · Espacio entre secciones: '+cur.sectionGap+' → '+chosen.sectionGap+' px. Contenido principal en la última página: ~'+fill+'% de su alto. Tocá de nuevo para seguir, o "Deshacer" para volver un paso.');
+shrinkUpdateUndoBtn();
+}
+function shrinkUpdateUndoBtn(){const b=document.getElementById('btn-shrink-undo');if(b)b.disabled=!shrinkStack.length;}
+/* Prueba un estado de tipografía sin volver a dibujar todo el CV: solo variables CSS + paginación */
+function shrinkTry(t){
+cvState.fontSize=t.fontSize;cvState.lineHeight=t.lineHeight;cvState.sectionGap=t.sectionGap;
+applyCssVariables();paginate();
+return pageCount();
+}
+function shrinkToSavePage(){
+const cur=typoSnap(),n0=(applyCssVariables(),paginate(),pageCount());
+if(n0<=1){shrinkMsg('El CV ya ocupa 1 página: no hay nada que ahorrar.');return;}
+const target=n0-1;
+const fF=Math.min(cur.fontSize,SHRINK_MIN.fontSize),fL=Math.min(cur.lineHeight,SHRINK_MIN.lineHeight),fG=Math.min(cur.sectionGap,SHRINK_MIN.sectionGap);
+const r=(v,st)=>Math.round(Math.round(v/st)*st*100)/100;
+const states=[];
+const push=t=>{const l=states[states.length-1]||cur;if(t.fontSize!==l.fontSize||t.lineHeight!==l.lineHeight||t.sectionGap!==l.sectionGap)states.push(t);};
+/* Fase 1: se reducen juntos, en proporción, el interlineado y el espacio entre secciones (la letra no se toca) */
+for(let i=1;i<=20;i++){const k=i/20;push({fontSize:cur.fontSize,lineHeight:r(cur.lineHeight-(cur.lineHeight-fL)*k,0.05),sectionGap:Math.round(cur.sectionGap-(cur.sectionGap-fG)*k)});}
+/* Fase 2: recién si no alcanzó, se reduce también el tamaño de letra, de a 0,5 px, hasta su mínimo */
+for(let f=cur.fontSize-0.5;f>=fF-1e-9;f-=0.5)push({fontSize:r(f,0.5),lineHeight:fL,sectionGap:fG});
+let pick=-1;
+if(states.length&&shrinkTry(states[states.length-1])<=target){
+let lo=0,hi=states.length-1;
+while(lo<hi){const mid=(lo+hi)>>1;if(shrinkTry(states[mid])<=target)hi=mid;else lo=mid+1;}
+pick=lo;
+}
+if(pick<0){
+shrinkTry(cur);
+shrinkMsg('No fue posible pasar de '+n0+' a '+target+' páginas respetando los mínimos (letra '+SHRINK_MIN.fontSize+' px, interlineado '+fmtLH(SHRINK_MIN.lineHeight)+', espacio entre secciones '+SHRINK_MIN.sectionGap+' px). No se cambió nada. Probá reduciendo contenido o eliminando alguna sección.',true);
+return;
+}
+const t=states[pick],nNew=shrinkTry(t);
+shrinkTry(cur);
+shrinkStack.push(cur);
+Object.assign(cvState,{fontSize:t.fontSize,lineHeight:t.lineHeight,sectionGap:t.sectionGap});
+syncEditorUI();renderCV();recordEditor();
+shrinkMsg('Se pasó de '+n0+' a '+nNew+' página'+(nNew===1?'':'s')+'. Letra: '+cur.fontSize+' → '+t.fontSize+' px · Interlineado: '+fmtLH(cur.lineHeight)+' → '+fmtLH(t.lineHeight)+' · Espacio entre secciones: '+cur.sectionGap+' → '+t.sectionGap+' px. Si no te convence, usá "Deshacer".');
+shrinkUpdateUndoBtn();
+}
+function undoShrink(){
+const t=shrinkStack.pop();
+if(!t){shrinkUpdateUndoBtn();return;}
+cvState.preset=t.preset;
+Object.assign(cvState,{fontSize:t.fontSize,lineHeight:t.lineHeight,sectionGap:t.sectionGap});
+syncEditorUI();renderCV();recordEditor();
+shrinkMsg('Se volvió al estado anterior: letra '+t.fontSize+' px · interlineado '+fmtLH(t.lineHeight)+' · espacio entre secciones '+t.sectionGap+' px.');
+shrinkUpdateUndoBtn();
+}
 function removeSkill(type,idx){
 if(type==='hard')cvState.skillsHard.splice(idx,1);
 else cvState.skillsSoft.splice(idx,1);
@@ -1087,7 +1396,7 @@ function addSectionItem(key){
 if(key==='contact'){showTypePicker();return;}
 unhideSection(key);
 if(key==='skillsHard')cvState.skillsHard.push('Nueva habilidad');
-else if(key==='skillsSoft'){cvState.skillsSoft.push('Nueva competencia');if(cvState.layout==='1-col')cvState.showSoftInOneCol=true;}
+else if(key==='skillsSoft'){cvState.skillsSoft.push('Nueva competencia');if(cvState.layout!=='2-col')cvState.showSoftInOneCol=true;}
 else if(key==='languages')cvState.languages.push({name:'Idioma',level:'Nivel'});
 renderCV();
 }
@@ -1103,27 +1412,111 @@ const m=document.getElementById('type-modal');m.classList.remove('hidden');m.cla
 function closeTypePicker(){const m=document.getElementById('type-modal');m.classList.add('hidden');m.classList.remove('flex');}
 function pickContactType(t){closeTypePicker();addContactItem(t);}
 
+/* ===== Descargas confiables + copia de recuperación temporal (solo para exportaciones) =====
+   Motivo de las descargas "perdidas": el navegador (Chrome/Edge) bloquea las descargas automáticas
+   que no nacen de un clic (por ejemplo, un segundo archivo disparado por un temporizador, o uno que
+   termina de generarse varios segundos después del clic). El bloqueo queda activo en esa pestaña hasta
+   recargarla y la página no puede detectarlo. Por eso: (1) cada archivo se descarga desde un clic propio,
+   (2) se ofrece "Descargar de nuevo" y (3) antes de exportar se guarda una copia TEMPORAL de los datos
+   personales en sessionStorage (se borra al cerrar la pestaña) para poder restaurarlos tras recargar. */
+const RECOV_KEY='cvRecoveryBackup',RECOV_MAX_MS=60*60*1000;
+function ssSet(k,v){try{sessionStorage.setItem(k,v);return true;}catch(e){return false;}}
+function ssGet(k){try{return sessionStorage.getItem(k);}catch(e){return null;}}
+function ssDel(k){try{sessionStorage.removeItem(k);}catch(e){}}
+function saveRecoveryBackup(reason){
+try{
+if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+const content=JSON.parse(snap(CV_KEYS));
+const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:content};
+const ph=(typeof cvState.photoUrl==='string'&&cvState.photoUrl.indexOf('data:image/')===0&&cvState.photoUrl.length<1500000)?cvState.photoUrl:null;
+const rec={savedAt:Date.now(),reason:reason||'',data:data,photo:ph};
+if(!ssSet(RECOV_KEY,JSON.stringify(rec))){rec.photo=null;ssSet(RECOV_KEY,JSON.stringify(rec));}
+}catch(e){}
+}
+function clearRecoveryBackup(){ssDel(RECOV_KEY);}
+function checkRecoveryBackup(){
+const raw=ssGet(RECOV_KEY);if(!raw)return;
+let rec,data;
+try{rec=JSON.parse(raw);data=normalizeImport(rec.data);}catch(e){ssDel(RECOV_KEY);return;}
+const age=Date.now()-(+rec.savedAt||0);
+if(!(age>=0&&age<RECOV_MAX_MS)){ssDel(RECOV_KEY);return;}
+const mins=Math.round(age/60000);
+showConfirm('Se encontró una copia de recuperación de tus datos personales, guardada '+(mins<1?'hace menos de 1 minuto':'hace '+mins+' min')+' durante una exportación que pudo no completarse. ¿Querés restaurarla? Sí = restaurar. No = descartar la copia.',()=>{
+Object.keys(data).forEach(k=>{cvState[k]=data[k];});
+if(typeof rec.photo==='string'&&rec.photo.indexOf('data:image/')===0)cvState.photoUrl=rec.photo;
+ssDel(RECOV_KEY);renderCV();cfgToast('Datos personales restaurados.');
+},()=>{ssDel(RECOV_KEY);});
+}
+window.addEventListener('load',()=>setTimeout(checkRecoveryBackup,700));
+
+let _dlPanelEl=null,_dlPanelTimer=null;
+function hideDlPanel(){clearTimeout(_dlPanelTimer);if(_dlPanelEl){_dlPanelEl.remove();_dlPanelEl=null;}}
+function showDlPanel(msg,actions,ms){
+hideDlPanel();
+const p=document.createElement('div');p.className='no-print';
+p.style.cssText='position:fixed;right:16px;bottom:64px;z-index:70;max-width:340px;padding:12px 14px;border-radius:12px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);';
+const t=document.createElement('div');t.style.cssText='line-height:1.45;margin-bottom:8px;';t.textContent=msg;p.appendChild(t);
+const row=document.createElement('div');row.style.cssText='display:flex;flex-wrap:wrap;gap:6px;';
+const mk=(text,fn,close)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.style.cssText='padding:5px 10px;border-radius:8px;border:1px solid #475569;background:#1e293b;color:#e2e8f0;font:500 11px Inter,sans-serif;cursor:pointer;';b.onclick=()=>{try{fn();}catch(e){console.error(e);}if(close)hideDlPanel();};row.appendChild(b);};
+actions.forEach(a=>mk(a.text,a.fn,a.close!==false));
+mk('Cerrar',()=>{},true);
+p.appendChild(row);document.body.appendChild(p);_dlPanelEl=p;
+_dlPanelTimer=setTimeout(hideDlPanel,ms||180000);
+}
+function triggerDownload(blob,name){
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';a.style.display='none';
+document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function offerDownloadHelp(blob,name,extra,msg){
+const acts=[{text:'Descargar de nuevo',fn:()=>triggerDownload(blob,name),close:false}].concat(extra||[],[{text:'Ya la tengo (borrar copia temporal)',fn:clearRecoveryBackup}]);
+showDlPanel(msg||('Si la descarga de "'+name+'" no comenzó o no se abrió el cuadro para guardar, tocá "Descargar de nuevo". Si ves el aviso de descargas bloqueadas en la barra de direcciones del navegador, elegí Permitir. Tus datos están respaldados temporalmente por si hay que recargar la página.'),acts);
+}
+
 /* ===== Exportar / Importar (JSON) ===== */
-function exportCV(){
+function exportCV(opts){
 if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
 const content=JSON.parse(snap(CV_KEYS));delete content.sectionSpacing;delete content.expSpacing;
 const data={app:'editor-cv-argentina',version:2,exportedAt:new Date().toISOString(),content:content};
 const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-const url=URL.createObjectURL(blob);
-const a=document.createElement('a');
-a.href=url;
-a.download='cv-datos-'+new Date().toISOString().slice(0,10)+'.json';
-document.body.appendChild(a);a.click();a.remove();
-setTimeout(()=>URL.revokeObjectURL(url),1500);
+const fname='cv-datos-'+new Date().toISOString().slice(0,10)+'.json';
+saveRecoveryBackup('exportar datos');
+triggerDownload(blob,fname);
+if(!(opts&&opts.silent===true))offerDownloadHelp(blob,fname);
+return {blob:blob,name:fname};
 }
 
 const plain=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f]/g,' ').slice(0,n||300);
 const normIcon=v=>(v===false||v==='none')?'none':(v==='bullet'?'bullet':'icon');
 const hasType=t=>typeof t==='string'&&Object.prototype.hasOwnProperty.call(CONTACT_TYPES,t);
 const cleanText=v=>String(v==null?'':v).replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const cleanDesc=v=>String(v==null?'':v)
-.replace(/<div[^>]*>/gi,'<br>').replace(/<\/div>/gi,'').replace(/^(<br\s*\/?>)+/i,'')
-.replace(/<br\s*\/?>/gi,'\u0000').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\u0000/g,'<br>');
+/* Descripción (HTML editable): se conserva solo el formato seguro (negrita, cursiva, subrayado y saltos de línea).
+   Cualquier otra etiqueta (span con estilos pegados, font, etc.) se desenvuelve dejando solo su texto, y se descartan los atributos. */
+const escHtmlTxt=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function cleanDesc(v){
+let s=String(v==null?'':v);
+/* Repara archivos exportados con la versión anterior, donde las etiquetas quedaron escapadas como texto (&lt;span ...&gt;) */
+s=s.replace(/&lt;(\/?(?:span|div|p|b|i|u|em|strong|br|font)\b(?:(?!&gt;)[\s\S])*?)&gt;/gi,'<$1>');
+const doc=new DOMParser().parseFromString('<body>'+s+'</body>','text/html');
+const KEEP={B:'b',STRONG:'b',I:'i',EM:'i',U:'u'},BLOCK={DIV:1,P:1,LI:1};
+const walk=n=>{
+let out='';
+n.childNodes.forEach(c=>{
+if(c.nodeType===3){out+=escHtmlTxt(c.nodeValue);return;}
+if(c.nodeType!==1)return;
+const t=c.tagName;
+if(t==='SCRIPT'||t==='STYLE'||t==='TEMPLATE')return;
+if(t==='BR'){out+='<br>';return;}
+const inner=walk(c);
+if(BLOCK[t]){out+='<br>'+inner;return;}
+if(KEEP[t]){out+=inner?'<'+KEEP[t]+'>'+inner+'</'+KEEP[t]+'>':'';return;}
+out+=inner;
+});
+return out;
+};
+return walk(doc.body).replace(/^(<br>)+/,'');
+}
 
 function normalizeImport(d){
 const bad=k=>new Error("El campo '"+k+"' tiene un formato inválido.");
@@ -1375,7 +1768,40 @@ checkPageOverflow();
 
 /* ===== Paginación A4 real: la Vista Previa replica el PDF ===== */
 const MM=96/25.4;
+/* Paginar mide la hoja a zoom 1, lo que acorta momentáneamente el área desplazable y el navegador "recorta" la posición de scroll:
+   por eso la pantalla saltaba al editar en páginas posteriores. Se guarda y restaura el scroll, y se mantiene visible el cursor. */
 function paginate(){
+const paper=document.getElementById('cv-paper');
+if(!paper)return;
+const saved=[];
+for(let e=paper;e;e=e.parentElement)if(e.scrollTop||e.scrollLeft)saved.push([e,e.scrollTop,e.scrollLeft]);
+const wx=window.scrollX,wy=window.scrollY;
+_paginate();
+updateGrowLabel();
+saved.forEach(a=>{if(a[0].scrollTop!==a[1])a[0].scrollTop=a[1];if(a[0].scrollLeft!==a[2])a[0].scrollLeft=a[2];});
+if(window.scrollX!==wx||window.scrollY!==wy)window.scrollTo(wx,wy);
+keepCaretVisible();
+}
+function keepCaretVisible(){
+const ae=document.activeElement;
+if(!ae||!ae.isContentEditable||!ae.closest||!ae.closest('#cv-root'))return;
+const sel=window.getSelection();
+let r=null;
+if(sel&&sel.rangeCount){const rg=sel.getRangeAt(0).cloneRange();rg.collapse(false);const rs=rg.getClientRects();r=rs.length?rs[rs.length-1]:null;}
+if(!r||(!r.height&&!r.width))r=ae.getBoundingClientRect();
+const box=document.getElementById('preview-container');
+const cr=box?box.getBoundingClientRect():{top:0,bottom:innerHeight};
+const vv=window.visualViewport;
+const vTop=Math.max(0,cr.top),vBot=Math.min(cr.bottom,vv?vv.offsetTop+vv.height:innerHeight);
+let top=vTop+8;
+const bar=box&&box.querySelector('.sticky');if(bar){const b=bar.getBoundingClientRect();if(b.bottom>top&&b.top<vBot)top=b.bottom+8;}
+const bot=vBot-40;
+let d=0;
+if(r.bottom>bot)d=r.bottom-bot;else if(r.top<top)d=r.top-top;
+if(d&&box&&box.scrollHeight>box.clientHeight)box.scrollTop+=d;
+else if(d)window.scrollBy(0,d);
+}
+function _paginate(){
 const paper=document.getElementById('cv-paper'),root=document.getElementById('cv-root');
 if(!paper||!root||!root.firstElementChild)return;
 const z=paper.style.zoom;paper.style.zoom=1;
@@ -1384,30 +1810,32 @@ root.querySelectorAll('.pg-clone').forEach(e=>e.remove());
 paper.querySelectorAll('.cv-ruler-x').forEach(e=>e.remove());
 root.querySelectorAll('.pg-first').forEach(e=>{e.classList.remove('pg-first');e.style.marginTop='';});
 paper.classList.remove('paged');paper.style.height='';
-const P=297*MM,PAD=12*MM,T=paper.getBoundingClientRect().top;
+const P=297*MM,PAD=12*MM;
+/* La posición de la hoja se vuelve a leer en cada medición: si el navegador ajusta el scroll (anclaje de scroll) mientras se empuja un bloque, una referencia fija quedaba desfasada y dejaba un hueco en blanco */
+const Ty=()=>paper.getBoundingClientRect().top;
 const SEL='.page-break-inside-avoid,.editable-item,.flex.justify-between.items-center.border-b,.grid.grid-cols-2.cv-section-gap';
 const all=[...root.querySelectorAll(SEL)].filter(e=>!e.closest('.col-span-4')&&!(e.parentElement&&e.parentElement.closest(SEL)));
 all.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
 let maxB=0;
 all.forEach((a,i)=>{
-let r=a.getBoundingClientRect(),y0=r.top-T,y1=r.bottom-T;
-if(a.matches('.border-b')&&all[i+1])y1=Math.max(y1,all[i+1].getBoundingClientRect().bottom-T);
+let r=a.getBoundingClientRect(),y0=r.top-Ty(),y1=r.bottom-Ty();
+if(a.matches('.border-b')&&all[i+1])y1=Math.max(y1,all[i+1].getBoundingClientRect().bottom-Ty());
 const pg=Math.floor((y0+1)/P);
 if(y1>(pg+1)*P-PAD&&(y1-y0)<P-2*PAD){
 const want=(pg+1)*P+PAD;
 a.style.marginTop=(parseFloat(getComputedStyle(a).marginTop)+want-y0)+'px';
-for(let it=0;it<3;it++){const d=want-(a.getBoundingClientRect().top-T);if(Math.abs(d)<0.5)break;a.style.marginTop=(parseFloat(a.style.marginTop)+d)+'px';}
+for(let it=0;it<3;it++){const d=want-(a.getBoundingClientRect().top-Ty());if(Math.abs(d)<0.5)break;a.style.marginTop=(parseFloat(a.style.marginTop)+d)+'px';}
 a.classList.add('pg-first');
 }
-maxB=Math.max(maxB,a.getBoundingClientRect().bottom-T);
+maxB=Math.max(maxB,a.getBoundingClientRect().bottom-Ty());
 });
 const n=Math.max(1,Math.ceil((maxB+PAD-2)/P));
 if(n>1){
 paper.classList.add('paged');paper.style.setProperty('--cv-pages',n);paper.style.height=(n*297)+'mm';
 for(let k=1;k<n;k++){const rl=document.createElement('div');rl.className='cv-ruler cv-ruler-x no-print';rl.setAttribute('aria-hidden','true');rl.style.top=(k*297)+'mm';rl.innerHTML=RULER_SVG;paper.appendChild(rl);}
-const hd=document.createElement('div');hd.className='pg-clone';hd.textContent='CV de '+n+' Páginas';
+if(cvState.layout!=='ats'){const hd=document.createElement('div');hd.className='pg-clone';hd.textContent='CV de '+n+' Páginas';
 hd.style.cssText='position:absolute;top:8.2mm;right:15mm;font-size:9px;font-weight:300;letter-spacing:.2px;color:#9ca3af;line-height:1;white-space:nowrap;pointer-events:none';
-root.appendChild(hd);
+root.appendChild(hd);}
 const left=root.querySelector('.col-span-4');
 if(left){
 const pr=paper.getBoundingClientRect(),lr=left.getBoundingClientRect();
@@ -1422,6 +1850,7 @@ c.insertAdjacentHTML('afterbegin','<div style="padding-bottom:8px;border-bottom:
 c.style.position='absolute';c.style.left=(lr.left-pr.left)+'px';c.style.top=(k*P+PAD)+'px';c.style.width=lr.width+'px';
 root.appendChild(c);
 }}}
+paper.dataset.lastFill=Math.round((maxB-(n-1)*P)/P*100);
 const ind=document.getElementById('page-count-indicator');
 if(ind){ind.innerText=n===1?'1 Página (Perfecto Fit)':n+' Páginas (Extendido)';ind.className=(n===1?'text-emerald-400':'text-amber-400')+' font-semibold';}
 paper.style.zoom=z;
@@ -1429,6 +1858,16 @@ paper.style.zoom=z;
 function checkPageOverflow(){clearTimeout(window._pgT);window._pgT=setTimeout(()=>{paginate();requestAnimationFrame(()=>requestAnimationFrame(paginate));},30);}
 window.addEventListener('load',()=>{
 document.getElementById('cv-root').addEventListener('input',checkPageOverflow);
+document.getElementById('cv-root').addEventListener('pointerdown',startSkillDrag);
+/* Pegar siempre como texto plano: evita arrastrar estilos (tamaño, fuente, color) de la página o programa de origen */
+document.getElementById('cv-root').addEventListener('paste',e=>{
+const el=e.target&&e.target.closest?e.target.closest('[contenteditable="true"]'):null;
+if(!el)return;
+e.preventDefault();
+let t=((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r\n?/g,'\n');
+if(el.tagName!=='DIV'&&el.tagName!=='P')t=t.replace(/\s*\n\s*/g,' ');
+document.execCommand('insertText',false,t);
+});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(checkPageOverflow);
 checkPageOverflow();
 });
@@ -1569,17 +2008,16 @@ recordEditor();
 window.addEventListener('load',()=>{syncEditorUI();updateTypographyMarks();});
 
 /* ===== Exportar / Importar la Configuración del Editor (sin lo configurado desde la Vista Previa) ===== */
-function exportEditorConfig(){
+function exportEditorConfig(opts){
 if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
 commitEditor();syncTypoStore();
 const o={};ED_KEYS.forEach(k=>{o[k]=clone(cvState[k]);});
 const data={app:'editor-cv-argentina',type:'editor-config',version:1,exportedAt:new Date().toISOString(),config:o};
 const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-const url=URL.createObjectURL(blob);
-const a=document.createElement('a');
-a.href=url;a.download='cv-configuracion-editor-'+new Date().toISOString().slice(0,10)+'.json';
-document.body.appendChild(a);a.click();a.remove();
-setTimeout(()=>URL.revokeObjectURL(url),1500);
+const fname='cv-configuracion-editor-'+new Date().toISOString().slice(0,10)+'.json';
+triggerDownload(blob,fname);
+if(!(opts&&opts.silent===true))offerDownloadHelp(blob,fname);
+return {blob:blob,name:fname};
 }
 function importEditorConfig(e){
 const file=e.target.files[0];
@@ -1607,8 +2045,8 @@ reader.readAsText(file);
 }
 /* Genera los 2 archivos: Datos Personales y Configuración del Editor */
 function exportAll(){
-exportCV();
-setTimeout(()=>{exportEditorConfig();cfgToast('Se generaron 2 archivos: datos personales y configuración del Editor.');},500);
+const r=exportCV({silent:true});
+offerDownloadHelp(r.blob,r.name,[{text:'Descargar configuración del Editor',fn:()=>exportEditorConfig({silent:true})}],'Se generó el archivo de datos personales. Los navegadores bloquean las descargas automáticas múltiples, así que el segundo archivo (configuración del Editor) se descarga con su propio botón. Si la primera descarga no comenzó, tocá "Descargar de nuevo".');
 }
 
 /* ===== Configuración guardada en memoria (localStorage) ===== */
@@ -1622,7 +2060,7 @@ const o={};
 const fonts=[...document.querySelectorAll('#font-family-select option')].map(x=>x.value);
 const num=(v,a,b)=>{v=Number(v);return isFinite(v)?Math.min(b,Math.max(a,v)):null;};
 if(['compact','extended'].includes(c.preset))o.preset=c.preset;
-if(['2-col','1-col'].includes(c.layout))o.layout=c.layout;
+if(['2-col','1-col','ats'].includes(c.layout))o.layout=c.layout;
 if(fonts.includes(c.fontFamily))o.fontFamily=c.fontFamily;
 const fs=num(c.fontSize,9,15);if(fs!==null)o.fontSize=fs;
 const lh=num(c.lineHeight,1.1,1.8);if(lh!==null)o.lineHeight=lh;
@@ -1727,7 +2165,7 @@ v.style.color=alt?'#fb7185':'';
 if(l)l.textContent='(Default: '+fmt[key](d[key])+')';
 });
 }
-window.addEventListener('load',()=>{syncTypoStore();updateTypographyMarks();});
+window.addEventListener('load',()=>{syncTypoStore();updateTypographyMarks();setTimeout(updateGrowLabel,400);});
 
 /* ===== Guardar el CV como PDF o Word (.docx) directamente desde la Vista Previa ===== */
 const LIB_URLS={
@@ -1746,8 +2184,10 @@ const next=()=>{
 const u=urls.shift();
 if(!u){delete _libP[name];rej(new Error('No se pudo cargar una librería necesaria. Verificá tu conexión a internet.'));return;}
 const s=document.createElement('script');s.src=u;
-s.onload=()=>LIB_READY[name]()?res():next();
-s.onerror=()=>{s.remove();next();};
+let done=false;
+const tm=setTimeout(()=>{if(done)return;done=true;s.remove();next();},20000);
+s.onload=()=>{if(done)return;done=true;clearTimeout(tm);LIB_READY[name]()?res():next();};
+s.onerror=()=>{if(done)return;done=true;clearTimeout(tm);s.remove();next();};
 document.head.appendChild(s);
 };
 next();
@@ -1759,10 +2199,8 @@ const base=String(cvState.fullName||'CV').normalize('NFD').replace(/[\u0300-\u03
 return 'CV-'+base+'.'+ext;
 }
 function downloadBlob(blob,name){
-const url=URL.createObjectURL(blob);
-const a=document.createElement('a');a.href=url;a.download=name;
-document.body.appendChild(a);a.click();a.remove();
-setTimeout(()=>URL.revokeObjectURL(url),4000);
+triggerDownload(blob,name);
+offerDownloadHelp(blob,name);
 }
 function pageCount(){
 const paper=document.getElementById('cv-paper');
@@ -1886,7 +2324,7 @@ downloadBlob(new Blob([bytes],{type:'application/pdf'}),cvFileName('pdf'));
 const txtDecode=s=>{const t=document.createElement('textarea');t.innerHTML=String(s==null?'':s);return t.value;};
 const htmlLines=h=>{const d=document.createElement('div');d.innerHTML=String(h||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/(div|p|li)>/gi,'\n');return d.textContent.split('\n').map(s=>s.replace(/\u00a0/g,' ').trim()).filter(Boolean);};
 async function photoPng(){
-if(!cvState.showPhoto||!cvState.photoUrl)return null;
+if(cvState.layout==='ats'||!cvState.showPhoto||!cvState.photoUrl)return null;
 try{
 const img=new Image();img.crossOrigin='anonymous';
 await new Promise((ok,ko)=>{img.onload=ok;img.onerror=ko;img.src=cvState.photoUrl;});
@@ -1905,7 +2343,7 @@ const D=window.docx,pal=palettes[cvState.palette]||palettes.navy;
 const hx=c=>c.replace('#','');
 const font=(String(cvState.fontFamily).split(',')[0]||'Calibri').replace(/['"]/g,'').trim();
 const B=Math.round(cvState.fontSize*1.5),LINE=Math.round(240*cvState.lineHeight),GAP=cvState.sectionGap*15;
-const two=cvState.layout==='2-col',hidden=cvState.hiddenSections||[];
+const two=cvState.layout==='2-col',ats=cvState.layout==='ats',hidden=cvState.hiddenSections||[];
 const LW=3300,RW=10206-LW,TABW=(two?RW:10206)-(two?320:0);
 const R=(text,o)=>new D.TextRun(Object.assign({text:String(text)},o||{}));
 const P=(children,o)=>new D.Paragraph(Object.assign({children:children},o||{}));
@@ -1915,26 +2353,27 @@ const txt2=s=>txtDecode(s);
 const heading=(key,def)=>P([R(title(key,def).toUpperCase(),{bold:true,color:hx(pal.primary),size:Math.round(B*1.05)})],{spacing:{before:GAP,after:70,line:LINE},keepNext:true,border:{bottom:{style:D.BorderStyle.SINGLE,size:6,color:hx(pal.border),space:2}}});
 const tabs=w=>[{type:D.TabStopType.RIGHT,position:w}];
 const gray='64748B',dark='1F2937';
+const SEPR=sz=>R(' | ',{size:sz,color:'94A3B8'});
 const show=k=>!hidden.includes(k);
 const SEC=two
 ?{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación y Formación',courses:'Cursos y Certificaciones',references:'Referencias Laborales'}
-:{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación',courses:'Cursos',references:'Referencias'};
+:{contact:'Contacto',skillsHard:'Habilidades Técnicas',skillsSoft:'Competencias',languages:'Idiomas',profile:'Perfil Profesional',experience:'Experiencia Laboral',education:'Educación',courses:ats?'Cursos y Certificaciones':'Cursos',references:ats?'Referencias Laborales':'Referencias'};
 const blocks={
 contact:()=>{
 const items=cvState.contactItems.filter(it=>cvState.showCuil||it.type!=='cuil');
 if(!items.length)return [];
 return [heading('contact',SEC.contact)].concat(items.map(it=>P([R(txtDecode(it.value).replace(/\n+/g,' '),{size:Math.round(B*0.92),color:dark,bold:it.type==='cuil'})],{spacing:sp(0,50)})));
 },
-skillsHard:()=>cvState.skillsHard.length?[heading('skillsHard',SEC.skillsHard)].concat(cvState.skillsHard.map(s=>P([R('▪  '+txtDecode(s),{size:Math.round(B*0.92),color:dark})],{spacing:sp(0,40)}))):[],
-skillsSoft:()=>cvState.skillsSoft.length?[heading('skillsSoft',SEC.skillsSoft)].concat(cvState.skillsSoft.map(s=>P([R('•  '+txtDecode(s),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)}))):[],
-languages:()=>cvState.languages.length?[heading('languages',SEC.languages)].concat(cvState.languages.map(l=>P([R(txtDecode(l.name),{bold:true,size:Math.round(B*0.9),color:dark}),R(': '+txtDecode(l.level),{size:Math.round(B*0.9),color:gray})],{spacing:sp(0,40)}))):[],
-profile:()=>cvState.profileSummary?[heading('profile',SEC.profile),P([R(txtDecode(cvState.profileSummary),{size:Math.round(B*0.92),color:'334155'})],{alignment:D.AlignmentType.JUSTIFIED,spacing:sp(0,60)})]:[],
+skillsHard:()=>cvState.skillsHard.length?[heading('skillsHard',SEC.skillsHard)].concat(ats?[P([R(cvState.skillsHard.map(x=>txtDecode(x)).join(', '),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)})]:cvState.skillsHard.map(s=>P([R('▪  '+txtDecode(s),{size:Math.round(B*0.92),color:dark})],{spacing:sp(0,40)}))):[],
+skillsSoft:()=>cvState.skillsSoft.length?[heading('skillsSoft',SEC.skillsSoft)].concat(ats?[P([R(cvState.skillsSoft.map(x=>txtDecode(x)).join(', '),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)})]:cvState.skillsSoft.map(s=>P([R('•  '+txtDecode(s),{size:Math.round(B*0.9),color:dark})],{spacing:sp(0,40)}))):[],
+languages:()=>cvState.languages.length?[heading('languages',SEC.languages)].concat(ats?[P([].concat(...cvState.languages.map((l,i)=>(i?[SEPR(Math.round(B*0.9))]:[]).concat([R(txtDecode(l.name),{bold:true,size:Math.round(B*0.9),color:dark}),R(': '+txtDecode(l.level),{size:Math.round(B*0.9),color:gray})]))),{spacing:sp(0,40)})]:cvState.languages.map(l=>P([R(txtDecode(l.name),{bold:true,size:Math.round(B*0.9),color:dark}),R(': '+txtDecode(l.level),{size:Math.round(B*0.9),color:gray})],{spacing:sp(0,40)}))):[],
+profile:()=>cvState.profileSummary?[heading('profile',SEC.profile),P([R(txtDecode(cvState.profileSummary),{size:Math.round(B*0.92),color:'334155'})],{alignment:ats?D.AlignmentType.LEFT:D.AlignmentType.JUSTIFIED,spacing:sp(0,60)})]:[],
 experience:()=>{
 if(!cvState.experience.length)return [];
 const out=[heading('experience',SEC.experience)];
 cvState.experience.forEach((e,i)=>{
-out.push(P([R(txtDecode(e.role),{bold:true,size:Math.round(B*0.98),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?120:40,0)}));
-out.push(P([R(txtDecode(e.company),{bold:true,size:Math.round(B*0.88),color:hx(pal.primary)}),R('\t'+txtDecode(e.location),{size:Math.round(B*0.84),color:'94A3B8'})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(0,40)}));
+if(ats){const z=Math.round(B*0.92);out.push(P([R(txtDecode(e.role),{bold:true,size:Math.round(B*0.98),color:'1E293B'}),SEPR(z),R(txtDecode(e.company),{size:z,color:hx(pal.primary)}),SEPR(z),R(txtDecode(e.location),{size:Math.round(B*0.88),color:gray}),SEPR(z),R(txtDecode(e.period),{bold:true,size:Math.round(B*0.88),color:gray})],{keepNext:true,spacing:sp(i?120:40,40)}));}else{out.push(P([R(txtDecode(e.role),{bold:true,size:Math.round(B*0.98),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?120:40,0)}));
+out.push(P([R(txtDecode(e.company),{bold:true,size:Math.round(B*0.88),color:hx(pal.primary)}),R('\t'+txtDecode(e.location),{size:Math.round(B*0.84),color:'94A3B8'})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(0,40)}));}
 htmlLines(e.description).forEach(l=>out.push(P([R(l,{size:Math.round(B*0.9),color:'475569'})],{spacing:sp(0,20),indent:l.startsWith('•')?{left:200,hanging:200}:undefined})));
 });
 return out;
@@ -1943,13 +2382,14 @@ education:()=>{
 if(!cvState.education.length)return [];
 const out=[heading('education',SEC.education)];
 cvState.education.forEach((e,i)=>{
-out.push(P([R(txtDecode(e.degree),{bold:true,size:Math.round(B*0.95),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?100:40,0)}));
-out.push(P([R(txtDecode(e.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(e.status),{size:Math.round(B*0.84),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,30)}));
+if(ats){const z=Math.round(B*0.9);out.push(P([R(txtDecode(e.degree),{bold:true,size:Math.round(B*0.95),color:'1E293B'}),SEPR(z),R(txtDecode(e.institution),{size:z,color:'475569'}),SEPR(z),R(txtDecode(e.period),{bold:true,size:Math.round(B*0.86),color:gray}),SEPR(z),R(txtDecode(e.status),{size:Math.round(B*0.86),color:gray})],{spacing:sp(i?100:40,30)}));}else{out.push(P([R(txtDecode(e.degree),{bold:true,size:Math.round(B*0.95),color:'1E293B'}),R('\t'+txtDecode(e.period),{bold:true,size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),keepNext:true,spacing:sp(i?100:40,0)}));
+out.push(P([R(txtDecode(e.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(e.status),{size:Math.round(B*0.84),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,30)}));}
 });
 return out;
 },
 courses:()=>{
 if(!cvState.courses.length)return [];
+if(ats)return [heading('courses',SEC.courses)].concat(cvState.courses.map(c=>{const z=Math.round(B*0.88);return P([R(txtDecode(c.title),{bold:true,size:z,color:'1E293B'}),SEPR(z),R(txtDecode(c.institution),{size:z,color:'475569'}),SEPR(z),R(txtDecode(c.year),{size:Math.round(B*0.84),color:gray})],{spacing:sp(0,50)});}));
 return [heading('courses',SEC.courses)].concat(cvState.courses.map(c=>P([R(txtDecode(c.title),{bold:true,size:Math.round(B*0.88),color:'1E293B'}),R(' – '+txtDecode(c.institution),{size:Math.round(B*0.88),color:'475569'}),R('\t'+txtDecode(c.year),{size:Math.round(B*0.82),color:gray})],{tabStops:tabs(TABW),spacing:sp(0,50)})));
 },
 references:()=>{
@@ -1966,7 +2406,7 @@ return out;
 const build=keys=>[].concat(...keys.filter(show).map(k=>blocks[k]()));
 const nameBlock=[
 P([R(txtDecode(cvState.fullName),{bold:true,size:Math.round(B*1.85),color:hx(pal.primary)})],{spacing:{before:0,after:0,line:LINE}}),
-P([R(txtDecode(cvState.jobTitle),{bold:true,size:Math.round(B*1.1),color:'334155'})],{spacing:{before:0,after:100,line:LINE},border:{bottom:{style:D.BorderStyle.SINGLE,size:12,color:hx(pal.primary),space:4}}})
+P(txtDecode(cvState.jobTitle).split(/\r?\n/).map((l,i)=>R(l,Object.assign({bold:true,size:Math.round(B*1.1),color:'334155'},i?{break:1}:{}))),{spacing:{before:0,after:100,line:LINE},border:{bottom:{style:D.BorderStyle.SINGLE,size:12,color:hx(pal.primary),space:4}}})
 ];
 const order=cvState.sectionOrder;
 let children;
@@ -1988,10 +2428,10 @@ new D.TableCell({width:{size:RW,type:D.WidthType.DXA},borders:nb,margins:{top:60
 ]})]
 }),P([])];
 }else{
-const contact=cvState.contactItems.filter(it=>(cvState.showCuil||it.type!=='cuil')&&ctype(it).one).map(it=>txtDecode(it.value).replace(/\n+/g,' ')).join('   |   ');
+const contact=cvState.contactItems.filter(it=>(cvState.showCuil||it.type!=='cuil')&&(ats?it.type!=='birth':ctype(it).one)).map(it=>txtDecode(it.value).replace(/\n+/g,' ')).join(ats?' | ':'   |   ');
 const head=photoPara.concat(nameBlock);
 if(contact)head.push(P([R(contact,{size:Math.round(B*0.85),color:'475569'})],{spacing:sp(40,40)}));
-const keys=['profile'].concat(order.filter(k=>k!=='contact'&&(k!=='skillsSoft'||cvState.showSoftInOneCol)));
+const keys=['profile'].concat(order.filter(k=>k!=='contact'&&(k!=='skillsSoft'||cvState.showSoftInOneCol||cvState.layout==='ats')));
 children=head.concat(build(keys));
 }
 const docu=new D.Document({
@@ -2007,12 +2447,14 @@ let _saving=false;
 async function saveCVAs(fmt){
 closeSaveMenu();
 if(_saving)return;
+saveRecoveryBackup('guardar '+fmt);
 _saving=true;
 const btn=document.getElementById('btn-save-cv'),lbl=btn&&btn.querySelector('.lbl');
 if(btn){btn.disabled=true;lbl.textContent='Generando '+(fmt==='pdf'?'PDF':'Word')+'…';}
 try{
-if(fmt==='pdf')await exportPDF();else await exportDOCX();
-cfgToast('CV guardado como '+(fmt==='pdf'?'PDF':'Word (.docx)')+'.');
+const run=fmt==='pdf'?exportPDF():exportDOCX();
+await Promise.race([run,new Promise((_,rej)=>setTimeout(()=>rej(new Error('la exportación tardó demasiado. Tus datos siguen en pantalla; probá de nuevo')),150000))]);
+cfgToast('Archivo '+(fmt==='pdf'?'PDF':'Word (.docx)')+' generado.');
 }catch(err){
 console.error(err);
 cfgToast('No se pudo generar el archivo: '+(err&&err.message?err.message:'revisá tu conexión e intentá de nuevo'),true);
