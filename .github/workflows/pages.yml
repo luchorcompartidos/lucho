@@ -1,8 +1,8 @@
 name: Deploy Pages
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:   # habilita el botón "Run workflow"
+on:                      # "Ejecutar este workflow cuando…"
+  release:               # …pase algo con un Release
+    types: [published]   # …específicamente, cuando se PUBLICA un Release
+  workflow_dispatch:     # …o cuando lo ejecute yo a mano
 
 permissions:
   contents: read
